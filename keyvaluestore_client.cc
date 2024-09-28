@@ -53,8 +53,7 @@ class KeyValueStoreClient {
         return -1;
     }
 
-    int kv739_shutdown() {
-        ClientContext context;
+    void kv739_shutdown() {
         ShutdownRequest shutdown_request;
         ServerResponse response;
 
@@ -67,12 +66,15 @@ class KeyValueStoreClient {
         if (stream_->Read(&response) && response.has_shutdown_response()) {
             if (response.shutdown_response().success()) {
                 std::cout << "Client successfully shut down." << std::endl;
-                return 0;
+            } else {
+                std::cerr << "Shutdown request failed on the server." << std::endl;
             }
         }
 
-        std::cerr << "Error: Failed to shut down the client." << std::endl;
-        return -1;
+        grpc::Status status = stream_->Finish();
+        if (!status.ok()) {
+            std::cerr << "Error: Shutdown stream failed with status: " << status.error_message() << std::endl;
+        }
     }
 
     int kv739_get(const std::string& key, std::string& value) {
@@ -148,9 +150,7 @@ int main() {
     std::string retrieved_value;
     client.kv739_get(key, retrieved_value); 
 
-    if (client.kv739_shutdown() != 0) {
-        return -1;
-    }
+    client.kv739_shutdown();
 
     return 0;
 }

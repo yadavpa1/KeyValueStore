@@ -8,7 +8,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/common.cmake")
 find_package(absl CONFIG REQUIRED)
 
 # Proto file
-get_filename_component(kvs_proto "./keyvaluestore.proto" ABSOLUTE)
+get_filename_component(kvs_proto "./proto/keyvaluestore.proto" ABSOLUTE)
 get_filename_component(kvs_proto_path "${kvs_proto}" PATH)
 
 # Generated sources
