@@ -38,6 +38,8 @@ public:
             std::cerr << "init RPC failed: " << status.error_message() << std::endl;
             return false;
         }
+
+        std::cout << "Connected to Server: " << server_name << std::endl;
         return response.success();
     }
 
@@ -54,6 +56,8 @@ public:
             std::cerr << "shutdown RPC failed: " << status.error_message() << std::endl;
             return false;
         }
+
+        std::cout << "Shutting down server!" << std::endl;
         return response.success();
     }
 
@@ -72,6 +76,8 @@ public:
             std::cerr << "get RPC failed: " << status.error_message() << std::endl;
             return {"", false};
         }
+
+        std::cout << "get key: " << key << ", value: " << response.value() << std::endl;
         return {response.value(), response.key_found()};
     }
 
@@ -91,6 +97,7 @@ public:
             std::cerr << "put RPC failed: " << status.error_message() << std::endl;
             return {"", false};
         }
+        std::cout << "put key: " << key << ", value: " << value << ", old_value: " << response.old_value() << std::endl;
         return {response.old_value(), response.key_found()};
     }
 
@@ -104,7 +111,7 @@ int main(int argc, char **argv)
     KeyValueStoreClient client(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
 
     client.init("TestServer");
-    client.put("key1", "value1");
+    client.put("key100", "value100");
     client.get("key1");
     client.shutdown();
 
