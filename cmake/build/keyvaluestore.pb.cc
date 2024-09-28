@@ -43,6 +43,18 @@ struct ShutdownResponseDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ShutdownResponseDefaultTypeInternal _ShutdownResponse_default_instance_;
+      template <typename>
+PROTOBUF_CONSTEXPR ShutdownRequest::ShutdownRequest(::_pbi::ConstantInitialized) {}
+struct ShutdownRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ShutdownRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ShutdownRequestDefaultTypeInternal() {}
+  union {
+    ShutdownRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ShutdownRequestDefaultTypeInternal _ShutdownRequest_default_instance_;
 
 inline constexpr PutResponse::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -172,6 +184,46 @@ struct GetRequestDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 GetRequestDefaultTypeInternal _GetRequest_default_instance_;
+
+inline constexpr ServerResponse::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : response_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ServerResponse::ServerResponse(::_pbi::ConstantInitialized)
+    : _impl_(::_pbi::ConstantInitialized()) {}
+struct ServerResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ServerResponseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ServerResponseDefaultTypeInternal() {}
+  union {
+    ServerResponse _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ServerResponseDefaultTypeInternal _ServerResponse_default_instance_;
+
+inline constexpr ClientRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : request_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ClientRequest::ClientRequest(::_pbi::ConstantInitialized)
+    : _impl_(::_pbi::ConstantInitialized()) {}
+struct ClientRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ClientRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ClientRequestDefaultTypeInternal() {}
+  union {
+    ClientRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientRequestDefaultTypeInternal _ClientRequest_default_instance_;
 }  // namespace keyvaluestore
 static constexpr const ::_pb::EnumDescriptor**
     file_level_enum_descriptors_keyvaluestore_2eproto = nullptr;
@@ -180,6 +232,32 @@ static constexpr const ::_pb::ServiceDescriptor**
 const ::uint32_t
     TableStruct_keyvaluestore_2eproto::offsets[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
         protodesc_cold) = {
+        ~0u,  // no _has_bits_
+        PROTOBUF_FIELD_OFFSET(::keyvaluestore::ClientRequest, _internal_metadata_),
+        ~0u,  // no _extensions_
+        PROTOBUF_FIELD_OFFSET(::keyvaluestore::ClientRequest, _impl_._oneof_case_[0]),
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        ::_pbi::kInvalidFieldOffsetTag,
+        ::_pbi::kInvalidFieldOffsetTag,
+        ::_pbi::kInvalidFieldOffsetTag,
+        ::_pbi::kInvalidFieldOffsetTag,
+        PROTOBUF_FIELD_OFFSET(::keyvaluestore::ClientRequest, _impl_.request_),
+        ~0u,  // no _has_bits_
+        PROTOBUF_FIELD_OFFSET(::keyvaluestore::ServerResponse, _internal_metadata_),
+        ~0u,  // no _extensions_
+        PROTOBUF_FIELD_OFFSET(::keyvaluestore::ServerResponse, _impl_._oneof_case_[0]),
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        ::_pbi::kInvalidFieldOffsetTag,
+        ::_pbi::kInvalidFieldOffsetTag,
+        ::_pbi::kInvalidFieldOffsetTag,
+        ::_pbi::kInvalidFieldOffsetTag,
+        PROTOBUF_FIELD_OFFSET(::keyvaluestore::ServerResponse, _impl_.response_),
         ~0u,  // no _has_bits_
         PROTOBUF_FIELD_OFFSET(::keyvaluestore::InitRequest, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -238,6 +316,14 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::keyvaluestore::PutResponse, _impl_.old_value_),
         PROTOBUF_FIELD_OFFSET(::keyvaluestore::PutResponse, _impl_.key_found_),
         ~0u,  // no _has_bits_
+        PROTOBUF_FIELD_OFFSET(::keyvaluestore::ShutdownRequest, _internal_metadata_),
+        ~0u,  // no _extensions_
+        ~0u,  // no _oneof_case_
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        ~0u,  // no _has_bits_
         PROTOBUF_FIELD_OFFSET(::keyvaluestore::ShutdownResponse, _internal_metadata_),
         ~0u,  // no _extensions_
         ~0u,  // no _oneof_case_
@@ -250,57 +336,67 @@ const ::uint32_t
 
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-        {0, -1, -1, sizeof(::keyvaluestore::InitRequest)},
-        {9, -1, -1, sizeof(::keyvaluestore::InitResponse)},
-        {18, -1, -1, sizeof(::keyvaluestore::GetRequest)},
-        {27, -1, -1, sizeof(::keyvaluestore::GetResponse)},
-        {37, -1, -1, sizeof(::keyvaluestore::PutRequest)},
-        {47, -1, -1, sizeof(::keyvaluestore::PutResponse)},
-        {57, -1, -1, sizeof(::keyvaluestore::ShutdownResponse)},
+        {0, -1, -1, sizeof(::keyvaluestore::ClientRequest)},
+        {13, -1, -1, sizeof(::keyvaluestore::ServerResponse)},
+        {26, -1, -1, sizeof(::keyvaluestore::InitRequest)},
+        {35, -1, -1, sizeof(::keyvaluestore::InitResponse)},
+        {44, -1, -1, sizeof(::keyvaluestore::GetRequest)},
+        {53, -1, -1, sizeof(::keyvaluestore::GetResponse)},
+        {63, -1, -1, sizeof(::keyvaluestore::PutRequest)},
+        {73, -1, -1, sizeof(::keyvaluestore::PutResponse)},
+        {83, -1, -1, sizeof(::keyvaluestore::ShutdownRequest)},
+        {91, -1, -1, sizeof(::keyvaluestore::ShutdownResponse)},
 };
 static const ::_pb::Message* const file_default_instances[] = {
+    &::keyvaluestore::_ClientRequest_default_instance_._instance,
+    &::keyvaluestore::_ServerResponse_default_instance_._instance,
     &::keyvaluestore::_InitRequest_default_instance_._instance,
     &::keyvaluestore::_InitResponse_default_instance_._instance,
     &::keyvaluestore::_GetRequest_default_instance_._instance,
     &::keyvaluestore::_GetResponse_default_instance_._instance,
     &::keyvaluestore::_PutRequest_default_instance_._instance,
     &::keyvaluestore::_PutResponse_default_instance_._instance,
+    &::keyvaluestore::_ShutdownRequest_default_instance_._instance,
     &::keyvaluestore::_ShutdownResponse_default_instance_._instance,
 };
 const char descriptor_table_protodef_keyvaluestore_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
-    "\n\023keyvaluestore.proto\022\rkeyvaluestore\032\033go"
-    "ogle/protobuf/empty.proto\"\"\n\013InitRequest"
-    "\022\023\n\013server_name\030\001 \001(\t\"\037\n\014InitResponse\022\017\n"
-    "\007success\030\001 \001(\010\"\031\n\nGetRequest\022\013\n\003key\030\001 \001("
-    "\t\"/\n\013GetResponse\022\r\n\005value\030\001 \001(\t\022\021\n\tkey_f"
-    "ound\030\002 \001(\010\"(\n\nPutRequest\022\013\n\003key\030\001 \001(\t\022\r\n"
-    "\005value\030\002 \001(\t\"3\n\013PutResponse\022\021\n\told_value"
-    "\030\001 \001(\t\022\021\n\tkey_found\030\002 \001(\010\"#\n\020ShutdownRes"
-    "ponse\022\017\n\007success\030\001 \001(\0102\221\002\n\rKeyValueStore"
-    "\022\?\n\004Init\022\032.keyvaluestore.InitRequest\032\033.k"
-    "eyvaluestore.InitResponse\022C\n\010Shutdown\022\026."
-    "google.protobuf.Empty\032\037.keyvaluestore.Sh"
-    "utdownResponse\022<\n\003Get\022\031.keyvaluestore.Ge"
-    "tRequest\032\032.keyvaluestore.GetResponse\022<\n\003"
-    "Put\022\031.keyvaluestore.PutRequest\032\032.keyvalu"
-    "estore.PutResponseb\006proto3"
-};
-static const ::_pbi::DescriptorTable* const descriptor_table_keyvaluestore_2eproto_deps[1] =
-    {
-        &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
+    "\n\023keyvaluestore.proto\022\rkeyvaluestore\"\356\001\n"
+    "\rClientRequest\0222\n\014init_request\030\001 \001(\0132\032.k"
+    "eyvaluestore.InitRequestH\000\0220\n\013get_reques"
+    "t\030\002 \001(\0132\031.keyvaluestore.GetRequestH\000\0220\n\013"
+    "put_request\030\003 \001(\0132\031.keyvaluestore.PutReq"
+    "uestH\000\022:\n\020shutdown_request\030\004 \001(\0132\036.keyva"
+    "luestore.ShutdownRequestH\000B\t\n\007request\"\370\001"
+    "\n\016ServerResponse\0224\n\rinit_response\030\001 \001(\0132"
+    "\033.keyvaluestore.InitResponseH\000\0222\n\014get_re"
+    "sponse\030\002 \001(\0132\032.keyvaluestore.GetResponse"
+    "H\000\0222\n\014put_response\030\003 \001(\0132\032.keyvaluestore"
+    ".PutResponseH\000\022<\n\021shutdown_response\030\004 \001("
+    "\0132\037.keyvaluestore.ShutdownResponseH\000B\n\n\010"
+    "response\"\"\n\013InitRequest\022\023\n\013server_name\030\001"
+    " \001(\t\"\037\n\014InitResponse\022\017\n\007success\030\001 \001(\010\"\031\n"
+    "\nGetRequest\022\013\n\003key\030\001 \001(\t\"/\n\013GetResponse\022"
+    "\r\n\005value\030\001 \001(\t\022\021\n\tkey_found\030\002 \001(\010\"(\n\nPut"
+    "Request\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"3\n\013P"
+    "utResponse\022\021\n\told_value\030\001 \001(\t\022\021\n\tkey_fou"
+    "nd\030\002 \001(\010\"\021\n\017ShutdownRequest\"#\n\020ShutdownR"
+    "esponse\022\017\n\007success\030\001 \001(\0102a\n\rKeyValueStor"
+    "e\022P\n\rManageSession\022\034.keyvaluestore.Clien"
+    "tRequest\032\035.keyvaluestore.ServerResponse("
+    "\0010\001b\006proto3"
 };
 static ::absl::once_flag descriptor_table_keyvaluestore_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_keyvaluestore_2eproto = {
     false,
     false,
-    626,
+    931,
     descriptor_table_protodef_keyvaluestore_2eproto,
     "keyvaluestore.proto",
     &descriptor_table_keyvaluestore_2eproto_once,
-    descriptor_table_keyvaluestore_2eproto_deps,
-    1,
-    7,
+    nullptr,
+    0,
+    10,
     schemas,
     file_default_instances,
     TableStruct_keyvaluestore_2eproto::offsets,
@@ -308,6 +404,814 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_keyvaluestore_
     file_level_service_descriptors_keyvaluestore_2eproto,
 };
 namespace keyvaluestore {
+// ===================================================================
+
+class ClientRequest::_Internal {
+ public:
+  static constexpr ::int32_t kOneofCaseOffset =
+      PROTOBUF_FIELD_OFFSET(::keyvaluestore::ClientRequest, _impl_._oneof_case_);
+};
+
+void ClientRequest::set_allocated_init_request(::keyvaluestore::InitRequest* init_request) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_request();
+  if (init_request) {
+    ::google::protobuf::Arena* submessage_arena = init_request->GetArena();
+    if (message_arena != submessage_arena) {
+      init_request = ::google::protobuf::internal::GetOwnedMessage(message_arena, init_request, submessage_arena);
+    }
+    set_has_init_request();
+    _impl_.request_.init_request_ = init_request;
+  }
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.ClientRequest.init_request)
+}
+void ClientRequest::set_allocated_get_request(::keyvaluestore::GetRequest* get_request) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_request();
+  if (get_request) {
+    ::google::protobuf::Arena* submessage_arena = get_request->GetArena();
+    if (message_arena != submessage_arena) {
+      get_request = ::google::protobuf::internal::GetOwnedMessage(message_arena, get_request, submessage_arena);
+    }
+    set_has_get_request();
+    _impl_.request_.get_request_ = get_request;
+  }
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.ClientRequest.get_request)
+}
+void ClientRequest::set_allocated_put_request(::keyvaluestore::PutRequest* put_request) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_request();
+  if (put_request) {
+    ::google::protobuf::Arena* submessage_arena = put_request->GetArena();
+    if (message_arena != submessage_arena) {
+      put_request = ::google::protobuf::internal::GetOwnedMessage(message_arena, put_request, submessage_arena);
+    }
+    set_has_put_request();
+    _impl_.request_.put_request_ = put_request;
+  }
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.ClientRequest.put_request)
+}
+void ClientRequest::set_allocated_shutdown_request(::keyvaluestore::ShutdownRequest* shutdown_request) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_request();
+  if (shutdown_request) {
+    ::google::protobuf::Arena* submessage_arena = shutdown_request->GetArena();
+    if (message_arena != submessage_arena) {
+      shutdown_request = ::google::protobuf::internal::GetOwnedMessage(message_arena, shutdown_request, submessage_arena);
+    }
+    set_has_shutdown_request();
+    _impl_.request_.shutdown_request_ = shutdown_request;
+  }
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.ClientRequest.shutdown_request)
+}
+ClientRequest::ClientRequest(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:keyvaluestore.ClientRequest)
+}
+inline PROTOBUF_NDEBUG_INLINE ClientRequest::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from, const ::keyvaluestore::ClientRequest& from_msg)
+      : request_{},
+        _cached_size_{0},
+        _oneof_case_{from._oneof_case_[0]} {}
+
+ClientRequest::ClientRequest(
+    ::google::protobuf::Arena* arena,
+    const ClientRequest& from)
+    : ::google::protobuf::Message(arena) {
+  ClientRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  switch (request_case()) {
+    case REQUEST_NOT_SET:
+      break;
+      case kInitRequest:
+        _impl_.request_.init_request_ = ::google::protobuf::Message::CopyConstruct<::keyvaluestore::InitRequest>(arena, *from._impl_.request_.init_request_);
+        break;
+      case kGetRequest:
+        _impl_.request_.get_request_ = ::google::protobuf::Message::CopyConstruct<::keyvaluestore::GetRequest>(arena, *from._impl_.request_.get_request_);
+        break;
+      case kPutRequest:
+        _impl_.request_.put_request_ = ::google::protobuf::Message::CopyConstruct<::keyvaluestore::PutRequest>(arena, *from._impl_.request_.put_request_);
+        break;
+      case kShutdownRequest:
+        _impl_.request_.shutdown_request_ = ::google::protobuf::Message::CopyConstruct<::keyvaluestore::ShutdownRequest>(arena, *from._impl_.request_.shutdown_request_);
+        break;
+  }
+
+  // @@protoc_insertion_point(copy_constructor:keyvaluestore.ClientRequest)
+}
+inline PROTOBUF_NDEBUG_INLINE ClientRequest::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : request_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
+
+inline void ClientRequest::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+ClientRequest::~ClientRequest() {
+  // @@protoc_insertion_point(destructor:keyvaluestore.ClientRequest)
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  SharedDtor();
+}
+inline void ClientRequest::SharedDtor() {
+  ABSL_DCHECK(GetArena() == nullptr);
+  if (has_request()) {
+    clear_request();
+  }
+  _impl_.~Impl_();
+}
+
+void ClientRequest::clear_request() {
+// @@protoc_insertion_point(one_of_clear_start:keyvaluestore.ClientRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  switch (request_case()) {
+    case kInitRequest: {
+      if (GetArena() == nullptr) {
+        delete _impl_.request_.init_request_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.request_.init_request_);
+      }
+      break;
+    }
+    case kGetRequest: {
+      if (GetArena() == nullptr) {
+        delete _impl_.request_.get_request_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.request_.get_request_);
+      }
+      break;
+    }
+    case kPutRequest: {
+      if (GetArena() == nullptr) {
+        delete _impl_.request_.put_request_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.request_.put_request_);
+      }
+      break;
+    }
+    case kShutdownRequest: {
+      if (GetArena() == nullptr) {
+        delete _impl_.request_.shutdown_request_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.request_.shutdown_request_);
+      }
+      break;
+    }
+    case REQUEST_NOT_SET: {
+      break;
+    }
+  }
+  _impl_._oneof_case_[0] = REQUEST_NOT_SET;
+}
+
+
+const ::google::protobuf::MessageLite::ClassData*
+ClientRequest::GetClassData() const {
+  PROTOBUF_CONSTINIT static const ::google::protobuf::MessageLite::
+      ClassDataFull _data_ = {
+          {
+              &_table_.header,
+              nullptr,  // OnDemandRegisterArenaDtor
+              nullptr,  // IsInitialized
+              PROTOBUF_FIELD_OFFSET(ClientRequest, _impl_._cached_size_),
+              false,
+          },
+          &ClientRequest::MergeImpl,
+          &ClientRequest::kDescriptorMethods,
+          &descriptor_table_keyvaluestore_2eproto,
+          nullptr,  // tracker
+      };
+  ::google::protobuf::internal::PrefetchToLocalCache(&_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(_data_.tc_table);
+  return _data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 4, 4, 0, 2> ClientRequest::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    4, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967280,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    4,  // num_field_entries
+    4,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    &_ClientRequest_default_instance_._instance,
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::keyvaluestore::ClientRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // .keyvaluestore.InitRequest init_request = 1;
+    {PROTOBUF_FIELD_OFFSET(ClientRequest, _impl_.request_.init_request_), _Internal::kOneofCaseOffset + 0, 0,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .keyvaluestore.GetRequest get_request = 2;
+    {PROTOBUF_FIELD_OFFSET(ClientRequest, _impl_.request_.get_request_), _Internal::kOneofCaseOffset + 0, 1,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .keyvaluestore.PutRequest put_request = 3;
+    {PROTOBUF_FIELD_OFFSET(ClientRequest, _impl_.request_.put_request_), _Internal::kOneofCaseOffset + 0, 2,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .keyvaluestore.ShutdownRequest shutdown_request = 4;
+    {PROTOBUF_FIELD_OFFSET(ClientRequest, _impl_.request_.shutdown_request_), _Internal::kOneofCaseOffset + 0, 3,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+  }}, {{
+    {::_pbi::TcParser::GetTable<::keyvaluestore::InitRequest>()},
+    {::_pbi::TcParser::GetTable<::keyvaluestore::GetRequest>()},
+    {::_pbi::TcParser::GetTable<::keyvaluestore::PutRequest>()},
+    {::_pbi::TcParser::GetTable<::keyvaluestore::ShutdownRequest>()},
+  }}, {{
+  }},
+};
+
+PROTOBUF_NOINLINE void ClientRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:keyvaluestore.ClientRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  clear_request();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+::uint8_t* ClientRequest::_InternalSerialize(
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:keyvaluestore.ClientRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  switch (request_case()) {
+    case kInitRequest: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          1, *_impl_.request_.init_request_, _impl_.request_.init_request_->GetCachedSize(), target, stream);
+      break;
+    }
+    case kGetRequest: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          2, *_impl_.request_.get_request_, _impl_.request_.get_request_->GetCachedSize(), target, stream);
+      break;
+    }
+    case kPutRequest: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          3, *_impl_.request_.put_request_, _impl_.request_.put_request_->GetCachedSize(), target, stream);
+      break;
+    }
+    case kShutdownRequest: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          4, *_impl_.request_.shutdown_request_, _impl_.request_.shutdown_request_->GetCachedSize(), target, stream);
+      break;
+    }
+    default:
+      break;
+  }
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:keyvaluestore.ClientRequest)
+  return target;
+}
+
+::size_t ClientRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:keyvaluestore.ClientRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  switch (request_case()) {
+    // .keyvaluestore.InitRequest init_request = 1;
+    case kInitRequest: {
+      total_size +=
+          1 + ::google::protobuf::internal::WireFormatLite::MessageSize(*_impl_.request_.init_request_);
+      break;
+    }
+    // .keyvaluestore.GetRequest get_request = 2;
+    case kGetRequest: {
+      total_size +=
+          1 + ::google::protobuf::internal::WireFormatLite::MessageSize(*_impl_.request_.get_request_);
+      break;
+    }
+    // .keyvaluestore.PutRequest put_request = 3;
+    case kPutRequest: {
+      total_size +=
+          1 + ::google::protobuf::internal::WireFormatLite::MessageSize(*_impl_.request_.put_request_);
+      break;
+    }
+    // .keyvaluestore.ShutdownRequest shutdown_request = 4;
+    case kShutdownRequest: {
+      total_size +=
+          1 + ::google::protobuf::internal::WireFormatLite::MessageSize(*_impl_.request_.shutdown_request_);
+      break;
+    }
+    case REQUEST_NOT_SET: {
+      break;
+    }
+  }
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+
+void ClientRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<ClientRequest*>(&to_msg);
+  auto& from = static_cast<const ClientRequest&>(from_msg);
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:keyvaluestore.ClientRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (const uint32_t oneof_from_case = from._impl_._oneof_case_[0]) {
+    const uint32_t oneof_to_case = _this->_impl_._oneof_case_[0];
+    const bool oneof_needs_init = oneof_to_case != oneof_from_case;
+    if (oneof_needs_init) {
+      if (oneof_to_case != 0) {
+        _this->clear_request();
+      }
+      _this->_impl_._oneof_case_[0] = oneof_from_case;
+    }
+
+    switch (oneof_from_case) {
+      case kInitRequest: {
+        if (oneof_needs_init) {
+          _this->_impl_.request_.init_request_ =
+              ::google::protobuf::Message::CopyConstruct<::keyvaluestore::InitRequest>(arena, *from._impl_.request_.init_request_);
+        } else {
+          _this->_impl_.request_.init_request_->MergeFrom(from._internal_init_request());
+        }
+        break;
+      }
+      case kGetRequest: {
+        if (oneof_needs_init) {
+          _this->_impl_.request_.get_request_ =
+              ::google::protobuf::Message::CopyConstruct<::keyvaluestore::GetRequest>(arena, *from._impl_.request_.get_request_);
+        } else {
+          _this->_impl_.request_.get_request_->MergeFrom(from._internal_get_request());
+        }
+        break;
+      }
+      case kPutRequest: {
+        if (oneof_needs_init) {
+          _this->_impl_.request_.put_request_ =
+              ::google::protobuf::Message::CopyConstruct<::keyvaluestore::PutRequest>(arena, *from._impl_.request_.put_request_);
+        } else {
+          _this->_impl_.request_.put_request_->MergeFrom(from._internal_put_request());
+        }
+        break;
+      }
+      case kShutdownRequest: {
+        if (oneof_needs_init) {
+          _this->_impl_.request_.shutdown_request_ =
+              ::google::protobuf::Message::CopyConstruct<::keyvaluestore::ShutdownRequest>(arena, *from._impl_.request_.shutdown_request_);
+        } else {
+          _this->_impl_.request_.shutdown_request_->MergeFrom(from._internal_shutdown_request());
+        }
+        break;
+      }
+      case REQUEST_NOT_SET:
+        break;
+    }
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ClientRequest::CopyFrom(const ClientRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:keyvaluestore.ClientRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ClientRequest::InternalSwap(ClientRequest* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_.request_, other->_impl_.request_);
+  swap(_impl_._oneof_case_[0], other->_impl_._oneof_case_[0]);
+}
+
+::google::protobuf::Metadata ClientRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ServerResponse::_Internal {
+ public:
+  static constexpr ::int32_t kOneofCaseOffset =
+      PROTOBUF_FIELD_OFFSET(::keyvaluestore::ServerResponse, _impl_._oneof_case_);
+};
+
+void ServerResponse::set_allocated_init_response(::keyvaluestore::InitResponse* init_response) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_response();
+  if (init_response) {
+    ::google::protobuf::Arena* submessage_arena = init_response->GetArena();
+    if (message_arena != submessage_arena) {
+      init_response = ::google::protobuf::internal::GetOwnedMessage(message_arena, init_response, submessage_arena);
+    }
+    set_has_init_response();
+    _impl_.response_.init_response_ = init_response;
+  }
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.ServerResponse.init_response)
+}
+void ServerResponse::set_allocated_get_response(::keyvaluestore::GetResponse* get_response) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_response();
+  if (get_response) {
+    ::google::protobuf::Arena* submessage_arena = get_response->GetArena();
+    if (message_arena != submessage_arena) {
+      get_response = ::google::protobuf::internal::GetOwnedMessage(message_arena, get_response, submessage_arena);
+    }
+    set_has_get_response();
+    _impl_.response_.get_response_ = get_response;
+  }
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.ServerResponse.get_response)
+}
+void ServerResponse::set_allocated_put_response(::keyvaluestore::PutResponse* put_response) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_response();
+  if (put_response) {
+    ::google::protobuf::Arena* submessage_arena = put_response->GetArena();
+    if (message_arena != submessage_arena) {
+      put_response = ::google::protobuf::internal::GetOwnedMessage(message_arena, put_response, submessage_arena);
+    }
+    set_has_put_response();
+    _impl_.response_.put_response_ = put_response;
+  }
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.ServerResponse.put_response)
+}
+void ServerResponse::set_allocated_shutdown_response(::keyvaluestore::ShutdownResponse* shutdown_response) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_response();
+  if (shutdown_response) {
+    ::google::protobuf::Arena* submessage_arena = shutdown_response->GetArena();
+    if (message_arena != submessage_arena) {
+      shutdown_response = ::google::protobuf::internal::GetOwnedMessage(message_arena, shutdown_response, submessage_arena);
+    }
+    set_has_shutdown_response();
+    _impl_.response_.shutdown_response_ = shutdown_response;
+  }
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.ServerResponse.shutdown_response)
+}
+ServerResponse::ServerResponse(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:keyvaluestore.ServerResponse)
+}
+inline PROTOBUF_NDEBUG_INLINE ServerResponse::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from, const ::keyvaluestore::ServerResponse& from_msg)
+      : response_{},
+        _cached_size_{0},
+        _oneof_case_{from._oneof_case_[0]} {}
+
+ServerResponse::ServerResponse(
+    ::google::protobuf::Arena* arena,
+    const ServerResponse& from)
+    : ::google::protobuf::Message(arena) {
+  ServerResponse* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  switch (response_case()) {
+    case RESPONSE_NOT_SET:
+      break;
+      case kInitResponse:
+        _impl_.response_.init_response_ = ::google::protobuf::Message::CopyConstruct<::keyvaluestore::InitResponse>(arena, *from._impl_.response_.init_response_);
+        break;
+      case kGetResponse:
+        _impl_.response_.get_response_ = ::google::protobuf::Message::CopyConstruct<::keyvaluestore::GetResponse>(arena, *from._impl_.response_.get_response_);
+        break;
+      case kPutResponse:
+        _impl_.response_.put_response_ = ::google::protobuf::Message::CopyConstruct<::keyvaluestore::PutResponse>(arena, *from._impl_.response_.put_response_);
+        break;
+      case kShutdownResponse:
+        _impl_.response_.shutdown_response_ = ::google::protobuf::Message::CopyConstruct<::keyvaluestore::ShutdownResponse>(arena, *from._impl_.response_.shutdown_response_);
+        break;
+  }
+
+  // @@protoc_insertion_point(copy_constructor:keyvaluestore.ServerResponse)
+}
+inline PROTOBUF_NDEBUG_INLINE ServerResponse::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : response_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
+
+inline void ServerResponse::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+ServerResponse::~ServerResponse() {
+  // @@protoc_insertion_point(destructor:keyvaluestore.ServerResponse)
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  SharedDtor();
+}
+inline void ServerResponse::SharedDtor() {
+  ABSL_DCHECK(GetArena() == nullptr);
+  if (has_response()) {
+    clear_response();
+  }
+  _impl_.~Impl_();
+}
+
+void ServerResponse::clear_response() {
+// @@protoc_insertion_point(one_of_clear_start:keyvaluestore.ServerResponse)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  switch (response_case()) {
+    case kInitResponse: {
+      if (GetArena() == nullptr) {
+        delete _impl_.response_.init_response_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.response_.init_response_);
+      }
+      break;
+    }
+    case kGetResponse: {
+      if (GetArena() == nullptr) {
+        delete _impl_.response_.get_response_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.response_.get_response_);
+      }
+      break;
+    }
+    case kPutResponse: {
+      if (GetArena() == nullptr) {
+        delete _impl_.response_.put_response_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.response_.put_response_);
+      }
+      break;
+    }
+    case kShutdownResponse: {
+      if (GetArena() == nullptr) {
+        delete _impl_.response_.shutdown_response_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.response_.shutdown_response_);
+      }
+      break;
+    }
+    case RESPONSE_NOT_SET: {
+      break;
+    }
+  }
+  _impl_._oneof_case_[0] = RESPONSE_NOT_SET;
+}
+
+
+const ::google::protobuf::MessageLite::ClassData*
+ServerResponse::GetClassData() const {
+  PROTOBUF_CONSTINIT static const ::google::protobuf::MessageLite::
+      ClassDataFull _data_ = {
+          {
+              &_table_.header,
+              nullptr,  // OnDemandRegisterArenaDtor
+              nullptr,  // IsInitialized
+              PROTOBUF_FIELD_OFFSET(ServerResponse, _impl_._cached_size_),
+              false,
+          },
+          &ServerResponse::MergeImpl,
+          &ServerResponse::kDescriptorMethods,
+          &descriptor_table_keyvaluestore_2eproto,
+          nullptr,  // tracker
+      };
+  ::google::protobuf::internal::PrefetchToLocalCache(&_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(_data_.tc_table);
+  return _data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 4, 4, 0, 2> ServerResponse::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    4, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967280,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    4,  // num_field_entries
+    4,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    &_ServerResponse_default_instance_._instance,
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::keyvaluestore::ServerResponse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // .keyvaluestore.InitResponse init_response = 1;
+    {PROTOBUF_FIELD_OFFSET(ServerResponse, _impl_.response_.init_response_), _Internal::kOneofCaseOffset + 0, 0,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .keyvaluestore.GetResponse get_response = 2;
+    {PROTOBUF_FIELD_OFFSET(ServerResponse, _impl_.response_.get_response_), _Internal::kOneofCaseOffset + 0, 1,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .keyvaluestore.PutResponse put_response = 3;
+    {PROTOBUF_FIELD_OFFSET(ServerResponse, _impl_.response_.put_response_), _Internal::kOneofCaseOffset + 0, 2,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .keyvaluestore.ShutdownResponse shutdown_response = 4;
+    {PROTOBUF_FIELD_OFFSET(ServerResponse, _impl_.response_.shutdown_response_), _Internal::kOneofCaseOffset + 0, 3,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+  }}, {{
+    {::_pbi::TcParser::GetTable<::keyvaluestore::InitResponse>()},
+    {::_pbi::TcParser::GetTable<::keyvaluestore::GetResponse>()},
+    {::_pbi::TcParser::GetTable<::keyvaluestore::PutResponse>()},
+    {::_pbi::TcParser::GetTable<::keyvaluestore::ShutdownResponse>()},
+  }}, {{
+  }},
+};
+
+PROTOBUF_NOINLINE void ServerResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:keyvaluestore.ServerResponse)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  clear_response();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+::uint8_t* ServerResponse::_InternalSerialize(
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:keyvaluestore.ServerResponse)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  switch (response_case()) {
+    case kInitResponse: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          1, *_impl_.response_.init_response_, _impl_.response_.init_response_->GetCachedSize(), target, stream);
+      break;
+    }
+    case kGetResponse: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          2, *_impl_.response_.get_response_, _impl_.response_.get_response_->GetCachedSize(), target, stream);
+      break;
+    }
+    case kPutResponse: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          3, *_impl_.response_.put_response_, _impl_.response_.put_response_->GetCachedSize(), target, stream);
+      break;
+    }
+    case kShutdownResponse: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          4, *_impl_.response_.shutdown_response_, _impl_.response_.shutdown_response_->GetCachedSize(), target, stream);
+      break;
+    }
+    default:
+      break;
+  }
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:keyvaluestore.ServerResponse)
+  return target;
+}
+
+::size_t ServerResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:keyvaluestore.ServerResponse)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  switch (response_case()) {
+    // .keyvaluestore.InitResponse init_response = 1;
+    case kInitResponse: {
+      total_size +=
+          1 + ::google::protobuf::internal::WireFormatLite::MessageSize(*_impl_.response_.init_response_);
+      break;
+    }
+    // .keyvaluestore.GetResponse get_response = 2;
+    case kGetResponse: {
+      total_size +=
+          1 + ::google::protobuf::internal::WireFormatLite::MessageSize(*_impl_.response_.get_response_);
+      break;
+    }
+    // .keyvaluestore.PutResponse put_response = 3;
+    case kPutResponse: {
+      total_size +=
+          1 + ::google::protobuf::internal::WireFormatLite::MessageSize(*_impl_.response_.put_response_);
+      break;
+    }
+    // .keyvaluestore.ShutdownResponse shutdown_response = 4;
+    case kShutdownResponse: {
+      total_size +=
+          1 + ::google::protobuf::internal::WireFormatLite::MessageSize(*_impl_.response_.shutdown_response_);
+      break;
+    }
+    case RESPONSE_NOT_SET: {
+      break;
+    }
+  }
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+
+void ServerResponse::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<ServerResponse*>(&to_msg);
+  auto& from = static_cast<const ServerResponse&>(from_msg);
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:keyvaluestore.ServerResponse)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (const uint32_t oneof_from_case = from._impl_._oneof_case_[0]) {
+    const uint32_t oneof_to_case = _this->_impl_._oneof_case_[0];
+    const bool oneof_needs_init = oneof_to_case != oneof_from_case;
+    if (oneof_needs_init) {
+      if (oneof_to_case != 0) {
+        _this->clear_response();
+      }
+      _this->_impl_._oneof_case_[0] = oneof_from_case;
+    }
+
+    switch (oneof_from_case) {
+      case kInitResponse: {
+        if (oneof_needs_init) {
+          _this->_impl_.response_.init_response_ =
+              ::google::protobuf::Message::CopyConstruct<::keyvaluestore::InitResponse>(arena, *from._impl_.response_.init_response_);
+        } else {
+          _this->_impl_.response_.init_response_->MergeFrom(from._internal_init_response());
+        }
+        break;
+      }
+      case kGetResponse: {
+        if (oneof_needs_init) {
+          _this->_impl_.response_.get_response_ =
+              ::google::protobuf::Message::CopyConstruct<::keyvaluestore::GetResponse>(arena, *from._impl_.response_.get_response_);
+        } else {
+          _this->_impl_.response_.get_response_->MergeFrom(from._internal_get_response());
+        }
+        break;
+      }
+      case kPutResponse: {
+        if (oneof_needs_init) {
+          _this->_impl_.response_.put_response_ =
+              ::google::protobuf::Message::CopyConstruct<::keyvaluestore::PutResponse>(arena, *from._impl_.response_.put_response_);
+        } else {
+          _this->_impl_.response_.put_response_->MergeFrom(from._internal_put_response());
+        }
+        break;
+      }
+      case kShutdownResponse: {
+        if (oneof_needs_init) {
+          _this->_impl_.response_.shutdown_response_ =
+              ::google::protobuf::Message::CopyConstruct<::keyvaluestore::ShutdownResponse>(arena, *from._impl_.response_.shutdown_response_);
+        } else {
+          _this->_impl_.response_.shutdown_response_->MergeFrom(from._internal_shutdown_response());
+        }
+        break;
+      }
+      case RESPONSE_NOT_SET:
+        break;
+    }
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ServerResponse::CopyFrom(const ServerResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:keyvaluestore.ServerResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ServerResponse::InternalSwap(ServerResponse* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_.response_, other->_impl_.response_);
+  swap(_impl_._oneof_case_[0], other->_impl_._oneof_case_[0]);
+}
+
+::google::protobuf::Metadata ServerResponse::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
 // ===================================================================
 
 class InitRequest::_Internal {
@@ -1520,6 +2424,87 @@ void PutResponse::InternalSwap(PutResponse* PROTOBUF_RESTRICT other) {
 
 ::google::protobuf::Metadata PutResponse::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ShutdownRequest::_Internal {
+ public:
+};
+
+ShutdownRequest::ShutdownRequest(::google::protobuf::Arena* arena)
+    : ::google::protobuf::internal::ZeroFieldsBase(arena) {
+  // @@protoc_insertion_point(arena_constructor:keyvaluestore.ShutdownRequest)
+}
+ShutdownRequest::ShutdownRequest(
+    ::google::protobuf::Arena* arena,
+    const ShutdownRequest& from)
+    : ::google::protobuf::internal::ZeroFieldsBase(arena) {
+  ShutdownRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+
+  // @@protoc_insertion_point(copy_constructor:keyvaluestore.ShutdownRequest)
+}
+
+const ::google::protobuf::MessageLite::ClassData*
+ShutdownRequest::GetClassData() const {
+  PROTOBUF_CONSTINIT static const ::google::protobuf::MessageLite::
+      ClassDataFull _data_ = {
+          {
+              &_table_.header,
+              nullptr,  // OnDemandRegisterArenaDtor
+              nullptr,  // IsInitialized
+              PROTOBUF_FIELD_OFFSET(ShutdownRequest, _impl_._cached_size_),
+              false,
+          },
+          &ShutdownRequest::MergeImpl,
+          &ShutdownRequest::kDescriptorMethods,
+          &descriptor_table_keyvaluestore_2eproto,
+          nullptr,  // tracker
+      };
+  ::google::protobuf::internal::PrefetchToLocalCache(&_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(_data_.tc_table);
+  return _data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 0, 0, 0, 2> ShutdownRequest::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    0, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967295,  // skipmap
+    offsetof(decltype(_table_), field_names),  // no field_entries
+    0,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    &_ShutdownRequest_default_instance_._instance,
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::keyvaluestore::ShutdownRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }},
+  // no field_entries, or aux_entries
+  {{
+  }},
+};
+
+
+
+
+
+
+
+
+
+::google::protobuf::Metadata ShutdownRequest::GetMetadata() const {
+  return ::google::protobuf::internal::ZeroFieldsBase::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================
 

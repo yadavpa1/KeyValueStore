@@ -2,9 +2,8 @@ syntax = "proto3";
 
 package keyvaluestore;
 
-// Interface exported by the server.
 service KeyValueStore {
-    rpc ManageSession(stream ClientRequest) returns (stream ServerResponse);
+    rpc manage_session(stream ClientRequest) returns (stream ServerResponse);
 }
 
 message ClientRequest {

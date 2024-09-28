@@ -20,6 +20,7 @@
 #include "google/protobuf/io/coded_stream.h"
 #include "google/protobuf/arena.h"
 #include "google/protobuf/arenastring.h"
+#include "google/protobuf/generated_message_bases.h"
 #include "google/protobuf/generated_message_tctable_decl.h"
 #include "google/protobuf/generated_message_util.h"
 #include "google/protobuf/metadata_lite.h"
@@ -28,7 +29,6 @@
 #include "google/protobuf/repeated_field.h"  // IWYU pragma: export
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/unknown_field_set.h"
-#include "google/protobuf/empty.pb.h"
 // @@protoc_insertion_point(includes)
 
 // Must be included last.
@@ -51,6 +51,9 @@ struct TableStruct_keyvaluestore_2eproto {
 extern const ::google::protobuf::internal::DescriptorTable
     descriptor_table_keyvaluestore_2eproto;
 namespace keyvaluestore {
+class ClientRequest;
+struct ClientRequestDefaultTypeInternal;
+extern ClientRequestDefaultTypeInternal _ClientRequest_default_instance_;
 class GetRequest;
 struct GetRequestDefaultTypeInternal;
 extern GetRequestDefaultTypeInternal _GetRequest_default_instance_;
@@ -69,6 +72,12 @@ extern PutRequestDefaultTypeInternal _PutRequest_default_instance_;
 class PutResponse;
 struct PutResponseDefaultTypeInternal;
 extern PutResponseDefaultTypeInternal _PutResponse_default_instance_;
+class ServerResponse;
+struct ServerResponseDefaultTypeInternal;
+extern ServerResponseDefaultTypeInternal _ServerResponse_default_instance_;
+class ShutdownRequest;
+struct ShutdownRequestDefaultTypeInternal;
+extern ShutdownRequestDefaultTypeInternal _ShutdownRequest_default_instance_;
 class ShutdownResponse;
 struct ShutdownResponseDefaultTypeInternal;
 extern ShutdownResponseDefaultTypeInternal _ShutdownResponse_default_instance_;
@@ -140,7 +149,7 @@ class ShutdownResponse final : public ::google::protobuf::Message
     return reinterpret_cast<const ShutdownResponse*>(
         &_ShutdownResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(ShutdownResponse& a, ShutdownResponse& b) { a.Swap(&b); }
   inline void Swap(ShutdownResponse* other) {
     if (other == this) return;
@@ -256,6 +265,148 @@ class ShutdownResponse final : public ::google::protobuf::Message
 };
 // -------------------------------------------------------------------
 
+class ShutdownRequest final : public ::google::protobuf::internal::ZeroFieldsBase
+/* @@protoc_insertion_point(class_definition:keyvaluestore.ShutdownRequest) */ {
+ public:
+  inline ShutdownRequest() : ShutdownRequest(nullptr) {}
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ShutdownRequest(
+      ::google::protobuf::internal::ConstantInitialized);
+
+  inline ShutdownRequest(const ShutdownRequest& from) : ShutdownRequest(nullptr, from) {}
+  inline ShutdownRequest(ShutdownRequest&& from) noexcept
+      : ShutdownRequest(nullptr, std::move(from)) {}
+  inline ShutdownRequest& operator=(const ShutdownRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ShutdownRequest& operator=(ShutdownRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+#ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+#endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ShutdownRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ShutdownRequest* internal_default_instance() {
+    return reinterpret_cast<const ShutdownRequest*>(
+        &_ShutdownRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 8;
+  friend void swap(ShutdownRequest& a, ShutdownRequest& b) { a.Swap(&b); }
+  inline void Swap(ShutdownRequest* other) {
+    if (other == this) return;
+#ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr && GetArena() == other->GetArena()) {
+#else   // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+#endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ShutdownRequest* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ShutdownRequest* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return ::google::protobuf::internal::ZeroFieldsBase::DefaultConstruct<ShutdownRequest>(arena);
+  }
+  using ::google::protobuf::internal::ZeroFieldsBase::CopyFrom;
+  inline void CopyFrom(const ShutdownRequest& from) {
+    ::google::protobuf::internal::ZeroFieldsBase::CopyImpl(*this, from);
+  }
+  using ::google::protobuf::internal::ZeroFieldsBase::MergeFrom;
+  void MergeFrom(const ShutdownRequest& from) {
+    ::google::protobuf::internal::ZeroFieldsBase::MergeImpl(*this, from);
+  }
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+ private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() { return "keyvaluestore.ShutdownRequest"; }
+
+ protected:
+  explicit ShutdownRequest(::google::protobuf::Arena* arena);
+  ShutdownRequest(::google::protobuf::Arena* arena, const ShutdownRequest& from);
+  ShutdownRequest(::google::protobuf::Arena* arena, ShutdownRequest&& from) noexcept
+      : ShutdownRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ZeroFieldsBase::ClassData* GetClassData() const final;
+
+ public:
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  // @@protoc_insertion_point(class_scope:keyvaluestore.ShutdownRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      0, 0, 0,
+      0, 2>
+      _table_;
+
+  static constexpr const void* _raw_default_instance_ =
+      &_ShutdownRequest_default_instance_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(
+        ::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena);
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena, const Impl_& from,
+                          const ShutdownRequest& from_msg);
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  friend struct ::TableStruct_keyvaluestore_2eproto;
+};
+// -------------------------------------------------------------------
+
 class PutResponse final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:keyvaluestore.PutResponse) */ {
  public:
@@ -311,7 +462,7 @@ class PutResponse final : public ::google::protobuf::Message
     return reinterpret_cast<const PutResponse*>(
         &_PutResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(PutResponse& a, PutResponse& b) { a.Swap(&b); }
   inline void Swap(PutResponse* other) {
     if (other == this) return;
@@ -500,7 +651,7 @@ class PutRequest final : public ::google::protobuf::Message
     return reinterpret_cast<const PutRequest*>(
         &_PutRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 6;
   friend void swap(PutRequest& a, PutRequest& b) { a.Swap(&b); }
   inline void Swap(PutRequest* other) {
     if (other == this) return;
@@ -695,7 +846,7 @@ class InitResponse final : public ::google::protobuf::Message
     return reinterpret_cast<const InitResponse*>(
         &_InitResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 1;
+  static constexpr int kIndexInFileMessages = 3;
   friend void swap(InitResponse& a, InitResponse& b) { a.Swap(&b); }
   inline void Swap(InitResponse* other) {
     if (other == this) return;
@@ -866,7 +1017,7 @@ class InitRequest final : public ::google::protobuf::Message
     return reinterpret_cast<const InitRequest*>(
         &_InitRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 0;
+  static constexpr int kIndexInFileMessages = 2;
   friend void swap(InitRequest& a, InitRequest& b) { a.Swap(&b); }
   inline void Swap(InitRequest* other) {
     if (other == this) return;
@@ -1043,7 +1194,7 @@ class GetResponse final : public ::google::protobuf::Message
     return reinterpret_cast<const GetResponse*>(
         &_GetResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(GetResponse& a, GetResponse& b) { a.Swap(&b); }
   inline void Swap(GetResponse* other) {
     if (other == this) return;
@@ -1232,7 +1383,7 @@ class GetRequest final : public ::google::protobuf::Message
     return reinterpret_cast<const GetRequest*>(
         &_GetRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 2;
+  static constexpr int kIndexInFileMessages = 4;
   friend void swap(GetRequest& a, GetRequest& b) { a.Swap(&b); }
   inline void Swap(GetRequest* other) {
     if (other == this) return;
@@ -1352,6 +1503,532 @@ class GetRequest final : public ::google::protobuf::Message
   union { Impl_ _impl_; };
   friend struct ::TableStruct_keyvaluestore_2eproto;
 };
+// -------------------------------------------------------------------
+
+class ServerResponse final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:keyvaluestore.ServerResponse) */ {
+ public:
+  inline ServerResponse() : ServerResponse(nullptr) {}
+  ~ServerResponse() override;
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ServerResponse(
+      ::google::protobuf::internal::ConstantInitialized);
+
+  inline ServerResponse(const ServerResponse& from) : ServerResponse(nullptr, from) {}
+  inline ServerResponse(ServerResponse&& from) noexcept
+      : ServerResponse(nullptr, std::move(from)) {}
+  inline ServerResponse& operator=(const ServerResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ServerResponse& operator=(ServerResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+#ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+#endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ServerResponse& default_instance() {
+    return *internal_default_instance();
+  }
+  enum ResponseCase {
+    kInitResponse = 1,
+    kGetResponse = 2,
+    kPutResponse = 3,
+    kShutdownResponse = 4,
+    RESPONSE_NOT_SET = 0,
+  };
+  static inline const ServerResponse* internal_default_instance() {
+    return reinterpret_cast<const ServerResponse*>(
+        &_ServerResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 1;
+  friend void swap(ServerResponse& a, ServerResponse& b) { a.Swap(&b); }
+  inline void Swap(ServerResponse* other) {
+    if (other == this) return;
+#ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr && GetArena() == other->GetArena()) {
+#else   // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+#endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ServerResponse* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ServerResponse* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return ::google::protobuf::Message::DefaultConstruct<ServerResponse>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ServerResponse& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ServerResponse& from) { ServerResponse::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(
+      ::google::protobuf::MessageLite& to_msg,
+      const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() final;
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target,
+      ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(ServerResponse* other);
+ private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() { return "keyvaluestore.ServerResponse"; }
+
+ protected:
+  explicit ServerResponse(::google::protobuf::Arena* arena);
+  ServerResponse(::google::protobuf::Arena* arena, const ServerResponse& from);
+  ServerResponse(::google::protobuf::Arena* arena, ServerResponse&& from) noexcept
+      : ServerResponse(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::Message::ClassData* GetClassData() const final;
+
+ public:
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kInitResponseFieldNumber = 1,
+    kGetResponseFieldNumber = 2,
+    kPutResponseFieldNumber = 3,
+    kShutdownResponseFieldNumber = 4,
+  };
+  // .keyvaluestore.InitResponse init_response = 1;
+  bool has_init_response() const;
+  private:
+  bool _internal_has_init_response() const;
+
+  public:
+  void clear_init_response() ;
+  const ::keyvaluestore::InitResponse& init_response() const;
+  PROTOBUF_NODISCARD ::keyvaluestore::InitResponse* release_init_response();
+  ::keyvaluestore::InitResponse* mutable_init_response();
+  void set_allocated_init_response(::keyvaluestore::InitResponse* value);
+  void unsafe_arena_set_allocated_init_response(::keyvaluestore::InitResponse* value);
+  ::keyvaluestore::InitResponse* unsafe_arena_release_init_response();
+
+  private:
+  const ::keyvaluestore::InitResponse& _internal_init_response() const;
+  ::keyvaluestore::InitResponse* _internal_mutable_init_response();
+
+  public:
+  // .keyvaluestore.GetResponse get_response = 2;
+  bool has_get_response() const;
+  private:
+  bool _internal_has_get_response() const;
+
+  public:
+  void clear_get_response() ;
+  const ::keyvaluestore::GetResponse& get_response() const;
+  PROTOBUF_NODISCARD ::keyvaluestore::GetResponse* release_get_response();
+  ::keyvaluestore::GetResponse* mutable_get_response();
+  void set_allocated_get_response(::keyvaluestore::GetResponse* value);
+  void unsafe_arena_set_allocated_get_response(::keyvaluestore::GetResponse* value);
+  ::keyvaluestore::GetResponse* unsafe_arena_release_get_response();
+
+  private:
+  const ::keyvaluestore::GetResponse& _internal_get_response() const;
+  ::keyvaluestore::GetResponse* _internal_mutable_get_response();
+
+  public:
+  // .keyvaluestore.PutResponse put_response = 3;
+  bool has_put_response() const;
+  private:
+  bool _internal_has_put_response() const;
+
+  public:
+  void clear_put_response() ;
+  const ::keyvaluestore::PutResponse& put_response() const;
+  PROTOBUF_NODISCARD ::keyvaluestore::PutResponse* release_put_response();
+  ::keyvaluestore::PutResponse* mutable_put_response();
+  void set_allocated_put_response(::keyvaluestore::PutResponse* value);
+  void unsafe_arena_set_allocated_put_response(::keyvaluestore::PutResponse* value);
+  ::keyvaluestore::PutResponse* unsafe_arena_release_put_response();
+
+  private:
+  const ::keyvaluestore::PutResponse& _internal_put_response() const;
+  ::keyvaluestore::PutResponse* _internal_mutable_put_response();
+
+  public:
+  // .keyvaluestore.ShutdownResponse shutdown_response = 4;
+  bool has_shutdown_response() const;
+  private:
+  bool _internal_has_shutdown_response() const;
+
+  public:
+  void clear_shutdown_response() ;
+  const ::keyvaluestore::ShutdownResponse& shutdown_response() const;
+  PROTOBUF_NODISCARD ::keyvaluestore::ShutdownResponse* release_shutdown_response();
+  ::keyvaluestore::ShutdownResponse* mutable_shutdown_response();
+  void set_allocated_shutdown_response(::keyvaluestore::ShutdownResponse* value);
+  void unsafe_arena_set_allocated_shutdown_response(::keyvaluestore::ShutdownResponse* value);
+  ::keyvaluestore::ShutdownResponse* unsafe_arena_release_shutdown_response();
+
+  private:
+  const ::keyvaluestore::ShutdownResponse& _internal_shutdown_response() const;
+  ::keyvaluestore::ShutdownResponse* _internal_mutable_shutdown_response();
+
+  public:
+  void clear_response();
+  ResponseCase response_case() const;
+  // @@protoc_insertion_point(class_scope:keyvaluestore.ServerResponse)
+ private:
+  class _Internal;
+  void set_has_init_response();
+  void set_has_get_response();
+  void set_has_put_response();
+  void set_has_shutdown_response();
+  inline bool has_response() const;
+  inline void clear_has_response();
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      0, 4, 4,
+      0, 2>
+      _table_;
+
+  static constexpr const void* _raw_default_instance_ =
+      &_ServerResponse_default_instance_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(
+        ::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena);
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena, const Impl_& from,
+                          const ServerResponse& from_msg);
+    union ResponseUnion {
+      constexpr ResponseUnion() : _constinit_{} {}
+      ::google::protobuf::internal::ConstantInitialized _constinit_;
+      ::keyvaluestore::InitResponse* init_response_;
+      ::keyvaluestore::GetResponse* get_response_;
+      ::keyvaluestore::PutResponse* put_response_;
+      ::keyvaluestore::ShutdownResponse* shutdown_response_;
+    } response_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t _oneof_case_[1];
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_keyvaluestore_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ClientRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:keyvaluestore.ClientRequest) */ {
+ public:
+  inline ClientRequest() : ClientRequest(nullptr) {}
+  ~ClientRequest() override;
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ClientRequest(
+      ::google::protobuf::internal::ConstantInitialized);
+
+  inline ClientRequest(const ClientRequest& from) : ClientRequest(nullptr, from) {}
+  inline ClientRequest(ClientRequest&& from) noexcept
+      : ClientRequest(nullptr, std::move(from)) {}
+  inline ClientRequest& operator=(const ClientRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ClientRequest& operator=(ClientRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+#ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+#endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ClientRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  enum RequestCase {
+    kInitRequest = 1,
+    kGetRequest = 2,
+    kPutRequest = 3,
+    kShutdownRequest = 4,
+    REQUEST_NOT_SET = 0,
+  };
+  static inline const ClientRequest* internal_default_instance() {
+    return reinterpret_cast<const ClientRequest*>(
+        &_ClientRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 0;
+  friend void swap(ClientRequest& a, ClientRequest& b) { a.Swap(&b); }
+  inline void Swap(ClientRequest* other) {
+    if (other == this) return;
+#ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr && GetArena() == other->GetArena()) {
+#else   // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+#endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ClientRequest* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ClientRequest* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return ::google::protobuf::Message::DefaultConstruct<ClientRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ClientRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ClientRequest& from) { ClientRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(
+      ::google::protobuf::MessageLite& to_msg,
+      const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() final;
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target,
+      ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(ClientRequest* other);
+ private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() { return "keyvaluestore.ClientRequest"; }
+
+ protected:
+  explicit ClientRequest(::google::protobuf::Arena* arena);
+  ClientRequest(::google::protobuf::Arena* arena, const ClientRequest& from);
+  ClientRequest(::google::protobuf::Arena* arena, ClientRequest&& from) noexcept
+      : ClientRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::Message::ClassData* GetClassData() const final;
+
+ public:
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kInitRequestFieldNumber = 1,
+    kGetRequestFieldNumber = 2,
+    kPutRequestFieldNumber = 3,
+    kShutdownRequestFieldNumber = 4,
+  };
+  // .keyvaluestore.InitRequest init_request = 1;
+  bool has_init_request() const;
+  private:
+  bool _internal_has_init_request() const;
+
+  public:
+  void clear_init_request() ;
+  const ::keyvaluestore::InitRequest& init_request() const;
+  PROTOBUF_NODISCARD ::keyvaluestore::InitRequest* release_init_request();
+  ::keyvaluestore::InitRequest* mutable_init_request();
+  void set_allocated_init_request(::keyvaluestore::InitRequest* value);
+  void unsafe_arena_set_allocated_init_request(::keyvaluestore::InitRequest* value);
+  ::keyvaluestore::InitRequest* unsafe_arena_release_init_request();
+
+  private:
+  const ::keyvaluestore::InitRequest& _internal_init_request() const;
+  ::keyvaluestore::InitRequest* _internal_mutable_init_request();
+
+  public:
+  // .keyvaluestore.GetRequest get_request = 2;
+  bool has_get_request() const;
+  private:
+  bool _internal_has_get_request() const;
+
+  public:
+  void clear_get_request() ;
+  const ::keyvaluestore::GetRequest& get_request() const;
+  PROTOBUF_NODISCARD ::keyvaluestore::GetRequest* release_get_request();
+  ::keyvaluestore::GetRequest* mutable_get_request();
+  void set_allocated_get_request(::keyvaluestore::GetRequest* value);
+  void unsafe_arena_set_allocated_get_request(::keyvaluestore::GetRequest* value);
+  ::keyvaluestore::GetRequest* unsafe_arena_release_get_request();
+
+  private:
+  const ::keyvaluestore::GetRequest& _internal_get_request() const;
+  ::keyvaluestore::GetRequest* _internal_mutable_get_request();
+
+  public:
+  // .keyvaluestore.PutRequest put_request = 3;
+  bool has_put_request() const;
+  private:
+  bool _internal_has_put_request() const;
+
+  public:
+  void clear_put_request() ;
+  const ::keyvaluestore::PutRequest& put_request() const;
+  PROTOBUF_NODISCARD ::keyvaluestore::PutRequest* release_put_request();
+  ::keyvaluestore::PutRequest* mutable_put_request();
+  void set_allocated_put_request(::keyvaluestore::PutRequest* value);
+  void unsafe_arena_set_allocated_put_request(::keyvaluestore::PutRequest* value);
+  ::keyvaluestore::PutRequest* unsafe_arena_release_put_request();
+
+  private:
+  const ::keyvaluestore::PutRequest& _internal_put_request() const;
+  ::keyvaluestore::PutRequest* _internal_mutable_put_request();
+
+  public:
+  // .keyvaluestore.ShutdownRequest shutdown_request = 4;
+  bool has_shutdown_request() const;
+  private:
+  bool _internal_has_shutdown_request() const;
+
+  public:
+  void clear_shutdown_request() ;
+  const ::keyvaluestore::ShutdownRequest& shutdown_request() const;
+  PROTOBUF_NODISCARD ::keyvaluestore::ShutdownRequest* release_shutdown_request();
+  ::keyvaluestore::ShutdownRequest* mutable_shutdown_request();
+  void set_allocated_shutdown_request(::keyvaluestore::ShutdownRequest* value);
+  void unsafe_arena_set_allocated_shutdown_request(::keyvaluestore::ShutdownRequest* value);
+  ::keyvaluestore::ShutdownRequest* unsafe_arena_release_shutdown_request();
+
+  private:
+  const ::keyvaluestore::ShutdownRequest& _internal_shutdown_request() const;
+  ::keyvaluestore::ShutdownRequest* _internal_mutable_shutdown_request();
+
+  public:
+  void clear_request();
+  RequestCase request_case() const;
+  // @@protoc_insertion_point(class_scope:keyvaluestore.ClientRequest)
+ private:
+  class _Internal;
+  void set_has_init_request();
+  void set_has_get_request();
+  void set_has_put_request();
+  void set_has_shutdown_request();
+  inline bool has_request() const;
+  inline void clear_has_request();
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      0, 4, 4,
+      0, 2>
+      _table_;
+
+  static constexpr const void* _raw_default_instance_ =
+      &_ClientRequest_default_instance_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(
+        ::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena);
+    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                          ::google::protobuf::Arena* arena, const Impl_& from,
+                          const ClientRequest& from_msg);
+    union RequestUnion {
+      constexpr RequestUnion() : _constinit_{} {}
+      ::google::protobuf::internal::ConstantInitialized _constinit_;
+      ::keyvaluestore::InitRequest* init_request_;
+      ::keyvaluestore::GetRequest* get_request_;
+      ::keyvaluestore::PutRequest* put_request_;
+      ::keyvaluestore::ShutdownRequest* shutdown_request_;
+    } request_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t _oneof_case_[1];
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_keyvaluestore_2eproto;
+};
 
 // ===================================================================
 
@@ -1365,6 +2042,664 @@ class GetRequest final : public ::google::protobuf::Message
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// ClientRequest
+
+// .keyvaluestore.InitRequest init_request = 1;
+inline bool ClientRequest::has_init_request() const {
+  return request_case() == kInitRequest;
+}
+inline bool ClientRequest::_internal_has_init_request() const {
+  return request_case() == kInitRequest;
+}
+inline void ClientRequest::set_has_init_request() {
+  _impl_._oneof_case_[0] = kInitRequest;
+}
+inline void ClientRequest::clear_init_request() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (request_case() == kInitRequest) {
+    if (GetArena() == nullptr) {
+      delete _impl_.request_.init_request_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.request_.init_request_);
+    }
+    clear_has_request();
+  }
+}
+inline ::keyvaluestore::InitRequest* ClientRequest::release_init_request() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.ClientRequest.init_request)
+  if (request_case() == kInitRequest) {
+    clear_has_request();
+    auto* temp = _impl_.request_.init_request_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.request_.init_request_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::keyvaluestore::InitRequest& ClientRequest::_internal_init_request() const {
+  return request_case() == kInitRequest ? *_impl_.request_.init_request_ : reinterpret_cast<::keyvaluestore::InitRequest&>(::keyvaluestore::_InitRequest_default_instance_);
+}
+inline const ::keyvaluestore::InitRequest& ClientRequest::init_request() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:keyvaluestore.ClientRequest.init_request)
+  return _internal_init_request();
+}
+inline ::keyvaluestore::InitRequest* ClientRequest::unsafe_arena_release_init_request() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:keyvaluestore.ClientRequest.init_request)
+  if (request_case() == kInitRequest) {
+    clear_has_request();
+    auto* temp = _impl_.request_.init_request_;
+    _impl_.request_.init_request_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ClientRequest::unsafe_arena_set_allocated_init_request(::keyvaluestore::InitRequest* value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_request();
+  if (value) {
+    set_has_init_request();
+    _impl_.request_.init_request_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:keyvaluestore.ClientRequest.init_request)
+}
+inline ::keyvaluestore::InitRequest* ClientRequest::_internal_mutable_init_request() {
+  if (request_case() != kInitRequest) {
+    clear_request();
+    set_has_init_request();
+    _impl_.request_.init_request_ =
+        ::google::protobuf::Message::DefaultConstruct<::keyvaluestore::InitRequest>(GetArena());
+  }
+  return _impl_.request_.init_request_;
+}
+inline ::keyvaluestore::InitRequest* ClientRequest::mutable_init_request() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::keyvaluestore::InitRequest* _msg = _internal_mutable_init_request();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.ClientRequest.init_request)
+  return _msg;
+}
+
+// .keyvaluestore.GetRequest get_request = 2;
+inline bool ClientRequest::has_get_request() const {
+  return request_case() == kGetRequest;
+}
+inline bool ClientRequest::_internal_has_get_request() const {
+  return request_case() == kGetRequest;
+}
+inline void ClientRequest::set_has_get_request() {
+  _impl_._oneof_case_[0] = kGetRequest;
+}
+inline void ClientRequest::clear_get_request() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (request_case() == kGetRequest) {
+    if (GetArena() == nullptr) {
+      delete _impl_.request_.get_request_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.request_.get_request_);
+    }
+    clear_has_request();
+  }
+}
+inline ::keyvaluestore::GetRequest* ClientRequest::release_get_request() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.ClientRequest.get_request)
+  if (request_case() == kGetRequest) {
+    clear_has_request();
+    auto* temp = _impl_.request_.get_request_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.request_.get_request_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::keyvaluestore::GetRequest& ClientRequest::_internal_get_request() const {
+  return request_case() == kGetRequest ? *_impl_.request_.get_request_ : reinterpret_cast<::keyvaluestore::GetRequest&>(::keyvaluestore::_GetRequest_default_instance_);
+}
+inline const ::keyvaluestore::GetRequest& ClientRequest::get_request() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:keyvaluestore.ClientRequest.get_request)
+  return _internal_get_request();
+}
+inline ::keyvaluestore::GetRequest* ClientRequest::unsafe_arena_release_get_request() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:keyvaluestore.ClientRequest.get_request)
+  if (request_case() == kGetRequest) {
+    clear_has_request();
+    auto* temp = _impl_.request_.get_request_;
+    _impl_.request_.get_request_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ClientRequest::unsafe_arena_set_allocated_get_request(::keyvaluestore::GetRequest* value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_request();
+  if (value) {
+    set_has_get_request();
+    _impl_.request_.get_request_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:keyvaluestore.ClientRequest.get_request)
+}
+inline ::keyvaluestore::GetRequest* ClientRequest::_internal_mutable_get_request() {
+  if (request_case() != kGetRequest) {
+    clear_request();
+    set_has_get_request();
+    _impl_.request_.get_request_ =
+        ::google::protobuf::Message::DefaultConstruct<::keyvaluestore::GetRequest>(GetArena());
+  }
+  return _impl_.request_.get_request_;
+}
+inline ::keyvaluestore::GetRequest* ClientRequest::mutable_get_request() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::keyvaluestore::GetRequest* _msg = _internal_mutable_get_request();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.ClientRequest.get_request)
+  return _msg;
+}
+
+// .keyvaluestore.PutRequest put_request = 3;
+inline bool ClientRequest::has_put_request() const {
+  return request_case() == kPutRequest;
+}
+inline bool ClientRequest::_internal_has_put_request() const {
+  return request_case() == kPutRequest;
+}
+inline void ClientRequest::set_has_put_request() {
+  _impl_._oneof_case_[0] = kPutRequest;
+}
+inline void ClientRequest::clear_put_request() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (request_case() == kPutRequest) {
+    if (GetArena() == nullptr) {
+      delete _impl_.request_.put_request_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.request_.put_request_);
+    }
+    clear_has_request();
+  }
+}
+inline ::keyvaluestore::PutRequest* ClientRequest::release_put_request() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.ClientRequest.put_request)
+  if (request_case() == kPutRequest) {
+    clear_has_request();
+    auto* temp = _impl_.request_.put_request_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.request_.put_request_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::keyvaluestore::PutRequest& ClientRequest::_internal_put_request() const {
+  return request_case() == kPutRequest ? *_impl_.request_.put_request_ : reinterpret_cast<::keyvaluestore::PutRequest&>(::keyvaluestore::_PutRequest_default_instance_);
+}
+inline const ::keyvaluestore::PutRequest& ClientRequest::put_request() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:keyvaluestore.ClientRequest.put_request)
+  return _internal_put_request();
+}
+inline ::keyvaluestore::PutRequest* ClientRequest::unsafe_arena_release_put_request() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:keyvaluestore.ClientRequest.put_request)
+  if (request_case() == kPutRequest) {
+    clear_has_request();
+    auto* temp = _impl_.request_.put_request_;
+    _impl_.request_.put_request_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ClientRequest::unsafe_arena_set_allocated_put_request(::keyvaluestore::PutRequest* value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_request();
+  if (value) {
+    set_has_put_request();
+    _impl_.request_.put_request_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:keyvaluestore.ClientRequest.put_request)
+}
+inline ::keyvaluestore::PutRequest* ClientRequest::_internal_mutable_put_request() {
+  if (request_case() != kPutRequest) {
+    clear_request();
+    set_has_put_request();
+    _impl_.request_.put_request_ =
+        ::google::protobuf::Message::DefaultConstruct<::keyvaluestore::PutRequest>(GetArena());
+  }
+  return _impl_.request_.put_request_;
+}
+inline ::keyvaluestore::PutRequest* ClientRequest::mutable_put_request() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::keyvaluestore::PutRequest* _msg = _internal_mutable_put_request();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.ClientRequest.put_request)
+  return _msg;
+}
+
+// .keyvaluestore.ShutdownRequest shutdown_request = 4;
+inline bool ClientRequest::has_shutdown_request() const {
+  return request_case() == kShutdownRequest;
+}
+inline bool ClientRequest::_internal_has_shutdown_request() const {
+  return request_case() == kShutdownRequest;
+}
+inline void ClientRequest::set_has_shutdown_request() {
+  _impl_._oneof_case_[0] = kShutdownRequest;
+}
+inline void ClientRequest::clear_shutdown_request() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (request_case() == kShutdownRequest) {
+    if (GetArena() == nullptr) {
+      delete _impl_.request_.shutdown_request_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.request_.shutdown_request_);
+    }
+    clear_has_request();
+  }
+}
+inline ::keyvaluestore::ShutdownRequest* ClientRequest::release_shutdown_request() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.ClientRequest.shutdown_request)
+  if (request_case() == kShutdownRequest) {
+    clear_has_request();
+    auto* temp = _impl_.request_.shutdown_request_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.request_.shutdown_request_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::keyvaluestore::ShutdownRequest& ClientRequest::_internal_shutdown_request() const {
+  return request_case() == kShutdownRequest ? *_impl_.request_.shutdown_request_ : reinterpret_cast<::keyvaluestore::ShutdownRequest&>(::keyvaluestore::_ShutdownRequest_default_instance_);
+}
+inline const ::keyvaluestore::ShutdownRequest& ClientRequest::shutdown_request() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:keyvaluestore.ClientRequest.shutdown_request)
+  return _internal_shutdown_request();
+}
+inline ::keyvaluestore::ShutdownRequest* ClientRequest::unsafe_arena_release_shutdown_request() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:keyvaluestore.ClientRequest.shutdown_request)
+  if (request_case() == kShutdownRequest) {
+    clear_has_request();
+    auto* temp = _impl_.request_.shutdown_request_;
+    _impl_.request_.shutdown_request_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ClientRequest::unsafe_arena_set_allocated_shutdown_request(::keyvaluestore::ShutdownRequest* value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_request();
+  if (value) {
+    set_has_shutdown_request();
+    _impl_.request_.shutdown_request_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:keyvaluestore.ClientRequest.shutdown_request)
+}
+inline ::keyvaluestore::ShutdownRequest* ClientRequest::_internal_mutable_shutdown_request() {
+  if (request_case() != kShutdownRequest) {
+    clear_request();
+    set_has_shutdown_request();
+    _impl_.request_.shutdown_request_ =
+        ::google::protobuf::Message::DefaultConstruct<::keyvaluestore::ShutdownRequest>(GetArena());
+  }
+  return _impl_.request_.shutdown_request_;
+}
+inline ::keyvaluestore::ShutdownRequest* ClientRequest::mutable_shutdown_request() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::keyvaluestore::ShutdownRequest* _msg = _internal_mutable_shutdown_request();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.ClientRequest.shutdown_request)
+  return _msg;
+}
+
+inline bool ClientRequest::has_request() const {
+  return request_case() != REQUEST_NOT_SET;
+}
+inline void ClientRequest::clear_has_request() {
+  _impl_._oneof_case_[0] = REQUEST_NOT_SET;
+}
+inline ClientRequest::RequestCase ClientRequest::request_case() const {
+  return ClientRequest::RequestCase(_impl_._oneof_case_[0]);
+}
+// -------------------------------------------------------------------
+
+// ServerResponse
+
+// .keyvaluestore.InitResponse init_response = 1;
+inline bool ServerResponse::has_init_response() const {
+  return response_case() == kInitResponse;
+}
+inline bool ServerResponse::_internal_has_init_response() const {
+  return response_case() == kInitResponse;
+}
+inline void ServerResponse::set_has_init_response() {
+  _impl_._oneof_case_[0] = kInitResponse;
+}
+inline void ServerResponse::clear_init_response() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (response_case() == kInitResponse) {
+    if (GetArena() == nullptr) {
+      delete _impl_.response_.init_response_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.response_.init_response_);
+    }
+    clear_has_response();
+  }
+}
+inline ::keyvaluestore::InitResponse* ServerResponse::release_init_response() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.ServerResponse.init_response)
+  if (response_case() == kInitResponse) {
+    clear_has_response();
+    auto* temp = _impl_.response_.init_response_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.response_.init_response_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::keyvaluestore::InitResponse& ServerResponse::_internal_init_response() const {
+  return response_case() == kInitResponse ? *_impl_.response_.init_response_ : reinterpret_cast<::keyvaluestore::InitResponse&>(::keyvaluestore::_InitResponse_default_instance_);
+}
+inline const ::keyvaluestore::InitResponse& ServerResponse::init_response() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:keyvaluestore.ServerResponse.init_response)
+  return _internal_init_response();
+}
+inline ::keyvaluestore::InitResponse* ServerResponse::unsafe_arena_release_init_response() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:keyvaluestore.ServerResponse.init_response)
+  if (response_case() == kInitResponse) {
+    clear_has_response();
+    auto* temp = _impl_.response_.init_response_;
+    _impl_.response_.init_response_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ServerResponse::unsafe_arena_set_allocated_init_response(::keyvaluestore::InitResponse* value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_response();
+  if (value) {
+    set_has_init_response();
+    _impl_.response_.init_response_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:keyvaluestore.ServerResponse.init_response)
+}
+inline ::keyvaluestore::InitResponse* ServerResponse::_internal_mutable_init_response() {
+  if (response_case() != kInitResponse) {
+    clear_response();
+    set_has_init_response();
+    _impl_.response_.init_response_ =
+        ::google::protobuf::Message::DefaultConstruct<::keyvaluestore::InitResponse>(GetArena());
+  }
+  return _impl_.response_.init_response_;
+}
+inline ::keyvaluestore::InitResponse* ServerResponse::mutable_init_response() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::keyvaluestore::InitResponse* _msg = _internal_mutable_init_response();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.ServerResponse.init_response)
+  return _msg;
+}
+
+// .keyvaluestore.GetResponse get_response = 2;
+inline bool ServerResponse::has_get_response() const {
+  return response_case() == kGetResponse;
+}
+inline bool ServerResponse::_internal_has_get_response() const {
+  return response_case() == kGetResponse;
+}
+inline void ServerResponse::set_has_get_response() {
+  _impl_._oneof_case_[0] = kGetResponse;
+}
+inline void ServerResponse::clear_get_response() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (response_case() == kGetResponse) {
+    if (GetArena() == nullptr) {
+      delete _impl_.response_.get_response_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.response_.get_response_);
+    }
+    clear_has_response();
+  }
+}
+inline ::keyvaluestore::GetResponse* ServerResponse::release_get_response() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.ServerResponse.get_response)
+  if (response_case() == kGetResponse) {
+    clear_has_response();
+    auto* temp = _impl_.response_.get_response_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.response_.get_response_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::keyvaluestore::GetResponse& ServerResponse::_internal_get_response() const {
+  return response_case() == kGetResponse ? *_impl_.response_.get_response_ : reinterpret_cast<::keyvaluestore::GetResponse&>(::keyvaluestore::_GetResponse_default_instance_);
+}
+inline const ::keyvaluestore::GetResponse& ServerResponse::get_response() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:keyvaluestore.ServerResponse.get_response)
+  return _internal_get_response();
+}
+inline ::keyvaluestore::GetResponse* ServerResponse::unsafe_arena_release_get_response() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:keyvaluestore.ServerResponse.get_response)
+  if (response_case() == kGetResponse) {
+    clear_has_response();
+    auto* temp = _impl_.response_.get_response_;
+    _impl_.response_.get_response_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ServerResponse::unsafe_arena_set_allocated_get_response(::keyvaluestore::GetResponse* value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_response();
+  if (value) {
+    set_has_get_response();
+    _impl_.response_.get_response_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:keyvaluestore.ServerResponse.get_response)
+}
+inline ::keyvaluestore::GetResponse* ServerResponse::_internal_mutable_get_response() {
+  if (response_case() != kGetResponse) {
+    clear_response();
+    set_has_get_response();
+    _impl_.response_.get_response_ =
+        ::google::protobuf::Message::DefaultConstruct<::keyvaluestore::GetResponse>(GetArena());
+  }
+  return _impl_.response_.get_response_;
+}
+inline ::keyvaluestore::GetResponse* ServerResponse::mutable_get_response() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::keyvaluestore::GetResponse* _msg = _internal_mutable_get_response();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.ServerResponse.get_response)
+  return _msg;
+}
+
+// .keyvaluestore.PutResponse put_response = 3;
+inline bool ServerResponse::has_put_response() const {
+  return response_case() == kPutResponse;
+}
+inline bool ServerResponse::_internal_has_put_response() const {
+  return response_case() == kPutResponse;
+}
+inline void ServerResponse::set_has_put_response() {
+  _impl_._oneof_case_[0] = kPutResponse;
+}
+inline void ServerResponse::clear_put_response() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (response_case() == kPutResponse) {
+    if (GetArena() == nullptr) {
+      delete _impl_.response_.put_response_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.response_.put_response_);
+    }
+    clear_has_response();
+  }
+}
+inline ::keyvaluestore::PutResponse* ServerResponse::release_put_response() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.ServerResponse.put_response)
+  if (response_case() == kPutResponse) {
+    clear_has_response();
+    auto* temp = _impl_.response_.put_response_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.response_.put_response_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::keyvaluestore::PutResponse& ServerResponse::_internal_put_response() const {
+  return response_case() == kPutResponse ? *_impl_.response_.put_response_ : reinterpret_cast<::keyvaluestore::PutResponse&>(::keyvaluestore::_PutResponse_default_instance_);
+}
+inline const ::keyvaluestore::PutResponse& ServerResponse::put_response() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:keyvaluestore.ServerResponse.put_response)
+  return _internal_put_response();
+}
+inline ::keyvaluestore::PutResponse* ServerResponse::unsafe_arena_release_put_response() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:keyvaluestore.ServerResponse.put_response)
+  if (response_case() == kPutResponse) {
+    clear_has_response();
+    auto* temp = _impl_.response_.put_response_;
+    _impl_.response_.put_response_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ServerResponse::unsafe_arena_set_allocated_put_response(::keyvaluestore::PutResponse* value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_response();
+  if (value) {
+    set_has_put_response();
+    _impl_.response_.put_response_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:keyvaluestore.ServerResponse.put_response)
+}
+inline ::keyvaluestore::PutResponse* ServerResponse::_internal_mutable_put_response() {
+  if (response_case() != kPutResponse) {
+    clear_response();
+    set_has_put_response();
+    _impl_.response_.put_response_ =
+        ::google::protobuf::Message::DefaultConstruct<::keyvaluestore::PutResponse>(GetArena());
+  }
+  return _impl_.response_.put_response_;
+}
+inline ::keyvaluestore::PutResponse* ServerResponse::mutable_put_response() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::keyvaluestore::PutResponse* _msg = _internal_mutable_put_response();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.ServerResponse.put_response)
+  return _msg;
+}
+
+// .keyvaluestore.ShutdownResponse shutdown_response = 4;
+inline bool ServerResponse::has_shutdown_response() const {
+  return response_case() == kShutdownResponse;
+}
+inline bool ServerResponse::_internal_has_shutdown_response() const {
+  return response_case() == kShutdownResponse;
+}
+inline void ServerResponse::set_has_shutdown_response() {
+  _impl_._oneof_case_[0] = kShutdownResponse;
+}
+inline void ServerResponse::clear_shutdown_response() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (response_case() == kShutdownResponse) {
+    if (GetArena() == nullptr) {
+      delete _impl_.response_.shutdown_response_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.response_.shutdown_response_);
+    }
+    clear_has_response();
+  }
+}
+inline ::keyvaluestore::ShutdownResponse* ServerResponse::release_shutdown_response() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.ServerResponse.shutdown_response)
+  if (response_case() == kShutdownResponse) {
+    clear_has_response();
+    auto* temp = _impl_.response_.shutdown_response_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.response_.shutdown_response_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::keyvaluestore::ShutdownResponse& ServerResponse::_internal_shutdown_response() const {
+  return response_case() == kShutdownResponse ? *_impl_.response_.shutdown_response_ : reinterpret_cast<::keyvaluestore::ShutdownResponse&>(::keyvaluestore::_ShutdownResponse_default_instance_);
+}
+inline const ::keyvaluestore::ShutdownResponse& ServerResponse::shutdown_response() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:keyvaluestore.ServerResponse.shutdown_response)
+  return _internal_shutdown_response();
+}
+inline ::keyvaluestore::ShutdownResponse* ServerResponse::unsafe_arena_release_shutdown_response() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:keyvaluestore.ServerResponse.shutdown_response)
+  if (response_case() == kShutdownResponse) {
+    clear_has_response();
+    auto* temp = _impl_.response_.shutdown_response_;
+    _impl_.response_.shutdown_response_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ServerResponse::unsafe_arena_set_allocated_shutdown_response(::keyvaluestore::ShutdownResponse* value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_response();
+  if (value) {
+    set_has_shutdown_response();
+    _impl_.response_.shutdown_response_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:keyvaluestore.ServerResponse.shutdown_response)
+}
+inline ::keyvaluestore::ShutdownResponse* ServerResponse::_internal_mutable_shutdown_response() {
+  if (response_case() != kShutdownResponse) {
+    clear_response();
+    set_has_shutdown_response();
+    _impl_.response_.shutdown_response_ =
+        ::google::protobuf::Message::DefaultConstruct<::keyvaluestore::ShutdownResponse>(GetArena());
+  }
+  return _impl_.response_.shutdown_response_;
+}
+inline ::keyvaluestore::ShutdownResponse* ServerResponse::mutable_shutdown_response() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::keyvaluestore::ShutdownResponse* _msg = _internal_mutable_shutdown_response();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.ServerResponse.shutdown_response)
+  return _msg;
+}
+
+inline bool ServerResponse::has_response() const {
+  return response_case() != RESPONSE_NOT_SET;
+}
+inline void ServerResponse::clear_has_response() {
+  _impl_._oneof_case_[0] = RESPONSE_NOT_SET;
+}
+inline ServerResponse::ResponseCase ServerResponse::response_case() const {
+  return ServerResponse::ResponseCase(_impl_._oneof_case_[0]);
+}
 // -------------------------------------------------------------------
 
 // InitRequest
@@ -1754,6 +3089,10 @@ inline void PutResponse::_internal_set_key_found(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.key_found_ = value;
 }
+
+// -------------------------------------------------------------------
+
+// ShutdownRequest
 
 // -------------------------------------------------------------------
 
