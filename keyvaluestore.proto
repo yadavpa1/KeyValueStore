@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package datastore;
+package keyvaluestore;
 import "google/protobuf/empty.proto";
 
-service DataStore {
+service KeyValueStore {
   rpc init(InitRequest) returns (InitResponse);
   rpc shutdown(google.protobuf.Empty) returns (ShutdownResponse);
   rpc get (GetRequest) returns (GetResponse);
@@ -16,7 +16,7 @@ message GetRequest {
 
 message GetResponse {
   string value = 1;
-  bool found = 2;
+  bool key_found = 2;
 }
 
 message PutRequest {
