@@ -22,10 +22,10 @@
 namespace keyvaluestore {
 
 static const char* KeyValueStore_method_names[] = {
-  "/keyvaluestore.KeyValueStore/Init",
-  "/keyvaluestore.KeyValueStore/Shutdown",
-  "/keyvaluestore.KeyValueStore/Get",
-  "/keyvaluestore.KeyValueStore/Put",
+  "/keyvaluestore.KeyValueStore/init",
+  "/keyvaluestore.KeyValueStore/shutdown",
+  "/keyvaluestore.KeyValueStore/get",
+  "/keyvaluestore.KeyValueStore/put",
 };
 
 std::unique_ptr< KeyValueStore::Stub> KeyValueStore::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -35,100 +35,100 @@ std::unique_ptr< KeyValueStore::Stub> KeyValueStore::NewStub(const std::shared_p
 }
 
 KeyValueStore::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
-  : channel_(channel), rpcmethod_Init_(KeyValueStore_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Shutdown_(KeyValueStore_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Get_(KeyValueStore_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Put_(KeyValueStore_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  : channel_(channel), rpcmethod_init_(KeyValueStore_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_shutdown_(KeyValueStore_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_get_(KeyValueStore_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_put_(KeyValueStore_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
-::grpc::Status KeyValueStore::Stub::Init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::keyvaluestore::InitResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::InitRequest, ::keyvaluestore::InitResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Init_, context, request, response);
+::grpc::Status KeyValueStore::Stub::init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::keyvaluestore::InitResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::InitRequest, ::keyvaluestore::InitResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_init_, context, request, response);
 }
 
-void KeyValueStore::Stub::async::Init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::InitRequest, ::keyvaluestore::InitResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Init_, context, request, response, std::move(f));
+void KeyValueStore::Stub::async::init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::InitRequest, ::keyvaluestore::InitResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_init_, context, request, response, std::move(f));
 }
 
-void KeyValueStore::Stub::async::Init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Init_, context, request, response, reactor);
+void KeyValueStore::Stub::async::init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_init_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>* KeyValueStore::Stub::PrepareAsyncInitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::InitResponse, ::keyvaluestore::InitRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Init_, context, request);
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>* KeyValueStore::Stub::PrepareAsyncinitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::InitResponse, ::keyvaluestore::InitRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_init_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>* KeyValueStore::Stub::AsyncInitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>* KeyValueStore::Stub::AsyncinitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncInitRaw(context, request, cq);
+    this->PrepareAsyncinitRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status KeyValueStore::Stub::Shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::keyvaluestore::ShutdownResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::google::protobuf::Empty, ::keyvaluestore::ShutdownResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Shutdown_, context, request, response);
+::grpc::Status KeyValueStore::Stub::shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::keyvaluestore::ShutdownResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::google::protobuf::Empty, ::keyvaluestore::ShutdownResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_shutdown_, context, request, response);
 }
 
-void KeyValueStore::Stub::async::Shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::google::protobuf::Empty, ::keyvaluestore::ShutdownResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Shutdown_, context, request, response, std::move(f));
+void KeyValueStore::Stub::async::shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::google::protobuf::Empty, ::keyvaluestore::ShutdownResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_shutdown_, context, request, response, std::move(f));
 }
 
-void KeyValueStore::Stub::async::Shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Shutdown_, context, request, response, reactor);
+void KeyValueStore::Stub::async::shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_shutdown_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>* KeyValueStore::Stub::PrepareAsyncShutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::ShutdownResponse, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Shutdown_, context, request);
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>* KeyValueStore::Stub::PrepareAsyncshutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::ShutdownResponse, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_shutdown_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>* KeyValueStore::Stub::AsyncShutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>* KeyValueStore::Stub::AsyncshutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncShutdownRaw(context, request, cq);
+    this->PrepareAsyncshutdownRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status KeyValueStore::Stub::Get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::keyvaluestore::GetResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::GetRequest, ::keyvaluestore::GetResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Get_, context, request, response);
+::grpc::Status KeyValueStore::Stub::get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::keyvaluestore::GetResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::GetRequest, ::keyvaluestore::GetResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_get_, context, request, response);
 }
 
-void KeyValueStore::Stub::async::Get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::GetRequest, ::keyvaluestore::GetResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Get_, context, request, response, std::move(f));
+void KeyValueStore::Stub::async::get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::GetRequest, ::keyvaluestore::GetResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_get_, context, request, response, std::move(f));
 }
 
-void KeyValueStore::Stub::async::Get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Get_, context, request, response, reactor);
+void KeyValueStore::Stub::async::get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_get_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>* KeyValueStore::Stub::PrepareAsyncGetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::GetResponse, ::keyvaluestore::GetRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Get_, context, request);
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>* KeyValueStore::Stub::PrepareAsyncgetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::GetResponse, ::keyvaluestore::GetRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_get_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>* KeyValueStore::Stub::AsyncGetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>* KeyValueStore::Stub::AsyncgetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncGetRaw(context, request, cq);
+    this->PrepareAsyncgetRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status KeyValueStore::Stub::Put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::keyvaluestore::PutResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::PutRequest, ::keyvaluestore::PutResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Put_, context, request, response);
+::grpc::Status KeyValueStore::Stub::put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::keyvaluestore::PutResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::PutRequest, ::keyvaluestore::PutResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_put_, context, request, response);
 }
 
-void KeyValueStore::Stub::async::Put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::PutRequest, ::keyvaluestore::PutResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Put_, context, request, response, std::move(f));
+void KeyValueStore::Stub::async::put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::PutRequest, ::keyvaluestore::PutResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_put_, context, request, response, std::move(f));
 }
 
-void KeyValueStore::Stub::async::Put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Put_, context, request, response, reactor);
+void KeyValueStore::Stub::async::put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_put_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>* KeyValueStore::Stub::PrepareAsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::PutResponse, ::keyvaluestore::PutRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Put_, context, request);
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>* KeyValueStore::Stub::PrepareAsyncputRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::PutResponse, ::keyvaluestore::PutRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_put_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>* KeyValueStore::Stub::AsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>* KeyValueStore::Stub::AsyncputRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncPutRaw(context, request, cq);
+    this->PrepareAsyncputRaw(context, request, cq);
   result->StartCall();
   return result;
 }
@@ -142,7 +142,7 @@ KeyValueStore::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::keyvaluestore::InitRequest* req,
              ::keyvaluestore::InitResponse* resp) {
-               return service->Init(ctx, req, resp);
+               return service->init(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       KeyValueStore_method_names[1],
@@ -152,7 +152,7 @@ KeyValueStore::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::google::protobuf::Empty* req,
              ::keyvaluestore::ShutdownResponse* resp) {
-               return service->Shutdown(ctx, req, resp);
+               return service->shutdown(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       KeyValueStore_method_names[2],
@@ -162,7 +162,7 @@ KeyValueStore::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::keyvaluestore::GetRequest* req,
              ::keyvaluestore::GetResponse* resp) {
-               return service->Get(ctx, req, resp);
+               return service->get(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       KeyValueStore_method_names[3],
@@ -172,35 +172,35 @@ KeyValueStore::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::keyvaluestore::PutRequest* req,
              ::keyvaluestore::PutResponse* resp) {
-               return service->Put(ctx, req, resp);
+               return service->put(ctx, req, resp);
              }, this)));
 }
 
 KeyValueStore::Service::~Service() {
 }
 
-::grpc::Status KeyValueStore::Service::Init(::grpc::ServerContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response) {
+::grpc::Status KeyValueStore::Service::init(::grpc::ServerContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status KeyValueStore::Service::Shutdown(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response) {
+::grpc::Status KeyValueStore::Service::shutdown(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status KeyValueStore::Service::Get(::grpc::ServerContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response) {
+::grpc::Status KeyValueStore::Service::get(::grpc::ServerContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status KeyValueStore::Service::Put(::grpc::ServerContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response) {
+::grpc::Status KeyValueStore::Service::put(::grpc::ServerContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response) {
   (void) context;
   (void) request;
   (void) response;

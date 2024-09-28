@@ -181,24 +181,6 @@ const ::uint32_t
     TableStruct_keyvaluestore_2eproto::offsets[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
         protodesc_cold) = {
         ~0u,  // no _has_bits_
-        PROTOBUF_FIELD_OFFSET(::keyvaluestore::InitRequest, _internal_metadata_),
-        ~0u,  // no _extensions_
-        ~0u,  // no _oneof_case_
-        ~0u,  // no _weak_field_map_
-        ~0u,  // no _inlined_string_donated_
-        ~0u,  // no _split_
-        ~0u,  // no sizeof(Split)
-        PROTOBUF_FIELD_OFFSET(::keyvaluestore::InitRequest, _impl_.server_name_),
-        ~0u,  // no _has_bits_
-        PROTOBUF_FIELD_OFFSET(::keyvaluestore::InitResponse, _internal_metadata_),
-        ~0u,  // no _extensions_
-        ~0u,  // no _oneof_case_
-        ~0u,  // no _weak_field_map_
-        ~0u,  // no _inlined_string_donated_
-        ~0u,  // no _split_
-        ~0u,  // no sizeof(Split)
-        PROTOBUF_FIELD_OFFSET(::keyvaluestore::InitResponse, _impl_.success_),
-        ~0u,  // no _has_bits_
         PROTOBUF_FIELD_OFFSET(::keyvaluestore::GetRequest, _internal_metadata_),
         ~0u,  // no _extensions_
         ~0u,  // no _oneof_case_
@@ -238,6 +220,24 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::keyvaluestore::PutResponse, _impl_.old_value_),
         PROTOBUF_FIELD_OFFSET(::keyvaluestore::PutResponse, _impl_.key_found_),
         ~0u,  // no _has_bits_
+        PROTOBUF_FIELD_OFFSET(::keyvaluestore::InitRequest, _internal_metadata_),
+        ~0u,  // no _extensions_
+        ~0u,  // no _oneof_case_
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        PROTOBUF_FIELD_OFFSET(::keyvaluestore::InitRequest, _impl_.server_name_),
+        ~0u,  // no _has_bits_
+        PROTOBUF_FIELD_OFFSET(::keyvaluestore::InitResponse, _internal_metadata_),
+        ~0u,  // no _extensions_
+        ~0u,  // no _oneof_case_
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        PROTOBUF_FIELD_OFFSET(::keyvaluestore::InitResponse, _impl_.success_),
+        ~0u,  // no _has_bits_
         PROTOBUF_FIELD_OFFSET(::keyvaluestore::ShutdownResponse, _internal_metadata_),
         ~0u,  // no _extensions_
         ~0u,  // no _oneof_case_
@@ -250,40 +250,40 @@ const ::uint32_t
 
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-        {0, -1, -1, sizeof(::keyvaluestore::InitRequest)},
-        {9, -1, -1, sizeof(::keyvaluestore::InitResponse)},
-        {18, -1, -1, sizeof(::keyvaluestore::GetRequest)},
-        {27, -1, -1, sizeof(::keyvaluestore::GetResponse)},
-        {37, -1, -1, sizeof(::keyvaluestore::PutRequest)},
-        {47, -1, -1, sizeof(::keyvaluestore::PutResponse)},
+        {0, -1, -1, sizeof(::keyvaluestore::GetRequest)},
+        {9, -1, -1, sizeof(::keyvaluestore::GetResponse)},
+        {19, -1, -1, sizeof(::keyvaluestore::PutRequest)},
+        {29, -1, -1, sizeof(::keyvaluestore::PutResponse)},
+        {39, -1, -1, sizeof(::keyvaluestore::InitRequest)},
+        {48, -1, -1, sizeof(::keyvaluestore::InitResponse)},
         {57, -1, -1, sizeof(::keyvaluestore::ShutdownResponse)},
 };
 static const ::_pb::Message* const file_default_instances[] = {
-    &::keyvaluestore::_InitRequest_default_instance_._instance,
-    &::keyvaluestore::_InitResponse_default_instance_._instance,
     &::keyvaluestore::_GetRequest_default_instance_._instance,
     &::keyvaluestore::_GetResponse_default_instance_._instance,
     &::keyvaluestore::_PutRequest_default_instance_._instance,
     &::keyvaluestore::_PutResponse_default_instance_._instance,
+    &::keyvaluestore::_InitRequest_default_instance_._instance,
+    &::keyvaluestore::_InitResponse_default_instance_._instance,
     &::keyvaluestore::_ShutdownResponse_default_instance_._instance,
 };
 const char descriptor_table_protodef_keyvaluestore_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\023keyvaluestore.proto\022\rkeyvaluestore\032\033go"
-    "ogle/protobuf/empty.proto\"\"\n\013InitRequest"
-    "\022\023\n\013server_name\030\001 \001(\t\"\037\n\014InitResponse\022\017\n"
-    "\007success\030\001 \001(\010\"\031\n\nGetRequest\022\013\n\003key\030\001 \001("
-    "\t\"/\n\013GetResponse\022\r\n\005value\030\001 \001(\t\022\021\n\tkey_f"
-    "ound\030\002 \001(\010\"(\n\nPutRequest\022\013\n\003key\030\001 \001(\t\022\r\n"
-    "\005value\030\002 \001(\t\"3\n\013PutResponse\022\021\n\told_value"
-    "\030\001 \001(\t\022\021\n\tkey_found\030\002 \001(\010\"#\n\020ShutdownRes"
+    "ogle/protobuf/empty.proto\"\031\n\nGetRequest\022"
+    "\013\n\003key\030\001 \001(\t\"/\n\013GetResponse\022\r\n\005value\030\001 \001"
+    "(\t\022\021\n\tkey_found\030\002 \001(\010\"(\n\nPutRequest\022\013\n\003k"
+    "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"3\n\013PutResponse\022\021"
+    "\n\told_value\030\001 \001(\t\022\021\n\tkey_found\030\002 \001(\010\"\"\n\013"
+    "InitRequest\022\023\n\013server_name\030\001 \001(\t\"\037\n\014Init"
+    "Response\022\017\n\007success\030\001 \001(\010\"#\n\020ShutdownRes"
     "ponse\022\017\n\007success\030\001 \001(\0102\221\002\n\rKeyValueStore"
-    "\022\?\n\004Init\022\032.keyvaluestore.InitRequest\032\033.k"
-    "eyvaluestore.InitResponse\022C\n\010Shutdown\022\026."
+    "\022\?\n\004init\022\032.keyvaluestore.InitRequest\032\033.k"
+    "eyvaluestore.InitResponse\022C\n\010shutdown\022\026."
     "google.protobuf.Empty\032\037.keyvaluestore.Sh"
-    "utdownResponse\022<\n\003Get\022\031.keyvaluestore.Ge"
+    "utdownResponse\022<\n\003get\022\031.keyvaluestore.Ge"
     "tRequest\032\032.keyvaluestore.GetResponse\022<\n\003"
-    "Put\022\031.keyvaluestore.PutRequest\032\032.keyvalu"
+    "put\022\031.keyvaluestore.PutRequest\032\032.keyvalu"
     "estore.PutResponseb\006proto3"
 };
 static const ::_pbi::DescriptorTable* const descriptor_table_keyvaluestore_2eproto_deps[1] =
@@ -308,369 +308,6 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_keyvaluestore_
     file_level_service_descriptors_keyvaluestore_2eproto,
 };
 namespace keyvaluestore {
-// ===================================================================
-
-class InitRequest::_Internal {
- public:
-};
-
-InitRequest::InitRequest(::google::protobuf::Arena* arena)
-    : ::google::protobuf::Message(arena) {
-  SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:keyvaluestore.InitRequest)
-}
-inline PROTOBUF_NDEBUG_INLINE InitRequest::Impl_::Impl_(
-    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
-    const Impl_& from, const ::keyvaluestore::InitRequest& from_msg)
-      : server_name_(arena, from.server_name_),
-        _cached_size_{0} {}
-
-InitRequest::InitRequest(
-    ::google::protobuf::Arena* arena,
-    const InitRequest& from)
-    : ::google::protobuf::Message(arena) {
-  InitRequest* const _this = this;
-  (void)_this;
-  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
-      from._internal_metadata_);
-  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-
-  // @@protoc_insertion_point(copy_constructor:keyvaluestore.InitRequest)
-}
-inline PROTOBUF_NDEBUG_INLINE InitRequest::Impl_::Impl_(
-    ::google::protobuf::internal::InternalVisibility visibility,
-    ::google::protobuf::Arena* arena)
-      : server_name_(arena),
-        _cached_size_{0} {}
-
-inline void InitRequest::SharedCtor(::_pb::Arena* arena) {
-  new (&_impl_) Impl_(internal_visibility(), arena);
-}
-InitRequest::~InitRequest() {
-  // @@protoc_insertion_point(destructor:keyvaluestore.InitRequest)
-  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
-  SharedDtor();
-}
-inline void InitRequest::SharedDtor() {
-  ABSL_DCHECK(GetArena() == nullptr);
-  _impl_.server_name_.Destroy();
-  _impl_.~Impl_();
-}
-
-const ::google::protobuf::MessageLite::ClassData*
-InitRequest::GetClassData() const {
-  PROTOBUF_CONSTINIT static const ::google::protobuf::MessageLite::
-      ClassDataFull _data_ = {
-          {
-              &_table_.header,
-              nullptr,  // OnDemandRegisterArenaDtor
-              nullptr,  // IsInitialized
-              PROTOBUF_FIELD_OFFSET(InitRequest, _impl_._cached_size_),
-              false,
-          },
-          &InitRequest::MergeImpl,
-          &InitRequest::kDescriptorMethods,
-          &descriptor_table_keyvaluestore_2eproto,
-          nullptr,  // tracker
-      };
-  ::google::protobuf::internal::PrefetchToLocalCache(&_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(_data_.tc_table);
-  return _data_.base();
-}
-PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 1, 0, 45, 2> InitRequest::_table_ = {
-  {
-    0,  // no _has_bits_
-    0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
-    offsetof(decltype(_table_), field_lookup_table),
-    4294967294,  // skipmap
-    offsetof(decltype(_table_), field_entries),
-    1,  // num_field_entries
-    0,  // num_aux_entries
-    offsetof(decltype(_table_), field_names),  // no aux_entries
-    &_InitRequest_default_instance_._instance,
-    nullptr,  // post_loop_handler
-    ::_pbi::TcParser::GenericFallback,  // fallback
-    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::keyvaluestore::InitRequest>(),  // to_prefetch
-    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
-  }, {{
-    // string server_name = 1;
-    {::_pbi::TcParser::FastUS1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(InitRequest, _impl_.server_name_)}},
-  }}, {{
-    65535, 65535
-  }}, {{
-    // string server_name = 1;
-    {PROTOBUF_FIELD_OFFSET(InitRequest, _impl_.server_name_), 0, 0,
-    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
-  }},
-  // no aux_entries
-  {{
-    "\31\13\0\0\0\0\0\0"
-    "keyvaluestore.InitRequest"
-    "server_name"
-  }},
-};
-
-PROTOBUF_NOINLINE void InitRequest::Clear() {
-// @@protoc_insertion_point(message_clear_start:keyvaluestore.InitRequest)
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _impl_.server_name_.ClearToEmpty();
-  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
-}
-
-::uint8_t* InitRequest::_InternalSerialize(
-    ::uint8_t* target,
-    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:keyvaluestore.InitRequest)
-  ::uint32_t cached_has_bits = 0;
-  (void)cached_has_bits;
-
-  // string server_name = 1;
-  if (!this->_internal_server_name().empty()) {
-    const std::string& _s = this->_internal_server_name();
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-        _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "keyvaluestore.InitRequest.server_name");
-    target = stream->WriteStringMaybeAliased(1, _s, target);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target =
-        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:keyvaluestore.InitRequest)
-  return target;
-}
-
-::size_t InitRequest::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:keyvaluestore.InitRequest)
-  ::size_t total_size = 0;
-
-  ::uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  // string server_name = 1;
-  if (!this->_internal_server_name().empty()) {
-    total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                    this->_internal_server_name());
-  }
-
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
-}
-
-
-void InitRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
-  auto* const _this = static_cast<InitRequest*>(&to_msg);
-  auto& from = static_cast<const InitRequest&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:keyvaluestore.InitRequest)
-  ABSL_DCHECK_NE(&from, _this);
-  ::uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if (!from._internal_server_name().empty()) {
-    _this->_internal_set_server_name(from._internal_server_name());
-  }
-  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
-}
-
-void InitRequest::CopyFrom(const InitRequest& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:keyvaluestore.InitRequest)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-
-void InitRequest::InternalSwap(InitRequest* PROTOBUF_RESTRICT other) {
-  using std::swap;
-  auto* arena = GetArena();
-  ABSL_DCHECK_EQ(arena, other->GetArena());
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.server_name_, &other->_impl_.server_name_, arena);
-}
-
-::google::protobuf::Metadata InitRequest::GetMetadata() const {
-  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
-}
-// ===================================================================
-
-class InitResponse::_Internal {
- public:
-};
-
-InitResponse::InitResponse(::google::protobuf::Arena* arena)
-    : ::google::protobuf::Message(arena) {
-  SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:keyvaluestore.InitResponse)
-}
-InitResponse::InitResponse(
-    ::google::protobuf::Arena* arena, const InitResponse& from)
-    : InitResponse(arena) {
-  MergeFrom(from);
-}
-inline PROTOBUF_NDEBUG_INLINE InitResponse::Impl_::Impl_(
-    ::google::protobuf::internal::InternalVisibility visibility,
-    ::google::protobuf::Arena* arena)
-      : _cached_size_{0} {}
-
-inline void InitResponse::SharedCtor(::_pb::Arena* arena) {
-  new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.success_ = {};
-}
-InitResponse::~InitResponse() {
-  // @@protoc_insertion_point(destructor:keyvaluestore.InitResponse)
-  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
-  SharedDtor();
-}
-inline void InitResponse::SharedDtor() {
-  ABSL_DCHECK(GetArena() == nullptr);
-  _impl_.~Impl_();
-}
-
-const ::google::protobuf::MessageLite::ClassData*
-InitResponse::GetClassData() const {
-  PROTOBUF_CONSTINIT static const ::google::protobuf::MessageLite::
-      ClassDataFull _data_ = {
-          {
-              &_table_.header,
-              nullptr,  // OnDemandRegisterArenaDtor
-              nullptr,  // IsInitialized
-              PROTOBUF_FIELD_OFFSET(InitResponse, _impl_._cached_size_),
-              false,
-          },
-          &InitResponse::MergeImpl,
-          &InitResponse::kDescriptorMethods,
-          &descriptor_table_keyvaluestore_2eproto,
-          nullptr,  // tracker
-      };
-  ::google::protobuf::internal::PrefetchToLocalCache(&_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(_data_.tc_table);
-  return _data_.base();
-}
-PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 1, 0, 0, 2> InitResponse::_table_ = {
-  {
-    0,  // no _has_bits_
-    0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
-    offsetof(decltype(_table_), field_lookup_table),
-    4294967294,  // skipmap
-    offsetof(decltype(_table_), field_entries),
-    1,  // num_field_entries
-    0,  // num_aux_entries
-    offsetof(decltype(_table_), field_names),  // no aux_entries
-    &_InitResponse_default_instance_._instance,
-    nullptr,  // post_loop_handler
-    ::_pbi::TcParser::GenericFallback,  // fallback
-    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::keyvaluestore::InitResponse>(),  // to_prefetch
-    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
-  }, {{
-    // bool success = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(InitResponse, _impl_.success_), 63>(),
-     {8, 63, 0, PROTOBUF_FIELD_OFFSET(InitResponse, _impl_.success_)}},
-  }}, {{
-    65535, 65535
-  }}, {{
-    // bool success = 1;
-    {PROTOBUF_FIELD_OFFSET(InitResponse, _impl_.success_), 0, 0,
-    (0 | ::_fl::kFcSingular | ::_fl::kBool)},
-  }},
-  // no aux_entries
-  {{
-  }},
-};
-
-PROTOBUF_NOINLINE void InitResponse::Clear() {
-// @@protoc_insertion_point(message_clear_start:keyvaluestore.InitResponse)
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _impl_.success_ = false;
-  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
-}
-
-::uint8_t* InitResponse::_InternalSerialize(
-    ::uint8_t* target,
-    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:keyvaluestore.InitResponse)
-  ::uint32_t cached_has_bits = 0;
-  (void)cached_has_bits;
-
-  // bool success = 1;
-  if (this->_internal_success() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteBoolToArray(
-        1, this->_internal_success(), target);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target =
-        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:keyvaluestore.InitResponse)
-  return target;
-}
-
-::size_t InitResponse::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:keyvaluestore.InitResponse)
-  ::size_t total_size = 0;
-
-  ::uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  // bool success = 1;
-  if (this->_internal_success() != 0) {
-    total_size += 2;
-  }
-
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
-}
-
-
-void InitResponse::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
-  auto* const _this = static_cast<InitResponse*>(&to_msg);
-  auto& from = static_cast<const InitResponse&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:keyvaluestore.InitResponse)
-  ABSL_DCHECK_NE(&from, _this);
-  ::uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if (from._internal_success() != 0) {
-    _this->_impl_.success_ = from._impl_.success_;
-  }
-  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
-}
-
-void InitResponse::CopyFrom(const InitResponse& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:keyvaluestore.InitResponse)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-
-void InitResponse::InternalSwap(InitResponse* PROTOBUF_RESTRICT other) {
-  using std::swap;
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-        swap(_impl_.success_, other->_impl_.success_);
-}
-
-::google::protobuf::Metadata InitResponse::GetMetadata() const {
-  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
-}
 // ===================================================================
 
 class GetRequest::_Internal {
@@ -1519,6 +1156,369 @@ void PutResponse::InternalSwap(PutResponse* PROTOBUF_RESTRICT other) {
 }
 
 ::google::protobuf::Metadata PutResponse::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class InitRequest::_Internal {
+ public:
+};
+
+InitRequest::InitRequest(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:keyvaluestore.InitRequest)
+}
+inline PROTOBUF_NDEBUG_INLINE InitRequest::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from, const ::keyvaluestore::InitRequest& from_msg)
+      : server_name_(arena, from.server_name_),
+        _cached_size_{0} {}
+
+InitRequest::InitRequest(
+    ::google::protobuf::Arena* arena,
+    const InitRequest& from)
+    : ::google::protobuf::Message(arena) {
+  InitRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:keyvaluestore.InitRequest)
+}
+inline PROTOBUF_NDEBUG_INLINE InitRequest::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : server_name_(arena),
+        _cached_size_{0} {}
+
+inline void InitRequest::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+InitRequest::~InitRequest() {
+  // @@protoc_insertion_point(destructor:keyvaluestore.InitRequest)
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  SharedDtor();
+}
+inline void InitRequest::SharedDtor() {
+  ABSL_DCHECK(GetArena() == nullptr);
+  _impl_.server_name_.Destroy();
+  _impl_.~Impl_();
+}
+
+const ::google::protobuf::MessageLite::ClassData*
+InitRequest::GetClassData() const {
+  PROTOBUF_CONSTINIT static const ::google::protobuf::MessageLite::
+      ClassDataFull _data_ = {
+          {
+              &_table_.header,
+              nullptr,  // OnDemandRegisterArenaDtor
+              nullptr,  // IsInitialized
+              PROTOBUF_FIELD_OFFSET(InitRequest, _impl_._cached_size_),
+              false,
+          },
+          &InitRequest::MergeImpl,
+          &InitRequest::kDescriptorMethods,
+          &descriptor_table_keyvaluestore_2eproto,
+          nullptr,  // tracker
+      };
+  ::google::protobuf::internal::PrefetchToLocalCache(&_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(_data_.tc_table);
+  return _data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 0, 45, 2> InitRequest::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    &_InitRequest_default_instance_._instance,
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::keyvaluestore::InitRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // string server_name = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 63, 0, PROTOBUF_FIELD_OFFSET(InitRequest, _impl_.server_name_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string server_name = 1;
+    {PROTOBUF_FIELD_OFFSET(InitRequest, _impl_.server_name_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\31\13\0\0\0\0\0\0"
+    "keyvaluestore.InitRequest"
+    "server_name"
+  }},
+};
+
+PROTOBUF_NOINLINE void InitRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:keyvaluestore.InitRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.server_name_.ClearToEmpty();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+::uint8_t* InitRequest::_InternalSerialize(
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:keyvaluestore.InitRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // string server_name = 1;
+  if (!this->_internal_server_name().empty()) {
+    const std::string& _s = this->_internal_server_name();
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "keyvaluestore.InitRequest.server_name");
+    target = stream->WriteStringMaybeAliased(1, _s, target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:keyvaluestore.InitRequest)
+  return target;
+}
+
+::size_t InitRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:keyvaluestore.InitRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string server_name = 1;
+  if (!this->_internal_server_name().empty()) {
+    total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                    this->_internal_server_name());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+
+void InitRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<InitRequest*>(&to_msg);
+  auto& from = static_cast<const InitRequest&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:keyvaluestore.InitRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_server_name().empty()) {
+    _this->_internal_set_server_name(from._internal_server_name());
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void InitRequest::CopyFrom(const InitRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:keyvaluestore.InitRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void InitRequest::InternalSwap(InitRequest* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.server_name_, &other->_impl_.server_name_, arena);
+}
+
+::google::protobuf::Metadata InitRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class InitResponse::_Internal {
+ public:
+};
+
+InitResponse::InitResponse(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:keyvaluestore.InitResponse)
+}
+InitResponse::InitResponse(
+    ::google::protobuf::Arena* arena, const InitResponse& from)
+    : InitResponse(arena) {
+  MergeFrom(from);
+}
+inline PROTOBUF_NDEBUG_INLINE InitResponse::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : _cached_size_{0} {}
+
+inline void InitResponse::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.success_ = {};
+}
+InitResponse::~InitResponse() {
+  // @@protoc_insertion_point(destructor:keyvaluestore.InitResponse)
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  SharedDtor();
+}
+inline void InitResponse::SharedDtor() {
+  ABSL_DCHECK(GetArena() == nullptr);
+  _impl_.~Impl_();
+}
+
+const ::google::protobuf::MessageLite::ClassData*
+InitResponse::GetClassData() const {
+  PROTOBUF_CONSTINIT static const ::google::protobuf::MessageLite::
+      ClassDataFull _data_ = {
+          {
+              &_table_.header,
+              nullptr,  // OnDemandRegisterArenaDtor
+              nullptr,  // IsInitialized
+              PROTOBUF_FIELD_OFFSET(InitResponse, _impl_._cached_size_),
+              false,
+          },
+          &InitResponse::MergeImpl,
+          &InitResponse::kDescriptorMethods,
+          &descriptor_table_keyvaluestore_2eproto,
+          nullptr,  // tracker
+      };
+  ::google::protobuf::internal::PrefetchToLocalCache(&_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(_data_.tc_table);
+  return _data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 0, 0, 2> InitResponse::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    &_InitResponse_default_instance_._instance,
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::keyvaluestore::InitResponse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // bool success = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(InitResponse, _impl_.success_), 63>(),
+     {8, 63, 0, PROTOBUF_FIELD_OFFSET(InitResponse, _impl_.success_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // bool success = 1;
+    {PROTOBUF_FIELD_OFFSET(InitResponse, _impl_.success_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kBool)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+
+PROTOBUF_NOINLINE void InitResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:keyvaluestore.InitResponse)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.success_ = false;
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+::uint8_t* InitResponse::_InternalSerialize(
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:keyvaluestore.InitResponse)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // bool success = 1;
+  if (this->_internal_success() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(
+        1, this->_internal_success(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:keyvaluestore.InitResponse)
+  return target;
+}
+
+::size_t InitResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:keyvaluestore.InitResponse)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // bool success = 1;
+  if (this->_internal_success() != 0) {
+    total_size += 2;
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+
+void InitResponse::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<InitResponse*>(&to_msg);
+  auto& from = static_cast<const InitResponse&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:keyvaluestore.InitResponse)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_success() != 0) {
+    _this->_impl_.success_ = from._impl_.success_;
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void InitResponse::CopyFrom(const InitResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:keyvaluestore.InitResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void InitResponse::InternalSwap(InitResponse* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+        swap(_impl_.success_, other->_impl_.success_);
+}
+
+::google::protobuf::Metadata InitResponse::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

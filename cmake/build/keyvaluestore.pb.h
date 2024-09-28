@@ -311,7 +311,7 @@ class PutResponse final : public ::google::protobuf::Message
     return reinterpret_cast<const PutResponse*>(
         &_PutResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 3;
   friend void swap(PutResponse& a, PutResponse& b) { a.Swap(&b); }
   inline void Swap(PutResponse* other) {
     if (other == this) return;
@@ -500,7 +500,7 @@ class PutRequest final : public ::google::protobuf::Message
     return reinterpret_cast<const PutRequest*>(
         &_PutRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 2;
   friend void swap(PutRequest& a, PutRequest& b) { a.Swap(&b); }
   inline void Swap(PutRequest* other) {
     if (other == this) return;
@@ -695,7 +695,7 @@ class InitResponse final : public ::google::protobuf::Message
     return reinterpret_cast<const InitResponse*>(
         &_InitResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 1;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(InitResponse& a, InitResponse& b) { a.Swap(&b); }
   inline void Swap(InitResponse* other) {
     if (other == this) return;
@@ -866,7 +866,7 @@ class InitRequest final : public ::google::protobuf::Message
     return reinterpret_cast<const InitRequest*>(
         &_InitRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 0;
+  static constexpr int kIndexInFileMessages = 4;
   friend void swap(InitRequest& a, InitRequest& b) { a.Swap(&b); }
   inline void Swap(InitRequest* other) {
     if (other == this) return;
@@ -1043,7 +1043,7 @@ class GetResponse final : public ::google::protobuf::Message
     return reinterpret_cast<const GetResponse*>(
         &_GetResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages = 1;
   friend void swap(GetResponse& a, GetResponse& b) { a.Swap(&b); }
   inline void Swap(GetResponse* other) {
     if (other == this) return;
@@ -1232,7 +1232,7 @@ class GetRequest final : public ::google::protobuf::Message
     return reinterpret_cast<const GetRequest*>(
         &_GetRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 2;
+  static constexpr int kIndexInFileMessages = 0;
   friend void swap(GetRequest& a, GetRequest& b) { a.Swap(&b); }
   inline void Swap(GetRequest* other) {
     if (other == this) return;
@@ -1365,86 +1365,6 @@ class GetRequest final : public ::google::protobuf::Message
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
-// -------------------------------------------------------------------
-
-// InitRequest
-
-// string server_name = 1;
-inline void InitRequest::clear_server_name() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.server_name_.ClearToEmpty();
-}
-inline const std::string& InitRequest::server_name() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:keyvaluestore.InitRequest.server_name)
-  return _internal_server_name();
-}
-template <typename Arg_, typename... Args_>
-inline PROTOBUF_ALWAYS_INLINE void InitRequest::set_server_name(Arg_&& arg,
-                                                     Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.server_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:keyvaluestore.InitRequest.server_name)
-}
-inline std::string* InitRequest::mutable_server_name() ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  std::string* _s = _internal_mutable_server_name();
-  // @@protoc_insertion_point(field_mutable:keyvaluestore.InitRequest.server_name)
-  return _s;
-}
-inline const std::string& InitRequest::_internal_server_name() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.server_name_.Get();
-}
-inline void InitRequest::_internal_set_server_name(const std::string& value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.server_name_.Set(value, GetArena());
-}
-inline std::string* InitRequest::_internal_mutable_server_name() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _impl_.server_name_.Mutable( GetArena());
-}
-inline std::string* InitRequest::release_server_name() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:keyvaluestore.InitRequest.server_name)
-  return _impl_.server_name_.Release();
-}
-inline void InitRequest::set_allocated_server_name(std::string* value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.server_name_.SetAllocated(value, GetArena());
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-        if (_impl_.server_name_.IsDefault()) {
-          _impl_.server_name_.Set("", GetArena());
-        }
-  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.InitRequest.server_name)
-}
-
-// -------------------------------------------------------------------
-
-// InitResponse
-
-// bool success = 1;
-inline void InitResponse::clear_success() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.success_ = false;
-}
-inline bool InitResponse::success() const {
-  // @@protoc_insertion_point(field_get:keyvaluestore.InitResponse.success)
-  return _internal_success();
-}
-inline void InitResponse::set_success(bool value) {
-  _internal_set_success(value);
-  // @@protoc_insertion_point(field_set:keyvaluestore.InitResponse.success)
-}
-inline bool InitResponse::_internal_success() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.success_;
-}
-inline void InitResponse::_internal_set_success(bool value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.success_ = value;
-}
-
 // -------------------------------------------------------------------
 
 // GetRequest
@@ -1753,6 +1673,86 @@ inline bool PutResponse::_internal_key_found() const {
 inline void PutResponse::_internal_set_key_found(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.key_found_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// InitRequest
+
+// string server_name = 1;
+inline void InitRequest::clear_server_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.server_name_.ClearToEmpty();
+}
+inline const std::string& InitRequest::server_name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:keyvaluestore.InitRequest.server_name)
+  return _internal_server_name();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void InitRequest::set_server_name(Arg_&& arg,
+                                                     Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.server_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:keyvaluestore.InitRequest.server_name)
+}
+inline std::string* InitRequest::mutable_server_name() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_server_name();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.InitRequest.server_name)
+  return _s;
+}
+inline const std::string& InitRequest::_internal_server_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.server_name_.Get();
+}
+inline void InitRequest::_internal_set_server_name(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.server_name_.Set(value, GetArena());
+}
+inline std::string* InitRequest::_internal_mutable_server_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.server_name_.Mutable( GetArena());
+}
+inline std::string* InitRequest::release_server_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:keyvaluestore.InitRequest.server_name)
+  return _impl_.server_name_.Release();
+}
+inline void InitRequest::set_allocated_server_name(std::string* value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.server_name_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.server_name_.IsDefault()) {
+          _impl_.server_name_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.InitRequest.server_name)
+}
+
+// -------------------------------------------------------------------
+
+// InitResponse
+
+// bool success = 1;
+inline void InitResponse::clear_success() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.success_ = false;
+}
+inline bool InitResponse::success() const {
+  // @@protoc_insertion_point(field_get:keyvaluestore.InitResponse.success)
+  return _internal_success();
+}
+inline void InitResponse::set_success(bool value) {
+  _internal_set_success(value);
+  // @@protoc_insertion_point(field_set:keyvaluestore.InitResponse.success)
+}
+inline bool InitResponse::_internal_success() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.success_;
+}
+inline void InitResponse::_internal_set_success(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.success_ = value;
 }
 
 // -------------------------------------------------------------------

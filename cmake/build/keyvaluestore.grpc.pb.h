@@ -27,7 +27,6 @@
 
 namespace keyvaluestore {
 
-// Interface exported by the server.
 class KeyValueStore final {
  public:
   static constexpr char const* service_full_name() {
@@ -36,101 +35,101 @@ class KeyValueStore final {
   class StubInterface {
    public:
     virtual ~StubInterface() {}
-    virtual ::grpc::Status Init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::keyvaluestore::InitResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>> AsyncInit(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>>(AsyncInitRaw(context, request, cq));
+    virtual ::grpc::Status init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::keyvaluestore::InitResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>> Asyncinit(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>>(AsyncinitRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>> PrepareAsyncInit(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>>(PrepareAsyncInitRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>> PrepareAsyncinit(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>>(PrepareAsyncinitRaw(context, request, cq));
     }
-    virtual ::grpc::Status Shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::keyvaluestore::ShutdownResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>> AsyncShutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>>(AsyncShutdownRaw(context, request, cq));
+    virtual ::grpc::Status shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::keyvaluestore::ShutdownResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>> Asyncshutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>>(AsyncshutdownRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>> PrepareAsyncShutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>>(PrepareAsyncShutdownRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>> PrepareAsyncshutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>>(PrepareAsyncshutdownRaw(context, request, cq));
     }
-    virtual ::grpc::Status Get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::keyvaluestore::GetResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>> AsyncGet(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>>(AsyncGetRaw(context, request, cq));
+    virtual ::grpc::Status get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::keyvaluestore::GetResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>> Asyncget(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>>(AsyncgetRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>> PrepareAsyncGet(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>>(PrepareAsyncGetRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>> PrepareAsyncget(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>>(PrepareAsyncgetRaw(context, request, cq));
     }
-    virtual ::grpc::Status Put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::keyvaluestore::PutResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>> AsyncPut(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>>(AsyncPutRaw(context, request, cq));
+    virtual ::grpc::Status put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::keyvaluestore::PutResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>> Asyncput(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>>(AsyncputRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>> PrepareAsyncPut(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>>(PrepareAsyncPutRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>> PrepareAsyncput(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>>(PrepareAsyncputRaw(context, request, cq));
     }
     class async_interface {
      public:
       virtual ~async_interface() {}
-      virtual void Init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void Init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void Shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void Shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void Get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void Get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void Put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void Put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
     class async_interface* experimental_async() { return async(); }
    private:
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>* AsyncInitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>* PrepareAsyncInitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>* AsyncShutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>* PrepareAsyncShutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>* AsyncGetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>* PrepareAsyncGetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>* AsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>* PrepareAsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>* AsyncinitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::InitResponse>* PrepareAsyncinitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>* AsyncshutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::ShutdownResponse>* PrepareAsyncshutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>* AsyncgetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::GetResponse>* PrepareAsyncgetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>* AsyncputRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::PutResponse>* PrepareAsyncputRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
-    ::grpc::Status Init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::keyvaluestore::InitResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>> AsyncInit(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>>(AsyncInitRaw(context, request, cq));
+    ::grpc::Status init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::keyvaluestore::InitResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>> Asyncinit(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>>(AsyncinitRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>> PrepareAsyncInit(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>>(PrepareAsyncInitRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>> PrepareAsyncinit(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>>(PrepareAsyncinitRaw(context, request, cq));
     }
-    ::grpc::Status Shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::keyvaluestore::ShutdownResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>> AsyncShutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>>(AsyncShutdownRaw(context, request, cq));
+    ::grpc::Status shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::keyvaluestore::ShutdownResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>> Asyncshutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>>(AsyncshutdownRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>> PrepareAsyncShutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>>(PrepareAsyncShutdownRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>> PrepareAsyncshutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>>(PrepareAsyncshutdownRaw(context, request, cq));
     }
-    ::grpc::Status Get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::keyvaluestore::GetResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>> AsyncGet(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>>(AsyncGetRaw(context, request, cq));
+    ::grpc::Status get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::keyvaluestore::GetResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>> Asyncget(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>>(AsyncgetRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>> PrepareAsyncGet(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>>(PrepareAsyncGetRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>> PrepareAsyncget(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>>(PrepareAsyncgetRaw(context, request, cq));
     }
-    ::grpc::Status Put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::keyvaluestore::PutResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>> AsyncPut(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>>(AsyncPutRaw(context, request, cq));
+    ::grpc::Status put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::keyvaluestore::PutResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>> Asyncput(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>>(AsyncputRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>> PrepareAsyncPut(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>>(PrepareAsyncPutRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>> PrepareAsyncput(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>>(PrepareAsyncputRaw(context, request, cq));
     }
     class async final :
       public StubInterface::async_interface {
      public:
-      void Init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, std::function<void(::grpc::Status)>) override;
-      void Init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void Shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, std::function<void(::grpc::Status)>) override;
-      void Shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void Get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, std::function<void(::grpc::Status)>) override;
-      void Get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void Put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, std::function<void(::grpc::Status)>) override;
-      void Put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, std::function<void(::grpc::Status)>) override;
+      void init(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, std::function<void(::grpc::Status)>) override;
+      void shutdown(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, std::function<void(::grpc::Status)>) override;
+      void get(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, std::function<void(::grpc::Status)>) override;
+      void put(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -142,18 +141,18 @@ class KeyValueStore final {
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     class async async_stub_{this};
-    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>* AsyncInitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>* PrepareAsyncInitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>* AsyncShutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>* PrepareAsyncShutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>* AsyncGetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>* PrepareAsyncGetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>* AsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>* PrepareAsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) override;
-    const ::grpc::internal::RpcMethod rpcmethod_Init_;
-    const ::grpc::internal::RpcMethod rpcmethod_Shutdown_;
-    const ::grpc::internal::RpcMethod rpcmethod_Get_;
-    const ::grpc::internal::RpcMethod rpcmethod_Put_;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>* AsyncinitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::InitResponse>* PrepareAsyncinitRaw(::grpc::ClientContext* context, const ::keyvaluestore::InitRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>* AsyncshutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::ShutdownResponse>* PrepareAsyncshutdownRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>* AsyncgetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::GetResponse>* PrepareAsyncgetRaw(::grpc::ClientContext* context, const ::keyvaluestore::GetRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>* AsyncputRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::PutResponse>* PrepareAsyncputRaw(::grpc::ClientContext* context, const ::keyvaluestore::PutRequest& request, ::grpc::CompletionQueue* cq) override;
+    const ::grpc::internal::RpcMethod rpcmethod_init_;
+    const ::grpc::internal::RpcMethod rpcmethod_shutdown_;
+    const ::grpc::internal::RpcMethod rpcmethod_get_;
+    const ::grpc::internal::RpcMethod rpcmethod_put_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -161,549 +160,549 @@ class KeyValueStore final {
    public:
     Service();
     virtual ~Service();
-    virtual ::grpc::Status Init(::grpc::ServerContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response);
-    virtual ::grpc::Status Shutdown(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response);
-    virtual ::grpc::Status Get(::grpc::ServerContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response);
-    virtual ::grpc::Status Put(::grpc::ServerContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response);
+    virtual ::grpc::Status init(::grpc::ServerContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response);
+    virtual ::grpc::Status shutdown(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response);
+    virtual ::grpc::Status get(::grpc::ServerContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response);
+    virtual ::grpc::Status put(::grpc::ServerContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response);
   };
   template <class BaseClass>
-  class WithAsyncMethod_Init : public BaseClass {
+  class WithAsyncMethod_init : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_Init() {
+    WithAsyncMethod_init() {
       ::grpc::Service::MarkMethodAsync(0);
     }
-    ~WithAsyncMethod_Init() override {
+    ~WithAsyncMethod_init() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
+    ::grpc::Status init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestInit(::grpc::ServerContext* context, ::keyvaluestore::InitRequest* request, ::grpc::ServerAsyncResponseWriter< ::keyvaluestore::InitResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestinit(::grpc::ServerContext* context, ::keyvaluestore::InitRequest* request, ::grpc::ServerAsyncResponseWriter< ::keyvaluestore::InitResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_Shutdown : public BaseClass {
+  class WithAsyncMethod_shutdown : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_Shutdown() {
+    WithAsyncMethod_shutdown() {
       ::grpc::Service::MarkMethodAsync(1);
     }
-    ~WithAsyncMethod_Shutdown() override {
+    ~WithAsyncMethod_shutdown() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
+    ::grpc::Status shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestShutdown(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::keyvaluestore::ShutdownResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestshutdown(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::keyvaluestore::ShutdownResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_Get : public BaseClass {
+  class WithAsyncMethod_get : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_Get() {
+    WithAsyncMethod_get() {
       ::grpc::Service::MarkMethodAsync(2);
     }
-    ~WithAsyncMethod_Get() override {
+    ~WithAsyncMethod_get() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
+    ::grpc::Status get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestGet(::grpc::ServerContext* context, ::keyvaluestore::GetRequest* request, ::grpc::ServerAsyncResponseWriter< ::keyvaluestore::GetResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestget(::grpc::ServerContext* context, ::keyvaluestore::GetRequest* request, ::grpc::ServerAsyncResponseWriter< ::keyvaluestore::GetResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_Put : public BaseClass {
+  class WithAsyncMethod_put : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_Put() {
+    WithAsyncMethod_put() {
       ::grpc::Service::MarkMethodAsync(3);
     }
-    ~WithAsyncMethod_Put() override {
+    ~WithAsyncMethod_put() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
+    ::grpc::Status put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestPut(::grpc::ServerContext* context, ::keyvaluestore::PutRequest* request, ::grpc::ServerAsyncResponseWriter< ::keyvaluestore::PutResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestput(::grpc::ServerContext* context, ::keyvaluestore::PutRequest* request, ::grpc::ServerAsyncResponseWriter< ::keyvaluestore::PutResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_Init<WithAsyncMethod_Shutdown<WithAsyncMethod_Get<WithAsyncMethod_Put<Service > > > > AsyncService;
+  typedef WithAsyncMethod_init<WithAsyncMethod_shutdown<WithAsyncMethod_get<WithAsyncMethod_put<Service > > > > AsyncService;
   template <class BaseClass>
-  class WithCallbackMethod_Init : public BaseClass {
+  class WithCallbackMethod_init : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_Init() {
+    WithCallbackMethod_init() {
       ::grpc::Service::MarkMethodCallback(0,
           new ::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::InitRequest, ::keyvaluestore::InitResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response) { return this->Init(context, request, response); }));}
-    void SetMessageAllocatorFor_Init(
+                   ::grpc::CallbackServerContext* context, const ::keyvaluestore::InitRequest* request, ::keyvaluestore::InitResponse* response) { return this->init(context, request, response); }));}
+    void SetMessageAllocatorFor_init(
         ::grpc::MessageAllocator< ::keyvaluestore::InitRequest, ::keyvaluestore::InitResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(0);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::InitRequest, ::keyvaluestore::InitResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_Init() override {
+    ~WithCallbackMethod_init() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
+    ::grpc::Status init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* Init(
+    virtual ::grpc::ServerUnaryReactor* init(
       ::grpc::CallbackServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_Shutdown : public BaseClass {
+  class WithCallbackMethod_shutdown : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_Shutdown() {
+    WithCallbackMethod_shutdown() {
       ::grpc::Service::MarkMethodCallback(1,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::keyvaluestore::ShutdownResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response) { return this->Shutdown(context, request, response); }));}
-    void SetMessageAllocatorFor_Shutdown(
+                   ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::keyvaluestore::ShutdownResponse* response) { return this->shutdown(context, request, response); }));}
+    void SetMessageAllocatorFor_shutdown(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::keyvaluestore::ShutdownResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::keyvaluestore::ShutdownResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_Shutdown() override {
+    ~WithCallbackMethod_shutdown() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
+    ::grpc::Status shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* Shutdown(
+    virtual ::grpc::ServerUnaryReactor* shutdown(
       ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_Get : public BaseClass {
+  class WithCallbackMethod_get : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_Get() {
+    WithCallbackMethod_get() {
       ::grpc::Service::MarkMethodCallback(2,
           new ::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::GetRequest, ::keyvaluestore::GetResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response) { return this->Get(context, request, response); }));}
-    void SetMessageAllocatorFor_Get(
+                   ::grpc::CallbackServerContext* context, const ::keyvaluestore::GetRequest* request, ::keyvaluestore::GetResponse* response) { return this->get(context, request, response); }));}
+    void SetMessageAllocatorFor_get(
         ::grpc::MessageAllocator< ::keyvaluestore::GetRequest, ::keyvaluestore::GetResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(2);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::GetRequest, ::keyvaluestore::GetResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_Get() override {
+    ~WithCallbackMethod_get() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
+    ::grpc::Status get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* Get(
+    virtual ::grpc::ServerUnaryReactor* get(
       ::grpc::CallbackServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_Put : public BaseClass {
+  class WithCallbackMethod_put : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_Put() {
+    WithCallbackMethod_put() {
       ::grpc::Service::MarkMethodCallback(3,
           new ::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::PutRequest, ::keyvaluestore::PutResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response) { return this->Put(context, request, response); }));}
-    void SetMessageAllocatorFor_Put(
+                   ::grpc::CallbackServerContext* context, const ::keyvaluestore::PutRequest* request, ::keyvaluestore::PutResponse* response) { return this->put(context, request, response); }));}
+    void SetMessageAllocatorFor_put(
         ::grpc::MessageAllocator< ::keyvaluestore::PutRequest, ::keyvaluestore::PutResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(3);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::PutRequest, ::keyvaluestore::PutResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_Put() override {
+    ~WithCallbackMethod_put() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
+    ::grpc::Status put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* Put(
+    virtual ::grpc::ServerUnaryReactor* put(
       ::grpc::CallbackServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_Init<WithCallbackMethod_Shutdown<WithCallbackMethod_Get<WithCallbackMethod_Put<Service > > > > CallbackService;
+  typedef WithCallbackMethod_init<WithCallbackMethod_shutdown<WithCallbackMethod_get<WithCallbackMethod_put<Service > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
-  class WithGenericMethod_Init : public BaseClass {
+  class WithGenericMethod_init : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_Init() {
+    WithGenericMethod_init() {
       ::grpc::Service::MarkMethodGeneric(0);
     }
-    ~WithGenericMethod_Init() override {
+    ~WithGenericMethod_init() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
+    ::grpc::Status init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_Shutdown : public BaseClass {
+  class WithGenericMethod_shutdown : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_Shutdown() {
+    WithGenericMethod_shutdown() {
       ::grpc::Service::MarkMethodGeneric(1);
     }
-    ~WithGenericMethod_Shutdown() override {
+    ~WithGenericMethod_shutdown() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
+    ::grpc::Status shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_Get : public BaseClass {
+  class WithGenericMethod_get : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_Get() {
+    WithGenericMethod_get() {
       ::grpc::Service::MarkMethodGeneric(2);
     }
-    ~WithGenericMethod_Get() override {
+    ~WithGenericMethod_get() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
+    ::grpc::Status get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_Put : public BaseClass {
+  class WithGenericMethod_put : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_Put() {
+    WithGenericMethod_put() {
       ::grpc::Service::MarkMethodGeneric(3);
     }
-    ~WithGenericMethod_Put() override {
+    ~WithGenericMethod_put() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
+    ::grpc::Status put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithRawMethod_Init : public BaseClass {
+  class WithRawMethod_init : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_Init() {
+    WithRawMethod_init() {
       ::grpc::Service::MarkMethodRaw(0);
     }
-    ~WithRawMethod_Init() override {
+    ~WithRawMethod_init() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
+    ::grpc::Status init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestInit(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestinit(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_Shutdown : public BaseClass {
+  class WithRawMethod_shutdown : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_Shutdown() {
+    WithRawMethod_shutdown() {
       ::grpc::Service::MarkMethodRaw(1);
     }
-    ~WithRawMethod_Shutdown() override {
+    ~WithRawMethod_shutdown() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
+    ::grpc::Status shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestShutdown(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestshutdown(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_Get : public BaseClass {
+  class WithRawMethod_get : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_Get() {
+    WithRawMethod_get() {
       ::grpc::Service::MarkMethodRaw(2);
     }
-    ~WithRawMethod_Get() override {
+    ~WithRawMethod_get() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
+    ::grpc::Status get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestGet(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestget(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_Put : public BaseClass {
+  class WithRawMethod_put : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_Put() {
+    WithRawMethod_put() {
       ::grpc::Service::MarkMethodRaw(3);
     }
-    ~WithRawMethod_Put() override {
+    ~WithRawMethod_put() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
+    ::grpc::Status put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestPut(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestput(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_Init : public BaseClass {
+  class WithRawCallbackMethod_init : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_Init() {
+    WithRawCallbackMethod_init() {
       ::grpc::Service::MarkMethodRawCallback(0,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Init(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->init(context, request, response); }));
     }
-    ~WithRawCallbackMethod_Init() override {
+    ~WithRawCallbackMethod_init() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
+    ::grpc::Status init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* Init(
+    virtual ::grpc::ServerUnaryReactor* init(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_Shutdown : public BaseClass {
+  class WithRawCallbackMethod_shutdown : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_Shutdown() {
+    WithRawCallbackMethod_shutdown() {
       ::grpc::Service::MarkMethodRawCallback(1,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Shutdown(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->shutdown(context, request, response); }));
     }
-    ~WithRawCallbackMethod_Shutdown() override {
+    ~WithRawCallbackMethod_shutdown() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
+    ::grpc::Status shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* Shutdown(
+    virtual ::grpc::ServerUnaryReactor* shutdown(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_Get : public BaseClass {
+  class WithRawCallbackMethod_get : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_Get() {
+    WithRawCallbackMethod_get() {
       ::grpc::Service::MarkMethodRawCallback(2,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Get(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->get(context, request, response); }));
     }
-    ~WithRawCallbackMethod_Get() override {
+    ~WithRawCallbackMethod_get() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
+    ::grpc::Status get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* Get(
+    virtual ::grpc::ServerUnaryReactor* get(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_Put : public BaseClass {
+  class WithRawCallbackMethod_put : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_Put() {
+    WithRawCallbackMethod_put() {
       ::grpc::Service::MarkMethodRawCallback(3,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Put(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->put(context, request, response); }));
     }
-    ~WithRawCallbackMethod_Put() override {
+    ~WithRawCallbackMethod_put() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
+    ::grpc::Status put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* Put(
+    virtual ::grpc::ServerUnaryReactor* put(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_Init : public BaseClass {
+  class WithStreamedUnaryMethod_init : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_Init() {
+    WithStreamedUnaryMethod_init() {
       ::grpc::Service::MarkMethodStreamed(0,
         new ::grpc::internal::StreamedUnaryHandler<
           ::keyvaluestore::InitRequest, ::keyvaluestore::InitResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
                      ::keyvaluestore::InitRequest, ::keyvaluestore::InitResponse>* streamer) {
-                       return this->StreamedInit(context,
+                       return this->Streamedinit(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_Init() override {
+    ~WithStreamedUnaryMethod_init() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status Init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
+    ::grpc::Status init(::grpc::ServerContext* /*context*/, const ::keyvaluestore::InitRequest* /*request*/, ::keyvaluestore::InitResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedInit(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::InitRequest,::keyvaluestore::InitResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status Streamedinit(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::InitRequest,::keyvaluestore::InitResponse>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_Shutdown : public BaseClass {
+  class WithStreamedUnaryMethod_shutdown : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_Shutdown() {
+    WithStreamedUnaryMethod_shutdown() {
       ::grpc::Service::MarkMethodStreamed(1,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::keyvaluestore::ShutdownResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
                      ::google::protobuf::Empty, ::keyvaluestore::ShutdownResponse>* streamer) {
-                       return this->StreamedShutdown(context,
+                       return this->Streamedshutdown(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_Shutdown() override {
+    ~WithStreamedUnaryMethod_shutdown() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status Shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
+    ::grpc::Status shutdown(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::keyvaluestore::ShutdownResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedShutdown(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::keyvaluestore::ShutdownResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status Streamedshutdown(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::keyvaluestore::ShutdownResponse>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_Get : public BaseClass {
+  class WithStreamedUnaryMethod_get : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_Get() {
+    WithStreamedUnaryMethod_get() {
       ::grpc::Service::MarkMethodStreamed(2,
         new ::grpc::internal::StreamedUnaryHandler<
           ::keyvaluestore::GetRequest, ::keyvaluestore::GetResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
                      ::keyvaluestore::GetRequest, ::keyvaluestore::GetResponse>* streamer) {
-                       return this->StreamedGet(context,
+                       return this->Streamedget(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_Get() override {
+    ~WithStreamedUnaryMethod_get() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status Get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
+    ::grpc::Status get(::grpc::ServerContext* /*context*/, const ::keyvaluestore::GetRequest* /*request*/, ::keyvaluestore::GetResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedGet(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::GetRequest,::keyvaluestore::GetResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status Streamedget(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::GetRequest,::keyvaluestore::GetResponse>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_Put : public BaseClass {
+  class WithStreamedUnaryMethod_put : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_Put() {
+    WithStreamedUnaryMethod_put() {
       ::grpc::Service::MarkMethodStreamed(3,
         new ::grpc::internal::StreamedUnaryHandler<
           ::keyvaluestore::PutRequest, ::keyvaluestore::PutResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
                      ::keyvaluestore::PutRequest, ::keyvaluestore::PutResponse>* streamer) {
-                       return this->StreamedPut(context,
+                       return this->Streamedput(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_Put() override {
+    ~WithStreamedUnaryMethod_put() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status Put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
+    ::grpc::Status put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::PutRequest* /*request*/, ::keyvaluestore::PutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedPut(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::PutRequest,::keyvaluestore::PutResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status Streamedput(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::PutRequest,::keyvaluestore::PutResponse>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_Init<WithStreamedUnaryMethod_Shutdown<WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<Service > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_init<WithStreamedUnaryMethod_shutdown<WithStreamedUnaryMethod_get<WithStreamedUnaryMethod_put<Service > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_Init<WithStreamedUnaryMethod_Shutdown<WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<Service > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_init<WithStreamedUnaryMethod_shutdown<WithStreamedUnaryMethod_get<WithStreamedUnaryMethod_put<Service > > > > StreamedService;
 };
 
 }  // namespace keyvaluestore
