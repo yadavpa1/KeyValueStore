@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /users/payadav/keyvaluestore
+CMAKE_SOURCE_DIR = /home/catchashu10/KeyValueStore
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /users/payadav/keyvaluestore/cmake/build
+CMAKE_BINARY_DIR = /home/catchashu10/KeyValueStore/cmake/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/keyvaluestore_client.dir/depend.make
@@ -72,16 +72,16 @@ include CMakeFiles/keyvaluestore_client.dir/flags.make
 CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o: CMakeFiles/keyvaluestore_client.dir/flags.make
 CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o: ../../keyvaluestore_client.cc
 CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o: CMakeFiles/keyvaluestore_client.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/users/payadav/keyvaluestore/cmake/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o -MF CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o.d -o CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o -c /users/payadav/keyvaluestore/keyvaluestore_client.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/catchashu10/KeyValueStore/cmake/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o -MF CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o.d -o CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o -c /home/catchashu10/KeyValueStore/keyvaluestore_client.cc
 
 CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /users/payadav/keyvaluestore/keyvaluestore_client.cc > CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/catchashu10/KeyValueStore/keyvaluestore_client.cc > CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.i
 
 CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /users/payadav/keyvaluestore/keyvaluestore_client.cc -o CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/catchashu10/KeyValueStore/keyvaluestore_client.cc -o CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.s
 
 # Object files for target keyvaluestore_client
 keyvaluestore_client_OBJECTS = \
@@ -93,109 +93,104 @@ keyvaluestore_client_EXTERNAL_OBJECTS =
 keyvaluestore_client: CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.o
 keyvaluestore_client: CMakeFiles/keyvaluestore_client.dir/build.make
 keyvaluestore_client: libkvs_grpc_proto.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_flags_parse.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_initialize.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_globals.a
-keyvaluestore_client: /users/payadav/.local/lib/libgrpc++_reflection.a
-keyvaluestore_client: /users/payadav/.local/lib/libgrpc++.a
-keyvaluestore_client: /users/payadav/.local/lib/libprotobuf.a
-keyvaluestore_client: /users/payadav/.local/lib/libgrpc.a
-keyvaluestore_client: /users/payadav/.local/lib/libupb_json_lib.a
-keyvaluestore_client: /users/payadav/.local/lib/libupb_textformat_lib.a
-keyvaluestore_client: /users/payadav/.local/lib/libupb_mini_descriptor_lib.a
-keyvaluestore_client: /users/payadav/.local/lib/libupb_wire_lib.a
-keyvaluestore_client: /users/payadav/.local/lib/libutf8_range_lib.a
-keyvaluestore_client: /users/payadav/.local/lib/libupb_message_lib.a
-keyvaluestore_client: /users/payadav/.local/lib/libupb_base_lib.a
-keyvaluestore_client: /users/payadav/.local/lib/libupb_mem_lib.a
-keyvaluestore_client: /users/payadav/.local/lib/libre2.a
-keyvaluestore_client: /users/payadav/.local/lib/libz.a
-keyvaluestore_client: /users/payadav/.local/lib/libcares.a
-keyvaluestore_client: /users/payadav/.local/lib/libgpr.a
-keyvaluestore_client: /users/payadav/.local/lib/libssl.a
-keyvaluestore_client: /users/payadav/.local/lib/libcrypto.a
-keyvaluestore_client: /users/payadav/.local/lib/libaddress_sorting.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_initialize.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_internal_check_op.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_leak_check.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_die_if_null.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_internal_conditions.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_internal_message.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_examine_stack.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_internal_format.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_internal_proto.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_internal_nullguard.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_internal_log_sink_set.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_globals.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_internal_globals.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_sink.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_entry.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_vlog_config_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_internal_fnmatch.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_random_distributions.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_random_seed_sequences.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_random_internal_pool_urbg.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_random_internal_randen.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_random_internal_randen_hwaes.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_random_internal_randen_hwaes_impl.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_random_internal_randen_slow.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_random_internal_platform.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_random_internal_seed_material.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_random_seed_gen_exception.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_statusor.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_status.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_strerror.a
-keyvaluestore_client: /users/payadav/.local/lib/libutf8_validity.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_flags_usage.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_flags_usage_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_flags_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_flags_marshalling.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_flags_reflection.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_flags_config.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_flags_program_name.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_flags_private_handle_accessor.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_flags_commandlineflag.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_flags_commandlineflag_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_cord.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_cordz_info.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_cord_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_cordz_functions.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_cordz_handle.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_crc_cord_state.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_crc32c.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_str_format_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_crc_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_crc_cpu_detect.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_raw_hash_set.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_hash.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_bad_variant_access.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_city.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_low_level_hash.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_bad_optional_access.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_hashtablez_sampler.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_exponential_biased.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_synchronization.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_graphcycles_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_kernel_timeout_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_time.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_civil_time.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_time_zone.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_stacktrace.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_symbolize.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_strings.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_strings_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_string_view.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_int128.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_throw_delegate.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_malloc_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_debugging_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_demangle_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_base.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_raw_logging_internal.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_log_severity.a
-keyvaluestore_client: /users/payadav/.local/lib/libabsl_spinlock_wait.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libgrpc++_reflection.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libgrpc++.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libgrpc.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libupb_json_lib.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libupb_textformat_lib.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libupb_mini_descriptor_lib.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libupb_wire_lib.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libutf8_range_lib.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libupb_message_lib.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libupb_base_lib.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libupb_mem_lib.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libre2.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libz.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libcares.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libgpr.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libssl.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libcrypto.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libaddress_sorting.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libprotobuf.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_internal_check_op.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_leak_check.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_die_if_null.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_internal_conditions.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_internal_message.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_examine_stack.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_internal_format.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_internal_proto.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_internal_nullguard.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_internal_log_sink_set.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_sink.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_entry.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_flags_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_flags_marshalling.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_flags_reflection.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_flags_config.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_flags_program_name.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_flags_private_handle_accessor.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_flags_commandlineflag.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_flags_commandlineflag_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_initialize.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_internal_globals.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_globals.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_vlog_config_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_internal_fnmatch.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_raw_hash_set.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_hash.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_city.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_low_level_hash.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_hashtablez_sampler.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_random_distributions.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_random_seed_sequences.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_random_internal_pool_urbg.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_random_internal_randen.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_random_internal_randen_hwaes.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_random_internal_randen_hwaes_impl.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_random_internal_randen_slow.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_random_internal_platform.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_random_internal_seed_material.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_random_seed_gen_exception.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_statusor.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_status.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_cord.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_cordz_info.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_cord_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_cordz_functions.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_exponential_biased.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_cordz_handle.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_crc_cord_state.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_crc32c.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_crc_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_crc_cpu_detect.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_bad_optional_access.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_strerror.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_str_format_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_synchronization.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_stacktrace.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_symbolize.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_debugging_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_demangle_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_graphcycles_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_kernel_timeout_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_malloc_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_time.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_civil_time.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_time_zone.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_bad_variant_access.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libutf8_validity.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_strings.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_int128.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_strings_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_string_view.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_base.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_spinlock_wait.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_throw_delegate.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_raw_logging_internal.a
+keyvaluestore_client: /home/catchashu10/.local/lib/libabsl_log_severity.a
 keyvaluestore_client: CMakeFiles/keyvaluestore_client.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/users/payadav/keyvaluestore/cmake/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable keyvaluestore_client"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/catchashu10/KeyValueStore/cmake/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable keyvaluestore_client"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/keyvaluestore_client.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -207,6 +202,6 @@ CMakeFiles/keyvaluestore_client.dir/clean:
 .PHONY : CMakeFiles/keyvaluestore_client.dir/clean
 
 CMakeFiles/keyvaluestore_client.dir/depend:
-	cd /users/payadav/keyvaluestore/cmake/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /users/payadav/keyvaluestore /users/payadav/keyvaluestore /users/payadav/keyvaluestore/cmake/build /users/payadav/keyvaluestore/cmake/build /users/payadav/keyvaluestore/cmake/build/CMakeFiles/keyvaluestore_client.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/catchashu10/KeyValueStore/cmake/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/catchashu10/KeyValueStore /home/catchashu10/KeyValueStore /home/catchashu10/KeyValueStore/cmake/build /home/catchashu10/KeyValueStore/cmake/build /home/catchashu10/KeyValueStore/cmake/build/CMakeFiles/keyvaluestore_client.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/keyvaluestore_client.dir/depend
 

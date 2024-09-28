@@ -35,44 +35,44 @@ class KeyValueStore final {
   class StubInterface {
    public:
     virtual ~StubInterface() {}
-    std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> ManageSession(::grpc::ClientContext* context) {
-      return std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(ManageSessionRaw(context));
+    std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> manage_session(::grpc::ClientContext* context) {
+      return std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(manage_sessionRaw(context));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> AsyncManageSession(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(AsyncManageSessionRaw(context, cq, tag));
+    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> Asyncmanage_session(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(Asyncmanage_sessionRaw(context, cq, tag));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> PrepareAsyncManageSession(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(PrepareAsyncManageSessionRaw(context, cq));
+    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> PrepareAsyncmanage_session(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(PrepareAsyncmanage_sessionRaw(context, cq));
     }
     class async_interface {
      public:
       virtual ~async_interface() {}
-      virtual void ManageSession(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::keyvaluestore::ClientRequest,::keyvaluestore::ServerResponse>* reactor) = 0;
+      virtual void manage_session(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::keyvaluestore::ClientRequest,::keyvaluestore::ServerResponse>* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
     class async_interface* experimental_async() { return async(); }
    private:
-    virtual ::grpc::ClientReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* ManageSessionRaw(::grpc::ClientContext* context) = 0;
-    virtual ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* AsyncManageSessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) = 0;
-    virtual ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* PrepareAsyncManageSessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* manage_sessionRaw(::grpc::ClientContext* context) = 0;
+    virtual ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* Asyncmanage_sessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncReaderWriterInterface< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* PrepareAsyncmanage_sessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
-    std::unique_ptr< ::grpc::ClientReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> ManageSession(::grpc::ClientContext* context) {
-      return std::unique_ptr< ::grpc::ClientReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(ManageSessionRaw(context));
+    std::unique_ptr< ::grpc::ClientReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> manage_session(::grpc::ClientContext* context) {
+      return std::unique_ptr< ::grpc::ClientReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(manage_sessionRaw(context));
     }
-    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> AsyncManageSession(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(AsyncManageSessionRaw(context, cq, tag));
+    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> Asyncmanage_session(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(Asyncmanage_sessionRaw(context, cq, tag));
     }
-    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> PrepareAsyncManageSession(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(PrepareAsyncManageSessionRaw(context, cq));
+    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>> PrepareAsyncmanage_session(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>>(PrepareAsyncmanage_sessionRaw(context, cq));
     }
     class async final :
       public StubInterface::async_interface {
      public:
-      void ManageSession(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::keyvaluestore::ClientRequest,::keyvaluestore::ServerResponse>* reactor) override;
+      void manage_session(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::keyvaluestore::ClientRequest,::keyvaluestore::ServerResponse>* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -84,10 +84,10 @@ class KeyValueStore final {
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     class async async_stub_{this};
-    ::grpc::ClientReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* ManageSessionRaw(::grpc::ClientContext* context) override;
-    ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* AsyncManageSessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) override;
-    ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* PrepareAsyncManageSessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) override;
-    const ::grpc::internal::RpcMethod rpcmethod_ManageSession_;
+    ::grpc::ClientReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* manage_sessionRaw(::grpc::ClientContext* context) override;
+    ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* Asyncmanage_sessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* PrepareAsyncmanage_sessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) override;
+    const ::grpc::internal::RpcMethod rpcmethod_manage_session_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -95,111 +95,111 @@ class KeyValueStore final {
    public:
     Service();
     virtual ~Service();
-    virtual ::grpc::Status ManageSession(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* stream);
+    virtual ::grpc::Status manage_session(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* stream);
   };
   template <class BaseClass>
-  class WithAsyncMethod_ManageSession : public BaseClass {
+  class WithAsyncMethod_manage_session : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_ManageSession() {
+    WithAsyncMethod_manage_session() {
       ::grpc::Service::MarkMethodAsync(0);
     }
-    ~WithAsyncMethod_ManageSession() override {
+    ~WithAsyncMethod_manage_session() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ManageSession(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* /*stream*/)  override {
+    ::grpc::Status manage_session(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestManageSession(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestmanage_session(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncBidiStreaming(0, context, stream, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_ManageSession<Service > AsyncService;
+  typedef WithAsyncMethod_manage_session<Service > AsyncService;
   template <class BaseClass>
-  class WithCallbackMethod_ManageSession : public BaseClass {
+  class WithCallbackMethod_manage_session : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_ManageSession() {
+    WithCallbackMethod_manage_session() {
       ::grpc::Service::MarkMethodCallback(0,
           new ::grpc::internal::CallbackBidiHandler< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context) { return this->ManageSession(context); }));
+                   ::grpc::CallbackServerContext* context) { return this->manage_session(context); }));
     }
-    ~WithCallbackMethod_ManageSession() override {
+    ~WithCallbackMethod_manage_session() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ManageSession(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* /*stream*/)  override {
+    ::grpc::Status manage_session(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerBidiReactor< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* ManageSession(
+    virtual ::grpc::ServerBidiReactor< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* manage_session(
       ::grpc::CallbackServerContext* /*context*/)
       { return nullptr; }
   };
-  typedef WithCallbackMethod_ManageSession<Service > CallbackService;
+  typedef WithCallbackMethod_manage_session<Service > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
-  class WithGenericMethod_ManageSession : public BaseClass {
+  class WithGenericMethod_manage_session : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_ManageSession() {
+    WithGenericMethod_manage_session() {
       ::grpc::Service::MarkMethodGeneric(0);
     }
-    ~WithGenericMethod_ManageSession() override {
+    ~WithGenericMethod_manage_session() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ManageSession(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* /*stream*/)  override {
+    ::grpc::Status manage_session(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithRawMethod_ManageSession : public BaseClass {
+  class WithRawMethod_manage_session : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_ManageSession() {
+    WithRawMethod_manage_session() {
       ::grpc::Service::MarkMethodRaw(0);
     }
-    ~WithRawMethod_ManageSession() override {
+    ~WithRawMethod_manage_session() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ManageSession(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* /*stream*/)  override {
+    ::grpc::Status manage_session(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestManageSession(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestmanage_session(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncBidiStreaming(0, context, stream, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_ManageSession : public BaseClass {
+  class WithRawCallbackMethod_manage_session : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_ManageSession() {
+    WithRawCallbackMethod_manage_session() {
       ::grpc::Service::MarkMethodRawCallback(0,
           new ::grpc::internal::CallbackBidiHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context) { return this->ManageSession(context); }));
+                   ::grpc::CallbackServerContext* context) { return this->manage_session(context); }));
     }
-    ~WithRawCallbackMethod_ManageSession() override {
+    ~WithRawCallbackMethod_manage_session() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ManageSession(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* /*stream*/)  override {
+    ::grpc::Status manage_session(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerBidiReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* ManageSession(
+    virtual ::grpc::ServerBidiReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* manage_session(
       ::grpc::CallbackServerContext* /*context*/)
       { return nullptr; }
   };

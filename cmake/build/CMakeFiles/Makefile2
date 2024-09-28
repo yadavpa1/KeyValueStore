@@ -54,10 +54,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /users/payadav/keyvaluestore
+CMAKE_SOURCE_DIR = /home/catchashu10/KeyValueStore
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /users/payadav/keyvaluestore/cmake/build
+CMAKE_BINARY_DIR = /home/catchashu10/KeyValueStore/cmake/build
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -65,6 +65,8 @@ CMAKE_BINARY_DIR = /users/payadav/keyvaluestore/cmake/build
 # The main recursive "all" target.
 all: CMakeFiles/kvs_grpc_proto.dir/all
 all: CMakeFiles/keyvaluestore_client.dir/all
+all: CMakeFiles/lib739kv.dir/all
+all: CMakeFiles/kvClient.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -74,6 +76,8 @@ preinstall:
 # The main recursive "clean" target.
 clean: CMakeFiles/kvs_grpc_proto.dir/clean
 clean: CMakeFiles/keyvaluestore_client.dir/clean
+clean: CMakeFiles/lib739kv.dir/clean
+clean: CMakeFiles/kvClient.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -83,14 +87,14 @@ clean: CMakeFiles/keyvaluestore_client.dir/clean
 CMakeFiles/kvs_grpc_proto.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvs_grpc_proto.dir/build.make CMakeFiles/kvs_grpc_proto.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvs_grpc_proto.dir/build.make CMakeFiles/kvs_grpc_proto.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/users/payadav/keyvaluestore/cmake/build/CMakeFiles --progress-num=3,4,5,6 "Built target kvs_grpc_proto"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/catchashu10/KeyValueStore/cmake/build/CMakeFiles --progress-num=5,6,7,8 "Built target kvs_grpc_proto"
 .PHONY : CMakeFiles/kvs_grpc_proto.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/kvs_grpc_proto.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /users/payadav/keyvaluestore/cmake/build/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/catchashu10/KeyValueStore/cmake/build/CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/kvs_grpc_proto.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /users/payadav/keyvaluestore/cmake/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/catchashu10/KeyValueStore/cmake/build/CMakeFiles 0
 .PHONY : CMakeFiles/kvs_grpc_proto.dir/rule
 
 # Convenience name for target.
@@ -109,14 +113,14 @@ CMakeFiles/kvs_grpc_proto.dir/clean:
 CMakeFiles/keyvaluestore_client.dir/all: CMakeFiles/kvs_grpc_proto.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/keyvaluestore_client.dir/build.make CMakeFiles/keyvaluestore_client.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/keyvaluestore_client.dir/build.make CMakeFiles/keyvaluestore_client.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/users/payadav/keyvaluestore/cmake/build/CMakeFiles --progress-num=1,2 "Built target keyvaluestore_client"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/catchashu10/KeyValueStore/cmake/build/CMakeFiles --progress-num=1,2 "Built target keyvaluestore_client"
 .PHONY : CMakeFiles/keyvaluestore_client.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/keyvaluestore_client.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /users/payadav/keyvaluestore/cmake/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/catchashu10/KeyValueStore/cmake/build/CMakeFiles 6
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/keyvaluestore_client.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /users/payadav/keyvaluestore/cmake/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/catchashu10/KeyValueStore/cmake/build/CMakeFiles 0
 .PHONY : CMakeFiles/keyvaluestore_client.dir/rule
 
 # Convenience name for target.
@@ -127,6 +131,59 @@ keyvaluestore_client: CMakeFiles/keyvaluestore_client.dir/rule
 CMakeFiles/keyvaluestore_client.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/keyvaluestore_client.dir/build.make CMakeFiles/keyvaluestore_client.dir/clean
 .PHONY : CMakeFiles/keyvaluestore_client.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/lib739kv.dir
+
+# All Build rule for target.
+CMakeFiles/lib739kv.dir/all: CMakeFiles/kvs_grpc_proto.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib739kv.dir/build.make CMakeFiles/lib739kv.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib739kv.dir/build.make CMakeFiles/lib739kv.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/catchashu10/KeyValueStore/cmake/build/CMakeFiles --progress-num=9,10 "Built target lib739kv"
+.PHONY : CMakeFiles/lib739kv.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/lib739kv.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/catchashu10/KeyValueStore/cmake/build/CMakeFiles 6
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/lib739kv.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/catchashu10/KeyValueStore/cmake/build/CMakeFiles 0
+.PHONY : CMakeFiles/lib739kv.dir/rule
+
+# Convenience name for target.
+lib739kv: CMakeFiles/lib739kv.dir/rule
+.PHONY : lib739kv
+
+# clean rule for target.
+CMakeFiles/lib739kv.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib739kv.dir/build.make CMakeFiles/lib739kv.dir/clean
+.PHONY : CMakeFiles/lib739kv.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/kvClient.dir
+
+# All Build rule for target.
+CMakeFiles/kvClient.dir/all: CMakeFiles/kvs_grpc_proto.dir/all
+CMakeFiles/kvClient.dir/all: CMakeFiles/lib739kv.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvClient.dir/build.make CMakeFiles/kvClient.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvClient.dir/build.make CMakeFiles/kvClient.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/catchashu10/KeyValueStore/cmake/build/CMakeFiles --progress-num=3,4 "Built target kvClient"
+.PHONY : CMakeFiles/kvClient.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/kvClient.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/catchashu10/KeyValueStore/cmake/build/CMakeFiles 8
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/kvClient.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/catchashu10/KeyValueStore/cmake/build/CMakeFiles 0
+.PHONY : CMakeFiles/kvClient.dir/rule
+
+# Convenience name for target.
+kvClient: CMakeFiles/kvClient.dir/rule
+.PHONY : kvClient
+
+# clean rule for target.
+CMakeFiles/kvClient.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvClient.dir/build.make CMakeFiles/kvClient.dir/clean
+.PHONY : CMakeFiles/kvClient.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

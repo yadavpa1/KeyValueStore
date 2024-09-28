@@ -381,16 +381,16 @@ const char descriptor_table_protodef_keyvaluestore_2eproto[] ABSL_ATTRIBUTE_SECT
     "Request\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"3\n\013P"
     "utResponse\022\021\n\told_value\030\001 \001(\t\022\021\n\tkey_fou"
     "nd\030\002 \001(\010\"\021\n\017ShutdownRequest\"#\n\020ShutdownR"
-    "esponse\022\017\n\007success\030\001 \001(\0102a\n\rKeyValueStor"
-    "e\022P\n\rManageSession\022\034.keyvaluestore.Clien"
-    "tRequest\032\035.keyvaluestore.ServerResponse("
-    "\0010\001b\006proto3"
+    "esponse\022\017\n\007success\030\001 \001(\0102b\n\rKeyValueStor"
+    "e\022Q\n\016manage_session\022\034.keyvaluestore.Clie"
+    "ntRequest\032\035.keyvaluestore.ServerResponse"
+    "(\0010\001b\006proto3"
 };
 static ::absl::once_flag descriptor_table_keyvaluestore_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_keyvaluestore_2eproto = {
     false,
     false,
-    931,
+    932,
     descriptor_table_protodef_keyvaluestore_2eproto,
     "keyvaluestore.proto",
     &descriptor_table_keyvaluestore_2eproto_once,

@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /users/payadav/keyvaluestore
+CMAKE_SOURCE_DIR = /home/catchashu10/KeyValueStore
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /users/payadav/keyvaluestore/cmake/build
+CMAKE_BINARY_DIR = /home/catchashu10/KeyValueStore/cmake/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /users/payadav/keyvaluestore/cmake/build/CMakeFiles /users/payadav/keyvaluestore/cmake/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/catchashu10/KeyValueStore/cmake/build/CMakeFiles /home/catchashu10/KeyValueStore/cmake/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /users/payadav/keyvaluestore/cmake/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/catchashu10/KeyValueStore/cmake/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -141,6 +141,32 @@ keyvaluestore_client: cmake_check_build_system
 keyvaluestore_client/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/keyvaluestore_client.dir/build.make CMakeFiles/keyvaluestore_client.dir/build
 .PHONY : keyvaluestore_client/fast
+
+#=============================================================================
+# Target rules for targets named lib739kv
+
+# Build rule for target.
+lib739kv: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 lib739kv
+.PHONY : lib739kv
+
+# fast build rule for target.
+lib739kv/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib739kv.dir/build.make CMakeFiles/lib739kv.dir/build
+.PHONY : lib739kv/fast
+
+#=============================================================================
+# Target rules for targets named kvClient
+
+# Build rule for target.
+kvClient: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 kvClient
+.PHONY : kvClient
+
+# fast build rule for target.
+kvClient/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvClient.dir/build.make CMakeFiles/kvClient.dir/build
+.PHONY : kvClient/fast
 
 keyvaluestore.grpc.pb.o: keyvaluestore.grpc.pb.cc.o
 .PHONY : keyvaluestore.grpc.pb.o
@@ -214,6 +240,54 @@ keyvaluestore_client.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/keyvaluestore_client.dir/build.make CMakeFiles/keyvaluestore_client.dir/keyvaluestore_client.cc.s
 .PHONY : keyvaluestore_client.cc.s
 
+kvClient.o: kvClient.cc.o
+.PHONY : kvClient.o
+
+# target to build an object file
+kvClient.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvClient.dir/build.make CMakeFiles/kvClient.dir/kvClient.cc.o
+.PHONY : kvClient.cc.o
+
+kvClient.i: kvClient.cc.i
+.PHONY : kvClient.i
+
+# target to preprocess a source file
+kvClient.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvClient.dir/build.make CMakeFiles/kvClient.dir/kvClient.cc.i
+.PHONY : kvClient.cc.i
+
+kvClient.s: kvClient.cc.s
+.PHONY : kvClient.s
+
+# target to generate assembly for a file
+kvClient.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvClient.dir/build.make CMakeFiles/kvClient.dir/kvClient.cc.s
+.PHONY : kvClient.cc.s
+
+lib739kv.o: lib739kv.cc.o
+.PHONY : lib739kv.o
+
+# target to build an object file
+lib739kv.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib739kv.dir/build.make CMakeFiles/lib739kv.dir/lib739kv.cc.o
+.PHONY : lib739kv.cc.o
+
+lib739kv.i: lib739kv.cc.i
+.PHONY : lib739kv.i
+
+# target to preprocess a source file
+lib739kv.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib739kv.dir/build.make CMakeFiles/lib739kv.dir/lib739kv.cc.i
+.PHONY : lib739kv.cc.i
+
+lib739kv.s: lib739kv.cc.s
+.PHONY : lib739kv.s
+
+# target to generate assembly for a file
+lib739kv.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib739kv.dir/build.make CMakeFiles/lib739kv.dir/lib739kv.cc.s
+.PHONY : lib739kv.cc.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -223,7 +297,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... keyvaluestore_client"
+	@echo "... kvClient"
 	@echo "... kvs_grpc_proto"
+	@echo "... lib739kv"
 	@echo "... keyvaluestore.grpc.pb.o"
 	@echo "... keyvaluestore.grpc.pb.i"
 	@echo "... keyvaluestore.grpc.pb.s"
@@ -233,6 +309,12 @@ help:
 	@echo "... keyvaluestore_client.o"
 	@echo "... keyvaluestore_client.i"
 	@echo "... keyvaluestore_client.s"
+	@echo "... kvClient.o"
+	@echo "... kvClient.i"
+	@echo "... kvClient.s"
+	@echo "... lib739kv.o"
+	@echo "... lib739kv.i"
+	@echo "... lib739kv.s"
 .PHONY : help
 
 

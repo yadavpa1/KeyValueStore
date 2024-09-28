@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DCARES_STATICLIB
 
-CXX_INCLUDES = -I/users/payadav/keyvaluestore/cmake/build -isystem /users/payadav/.local/include
+CXX_INCLUDES = -I/home/catchashu10/KeyValueStore/cmake/build -isystem /home/catchashu10/.local/include
 
-CXX_FLAGS = 
+CXX_FLAGS =  -fPIC
 

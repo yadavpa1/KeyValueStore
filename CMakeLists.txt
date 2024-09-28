@@ -30,7 +30,10 @@ add_custom_command(
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-# kvs_grpc_proto
+# Add -fPIC for position-independent code [Needed for generating shared Library]
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+
+# kvs_grpc_proto - this will be the base library
 add_library(kvs_grpc_proto
   ${kvs_grpc_srcs}
   ${kvs_grpc_hdrs}
@@ -42,18 +45,25 @@ target_link_libraries(kvs_grpc_proto
   ${_GRPC_GRPCPP}
   ${_PROTOBUF_LIBPROTOBUF})
 
-# Targets keyvaluestore_(client)
-foreach(_target
-keyvaluestore_client)
-  add_executable(${_target}
-    "${_target}.cc")
-  target_link_libraries(${_target}
-    kvs_grpc_proto
-    absl::flags_parse
-    absl::absl_log
-    absl::log_initialize
-    absl::log_globals
-    ${_REFLECTION}
-    ${_GRPC_GRPCPP}
-    ${_PROTOBUF_LIBPROTOBUF})
-endforeach()
+
+# Create the client executable file for the end user
+
+add_executable(keyvaluestore_client "keyvaluestore_client.cc")
+target_link_libraries(keyvaluestore_client
+    kvs_grpc_proto)
+
+
+
+# # Create the shared library lib739kv.so
+# add_library(lib739kv SHARED
+#     "lib739kv.cc") 
+# target_link_libraries(lib739kv
+#     kvs_grpc_proto) 
+
+# # Optionally, set the output name for the library explicitly (this will produce lib739kv.so)
+# set_target_properties(lib739kv PROPERTIES OUTPUT_NAME "739kv")
+
+
+# # Create the client executable file for the end user
+# add_executable(kvClient "kvClient.cc")
+# target_link_libraries(kvClient lib739kv)

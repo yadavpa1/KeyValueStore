@@ -22,7 +22,7 @@
 namespace keyvaluestore {
 
 static const char* KeyValueStore_method_names[] = {
-  "/keyvaluestore.KeyValueStore/ManageSession",
+  "/keyvaluestore.KeyValueStore/manage_session",
 };
 
 std::unique_ptr< KeyValueStore::Stub> KeyValueStore::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -32,23 +32,23 @@ std::unique_ptr< KeyValueStore::Stub> KeyValueStore::NewStub(const std::shared_p
 }
 
 KeyValueStore::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
-  : channel_(channel), rpcmethod_ManageSession_(KeyValueStore_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::BIDI_STREAMING, channel)
+  : channel_(channel), rpcmethod_manage_session_(KeyValueStore_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::BIDI_STREAMING, channel)
   {}
 
-::grpc::ClientReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* KeyValueStore::Stub::ManageSessionRaw(::grpc::ClientContext* context) {
-  return ::grpc::internal::ClientReaderWriterFactory< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>::Create(channel_.get(), rpcmethod_ManageSession_, context);
+::grpc::ClientReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* KeyValueStore::Stub::manage_sessionRaw(::grpc::ClientContext* context) {
+  return ::grpc::internal::ClientReaderWriterFactory< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>::Create(channel_.get(), rpcmethod_manage_session_, context);
 }
 
-void KeyValueStore::Stub::async::ManageSession(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::keyvaluestore::ClientRequest,::keyvaluestore::ServerResponse>* reactor) {
-  ::grpc::internal::ClientCallbackReaderWriterFactory< ::keyvaluestore::ClientRequest,::keyvaluestore::ServerResponse>::Create(stub_->channel_.get(), stub_->rpcmethod_ManageSession_, context, reactor);
+void KeyValueStore::Stub::async::manage_session(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::keyvaluestore::ClientRequest,::keyvaluestore::ServerResponse>* reactor) {
+  ::grpc::internal::ClientCallbackReaderWriterFactory< ::keyvaluestore::ClientRequest,::keyvaluestore::ServerResponse>::Create(stub_->channel_.get(), stub_->rpcmethod_manage_session_, context, reactor);
 }
 
-::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* KeyValueStore::Stub::AsyncManageSessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
-  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>::Create(channel_.get(), cq, rpcmethod_ManageSession_, context, true, tag);
+::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* KeyValueStore::Stub::Asyncmanage_sessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>::Create(channel_.get(), cq, rpcmethod_manage_session_, context, true, tag);
 }
 
-::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* KeyValueStore::Stub::PrepareAsyncManageSessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>::Create(channel_.get(), cq, rpcmethod_ManageSession_, context, false, nullptr);
+::grpc::ClientAsyncReaderWriter< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>* KeyValueStore::Stub::PrepareAsyncmanage_sessionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::keyvaluestore::ClientRequest, ::keyvaluestore::ServerResponse>::Create(channel_.get(), cq, rpcmethod_manage_session_, context, false, nullptr);
 }
 
 KeyValueStore::Service::Service() {
@@ -60,14 +60,14 @@ KeyValueStore::Service::Service() {
              ::grpc::ServerContext* ctx,
              ::grpc::ServerReaderWriter<::keyvaluestore::ServerResponse,
              ::keyvaluestore::ClientRequest>* stream) {
-               return service->ManageSession(ctx, stream);
+               return service->manage_session(ctx, stream);
              }, this)));
 }
 
 KeyValueStore::Service::~Service() {
 }
 
-::grpc::Status KeyValueStore::Service::ManageSession(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* stream) {
+::grpc::Status KeyValueStore::Service::manage_session(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::keyvaluestore::ServerResponse, ::keyvaluestore::ClientRequest>* stream) {
   (void) context;
   (void) stream;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
