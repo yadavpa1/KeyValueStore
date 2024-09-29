@@ -18,6 +18,12 @@ using keyvaluestore::ShutdownRequest;
 using keyvaluestore::ShutdownResponse;
 
 int KeyValueStoreClient::kv739_init(const std::string& server_name) {
+    // Check if the stream is already open, indicating the client is already initialized.
+    if (stream_) {
+        std::cerr << "Error: Client is already initialized." << std::endl;
+        return -1;
+    }
+
     channel_ = grpc::CreateChannel(server_name, grpc::InsecureChannelCredentials());
     stub_ = KeyValueStore::NewStub(channel_);
 
@@ -41,6 +47,7 @@ int KeyValueStoreClient::kv739_init(const std::string& server_name) {
     }
 
     std::cerr << "Error: Failed to initialize the client." << std::endl;
+    stream_.reset();
     return -1;
 }
 
@@ -62,18 +69,24 @@ int KeyValueStoreClient::kv739_shutdown() {
     if (stream_->Read(&response) && response.has_shutdown_response()) {
         if (response.shutdown_response().success()) {
             std::cout << "Client successfully shut down." << std::endl;
+
+            grpc::Status status = stream_->Finish();
+            if (!status.ok()) {
+                std::cerr << "Error: Shutdown stream failed with status: " << status.error_message() << std::endl;
+                return -1;
+            }
+
+            stream_.reset();  // Clear the stream pointer only on success
+            return 0;
+
         } else {
             std::cerr << "Shutdown request failed on the server." << std::endl;
             return -1;
         }
     }
 
-    grpc::Status status = stream_->Finish();
-    if (!status.ok()) {
-        std::cerr << "Error: Shutdown stream failed with status: " << status.error_message() << std::endl;
-        return -1;
-    }
-    return 0;
+    std::cerr << "Error: Shutdown operation failed, unable to read server response." << std::endl;
+    return -1;
 }
 
 int KeyValueStoreClient::kv739_get(const std::string& key, std::string& value) {
