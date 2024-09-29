@@ -4,6 +4,8 @@
 #include <grpcpp/grpcpp.h>
 #include "keyvaluestore.grpc.pb.h"
 #include "rocksdb_wrapper.h"
+#include "Cache/Cache.h"
+#include "Cache/Policy/LRU.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -24,7 +26,8 @@ using keyvaluestore::ShutdownResponse;
 
 class KeyValueStoreServiceImpl final : public KeyValueStore::Service {
     public:
-        KeyValueStoreServiceImpl(const std::string& db_path) : db_(db_path) {}
+        KeyValueStoreServiceImpl(const std::string& db_path, Cache<std::string, std::string, Policy::LRU, std::mutex>& cache) 
+            : db_(db_path), cache_(cache) {}
 
         Status ManageSession(ServerContext* context, ServerReaderWriter<ServerResponse, ClientRequest>* stream) override {
             ClientRequest client_request;
@@ -48,6 +51,7 @@ class KeyValueStoreServiceImpl final : public KeyValueStore::Service {
 
     private:
     RocksDBWrapper db_;  // RocksDBWrapper instance for database operations
+    Cache<std::string, std::string, Policy::LRU, std::mutex>& cache_; // Reference to the Cache instance
 
     void HandleInitRequest(const InitRequest& request, ServerReaderWriter<ServerResponse, ClientRequest>* stream) {
         std::cout << "Received InitRequest for Server: " << request.server_name() << std::endl;
@@ -67,11 +71,26 @@ class KeyValueStoreServiceImpl final : public KeyValueStore::Service {
         GetResponse get_response;
 
         std::string value;
-        if (db_.Get(request.key(), value)) {
+
+        // Check if key is in cache
+        if (cache_.contains(request.key())) {
+            value = cache_[request.key()];
+            std::cout << "Cache hit for key: " << request.key() << std::endl;
             get_response.set_value(value);
             get_response.set_key_found(true);
         } else {
-            get_response.set_key_found(false);
+            // If not in cache, check the database
+            if (db_.Get(request.key(), value)) {
+                std::cout << "Cache miss, fetching from DB for key: " << request.key() << std::endl;
+                get_response.set_value(value);
+                get_response.set_key_found(true);
+
+                // Insert into cache
+                cache_.insert(request.key(), value);
+            } else {
+                std::cout << "Key not found: " << request.key() << std::endl;
+                get_response.set_key_found(false);
+            }
         }
 
         *response.mutable_get_response() = get_response;
@@ -92,7 +111,11 @@ class KeyValueStoreServiceImpl final : public KeyValueStore::Service {
             put_response.set_key_found(false);
         }
 
+        // Update database
         db_.Put(request.key(), request.value());
+
+        // Update cache with the new value
+        cache_.insert(request.key(), request.value());
 
         *response.mutable_put_response() = put_response;
         stream->Write(response);
@@ -111,7 +134,11 @@ class KeyValueStoreServiceImpl final : public KeyValueStore::Service {
 };
 
 void RunServer(const std::string& server_address, const std::string& db_path) {
-    KeyValueStoreServiceImpl service(db_path);
+    // Create an instance of Cache with a capacity of 10,000 entries
+    Cache<std::string, std::string, Policy::LRU, std::mutex> cache(10000);
+
+    // Pass the cache instance to the KeyValueStoreServiceImpl
+    KeyValueStoreServiceImpl service(db_path, cache);
 
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
@@ -128,4 +155,3 @@ int main(int argc, char** argv) {
     RunServer(server_address, db_path);
     return 0;
 }
-
