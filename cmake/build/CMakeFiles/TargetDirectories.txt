@@ -1,4 +1,0 @@
-/users/payadav/keyvaluestore/cmake/build/CMakeFiles/kvs_grpc_proto.dir
-/users/payadav/keyvaluestore/cmake/build/CMakeFiles/keyvaluestore_client.dir
-/users/payadav/keyvaluestore/cmake/build/CMakeFiles/edit_cache.dir
-/users/payadav/keyvaluestore/cmake/build/CMakeFiles/rebuild_cache.dir

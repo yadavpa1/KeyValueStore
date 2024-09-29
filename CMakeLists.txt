@@ -7,6 +7,9 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/common.cmake")
 # Find absl package
 find_package(absl CONFIG REQUIRED)
 
+# Find RocksDB
+find_library(ROCKSDB_LIB rocksdb REQUIRED)
+
 # Proto file
 get_filename_component(kvs_proto "./proto/keyvaluestore.proto" ABSOLUTE)
 get_filename_component(kvs_proto_path "${kvs_proto}" PATH)
@@ -29,6 +32,8 @@ add_custom_command(
 
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/server")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/client")
 
 # kvs_grpc_proto
 add_library(kvs_grpc_proto
@@ -42,18 +47,27 @@ target_link_libraries(kvs_grpc_proto
   ${_GRPC_GRPCPP}
   ${_PROTOBUF_LIBPROTOBUF})
 
-# Targets keyvaluestore_(client)
-foreach(_target
-keyvaluestore_client)
-  add_executable(${_target}
-    "${_target}.cc")
-  target_link_libraries(${_target}
-    kvs_grpc_proto
-    absl::flags_parse
-    absl::absl_log
-    absl::log_initialize
-    absl::log_globals
-    ${_REFLECTION}
-    ${_GRPC_GRPCPP}
-    ${_PROTOBUF_LIBPROTOBUF})
-endforeach()
+# RocksDB wrapper
+add_library(rocksdb_wrapper
+  server/rocksdb_wrapper.cc)
+target_link_libraries(rocksdb_wrapper
+  ${ROCKSDB_LIB})
+
+# Targets keyvaluestore_client
+add_executable(keyvaluestore_client
+  client/keyvaluestore_client.cc)
+target_link_libraries(keyvaluestore_client
+  kvs_grpc_proto
+  absl::flags_parse
+  absl::log_initialize
+  absl::log_globals)
+
+# Targets keyvaluestore_server
+add_executable(keyvaluestore_server
+  server/keyvaluestore_server.cc)
+target_link_libraries(keyvaluestore_server
+  kvs_grpc_proto
+  rocksdb_wrapper
+  absl::flags_parse
+  absl::log_initialize
+  absl::log_globals)

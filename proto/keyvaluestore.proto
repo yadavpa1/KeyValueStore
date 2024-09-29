@@ -3,7 +3,7 @@ syntax = "proto3";
 package keyvaluestore;
 
 service KeyValueStore {
-    rpc manage_session(stream ClientRequest) returns (stream ServerResponse);
+    rpc ManageSession(stream ClientRequest) returns (stream ServerResponse);
 }
 
 message ClientRequest {
