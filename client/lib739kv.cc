@@ -45,6 +45,11 @@ int KeyValueStoreClient::kv739_init(const std::string& server_name) {
 }
 
 int KeyValueStoreClient::kv739_shutdown() {
+    if (!stream_) {
+        std::cerr << "Error: No active session to shut down." << std::endl;
+        return -1;
+    }
+
     ShutdownRequest shutdown_request;
     ServerResponse response;
 
@@ -72,6 +77,11 @@ int KeyValueStoreClient::kv739_shutdown() {
 }
 
 int KeyValueStoreClient::kv739_get(const std::string& key, std::string& value) {
+    if (!stream_) {
+        std::cerr << "Error: No active session to perform Get." << std::endl;
+        return -1;
+    }
+
     ClientRequest client_request;
     GetRequest get_request;
     get_request.set_key(key);
@@ -96,6 +106,11 @@ int KeyValueStoreClient::kv739_get(const std::string& key, std::string& value) {
 }
 
 int KeyValueStoreClient::kv739_put(const std::string& key, const std::string& value, std::string& old_value) {
+    if (!stream_) {
+        std::cerr << "Error: No active session to perform Put." << std::endl;
+        return -1;
+    }
+
     PutRequest put_request;
     put_request.set_key(key);
     put_request.set_value(value);
