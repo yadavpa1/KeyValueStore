@@ -8,7 +8,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/common.cmake")
 find_package(absl CONFIG REQUIRED)
 
 # Find RocksDB
-find_library(ROCKSDB_LIB rocksdb REQUIRED)
+find_library(ROCKSDB_LIB rocksdb_static REQUIRED)
 
 # Proto file
 get_filename_component(kvs_proto "./proto/keyvaluestore.proto" ABSOLUTE)
@@ -51,16 +51,25 @@ target_link_libraries(kvs_grpc_proto
 add_library(rocksdb_wrapper
   server/rocksdb_wrapper.cc)
 target_link_libraries(rocksdb_wrapper
-  ${ROCKSDB_LIB})
+  ${ROCKSDB_LIB} -static-libstdc++ -static-libgcc)
+
+# Set compiler flags for position-independent code (PIC) for building shared libraries
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+
+# Create shared library lib739kv.so from lib739kv.cc and lib739kv.h
+add_library(739kv SHARED
+  client/lib739kv.cc)
+target_link_libraries(739kv
+  kvs_grpc_proto
+  absl::flags_parse
+  absl::log_initialize
+  absl::log_globals)
 
 # Targets keyvaluestore_client
 add_executable(keyvaluestore_client
   client/keyvaluestore_client.cc)
 target_link_libraries(keyvaluestore_client
-  kvs_grpc_proto
-  absl::flags_parse
-  absl::log_initialize
-  absl::log_globals)
+  739kv)
 
 # Targets keyvaluestore_server
 add_executable(keyvaluestore_server
