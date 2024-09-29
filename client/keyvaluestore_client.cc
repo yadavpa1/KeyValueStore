@@ -235,7 +235,7 @@ int main(int argc, char **argv)
                 continue;
             }
 
-            if (client.kv739_put(key, value, old_value) != 0)
+            if (client.kv739_put(key, value, old_value) == -1)
             {
                 std::cerr << "Failed to put key-value pair: " << key << " -> " << value << std::endl;
             }
