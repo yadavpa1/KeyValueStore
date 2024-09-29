@@ -3,24 +3,26 @@
 
 using grpc::Channel;
 using grpc::ClientContext;
-using grpc::Status;
 using grpc::ClientReaderWriter;
-using keyvaluestore::KeyValueStore;
+using grpc::Status;
 using keyvaluestore::ClientRequest;
-using keyvaluestore::ServerResponse;
-using keyvaluestore::InitRequest;
-using keyvaluestore::InitResponse;
 using keyvaluestore::GetRequest;
 using keyvaluestore::GetResponse;
+using keyvaluestore::InitRequest;
+using keyvaluestore::InitResponse;
+using keyvaluestore::KeyValueStore;
 using keyvaluestore::PutRequest;
 using keyvaluestore::PutResponse;
+using keyvaluestore::ServerResponse;
 using keyvaluestore::ShutdownRequest;
 using keyvaluestore::ShutdownResponse;
 
-int KeyValueStoreClient::kv739_init(const std::string& server_name) {
+int KeyValueStoreClient::kv739_init(const std::string &server_name)
+{
     // Check if the stream is already open, indicating the client is already initialized.
-    if (stream_) {
-        std::cerr << "Error: Client is already initialized." << std::endl;
+    if (stream_)
+    {
+        std::cerr << "Error: Client is already initialized at server: " << connected_server_name << std::endl;
         return -1;
     }
 
@@ -34,25 +36,29 @@ int KeyValueStoreClient::kv739_init(const std::string& server_name) {
     client_request.mutable_init_request()->CopyFrom(init_request);
 
     stream_ = stub_->ManageSession(&context_); // Open the bidirectional stream
-    stream_->Write(client_request); // Send Init request
+    stream_->Write(client_request);            // Send Init request
 
     ServerResponse response;
 
     // Read Init response
-    if (stream_->Read(&response) && response.has_init_response()) {
-        if (response.init_response().success()) {
+    if (stream_->Read(&response) && response.has_init_response())
+    {
+        if (response.init_response().success())
+        {
             std::cout << "Client successfully initialized with server: " << server_name << std::endl;
+            connected_server_name = server_name;
             return 0;
         }
     }
 
     std::cerr << "Error: Failed to initialize the client." << std::endl;
-    stream_.reset();
     return -1;
 }
 
-int KeyValueStoreClient::kv739_shutdown() {
-    if (!stream_) {
+int KeyValueStoreClient::kv739_shutdown()
+{
+    if (!stream_)
+    {
         std::cerr << "Error: No active session to shut down." << std::endl;
         return -1;
     }
@@ -64,22 +70,26 @@ int KeyValueStoreClient::kv739_shutdown() {
     client_request.mutable_shutdown_request()->CopyFrom(shutdown_request);
 
     stream_->Write(client_request); // Send Shutdown request
-    stream_->WritesDone(); // Close the stream
+    stream_->WritesDone();          // Close the stream
 
-    if (stream_->Read(&response) && response.has_shutdown_response()) {
-        if (response.shutdown_response().success()) {
+    if (stream_->Read(&response) && response.has_shutdown_response())
+    {
+        if (response.shutdown_response().success())
+        {
             std::cout << "Client successfully shut down." << std::endl;
 
             grpc::Status status = stream_->Finish();
-            if (!status.ok()) {
+            if (!status.ok())
+            {
                 std::cerr << "Error: Shutdown stream failed with status: " << status.error_message() << std::endl;
                 return -1;
             }
 
-            stream_.reset();  // Clear the stream pointer only on success
+            stream_.reset(); // Clear the stream pointer only on success
             return 0;
-
-        } else {
+        }
+        else
+        {
             std::cerr << "Shutdown request failed on the server." << std::endl;
             return -1;
         }
@@ -89,8 +99,10 @@ int KeyValueStoreClient::kv739_shutdown() {
     return -1;
 }
 
-int KeyValueStoreClient::kv739_get(const std::string& key, std::string& value) {
-    if (!stream_) {
+int KeyValueStoreClient::kv739_get(const std::string &key, std::string &value)
+{
+    if (!stream_)
+    {
         std::cerr << "Error: No active session to perform Get." << std::endl;
         return -1;
     }
@@ -100,15 +112,19 @@ int KeyValueStoreClient::kv739_get(const std::string& key, std::string& value) {
     get_request.set_key(key);
     client_request.mutable_get_request()->CopyFrom(get_request);
 
-    stream_->Write(client_request);  // Send Get request
+    stream_->Write(client_request); // Send Get request
 
     ServerResponse response;
-    if (stream_->Read(&response) && response.has_get_response()) {
-        if (response.get_response().key_found()) {
+    if (stream_->Read(&response) && response.has_get_response())
+    {
+        if (response.get_response().key_found())
+        {
             value = response.get_response().value();
             std::cout << "Get operation successful. Key: '" << key << "', Value: '" << value << "'." << std::endl;
             return 0;
-        } else {
+        }
+        else
+        {
             std::cout << "Key '" << key << "' not found." << std::endl;
             return 1;
         }
@@ -118,8 +134,10 @@ int KeyValueStoreClient::kv739_get(const std::string& key, std::string& value) {
     return -1;
 }
 
-int KeyValueStoreClient::kv739_put(const std::string& key, const std::string& value, std::string& old_value) {
-    if (!stream_) {
+int KeyValueStoreClient::kv739_put(const std::string &key, const std::string &value, std::string &old_value)
+{
+    if (!stream_)
+    {
         std::cerr << "Error: No active session to perform Put." << std::endl;
         return -1;
     }
@@ -131,15 +149,19 @@ int KeyValueStoreClient::kv739_put(const std::string& key, const std::string& va
     ClientRequest client_request;
     client_request.mutable_put_request()->CopyFrom(put_request);
 
-    stream_->Write(client_request);  // Send Put request
+    stream_->Write(client_request); // Send Put request
 
     ServerResponse response;
-    if (stream_->Read(&response) && response.has_put_response()) {
-        if (response.put_response().key_found()) {
+    if (stream_->Read(&response) && response.has_put_response())
+    {
+        if (response.put_response().key_found())
+        {
             old_value = response.put_response().old_value();
             std::cout << "Put operation successful. Old value for key: '" << key << "' was: '" << old_value << "'." << std::endl;
             return 0;
-        } else {
+        }
+        else
+        {
             std::cout << "Put operation successful. No old value existed for key: '" << key << "'." << std::endl;
             return 1;
         }
