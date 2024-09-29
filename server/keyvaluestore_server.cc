@@ -79,7 +79,7 @@ class KeyValueStoreServiceImpl final : public KeyValueStore::Service {
             get_response.set_value(value);
             get_response.set_key_found(true);
         } else {
-            // If not in cache, check the database
+            // If not in cache, use snapshot isolation to read from the DB
             if (db_.Get(request.key(), value)) {
                 std::cout << "Cache miss, fetching from DB for key: " << request.key() << std::endl;
                 get_response.set_value(value);
@@ -104,18 +104,27 @@ class KeyValueStoreServiceImpl final : public KeyValueStore::Service {
         PutResponse put_response;
 
         std::string old_value;
-        if (db_.Get(request.key(), old_value)) {
+         // Use RocksDB transactions for the Put operation
+        int result = db_.Put(request.key(), request.value(), old_value);
+
+        if (result == 0) {
             put_response.set_old_value(old_value);
             put_response.set_key_found(true);
-        } else {
+            std::cout << "Updated key: " << request.key() << " with old value: " << old_value << std::endl;
+
+            // Update cache with the new value
+            cache_.insert(request.key(), request.value());
+
+        } else if (result == 1) {
             put_response.set_key_found(false);
+            std::cout << "Inserted new key: " << request.key() << " with value: " << request.value() << std::endl;
+
+            // Update cache with the new value
+            cache_.insert(request.key(), request.value());
+
+        } else {
+            std::cerr << "Error updating key: " << request.key() << std::endl;
         }
-
-        // Update database
-        db_.Put(request.key(), request.value());
-
-        // Update cache with the new value
-        cache_.insert(request.key(), request.value());
 
         *response.mutable_put_response() = put_response;
         stream->Write(response);

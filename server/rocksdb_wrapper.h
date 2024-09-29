@@ -3,6 +3,8 @@
 
 #include <string>
 #include <rocksdb/db.h>
+#include <rocksdb/utilities/transaction.h>
+#include <rocksdb/utilities/transaction_db.h>
 
 class RocksDBWrapper {
     public:
@@ -14,11 +16,18 @@ class RocksDBWrapper {
         
         bool Get(const std::string& key, std::string& value) const;
         
-        bool Put(const std::string& key, const std::string& value);
+        int Put(const std::string& key, const std::string& value, std::string& old_value);
+
+        // Create a snapshot for isolation.
+        const rocksdb::Snapshot* GetSnapshot() const;
+
+        // Release the snapshot.
+        void ReleaseSnapshot(const rocksdb::Snapshot* snapshot);
 
     private:
-        rocksdb::DB* db_;  // Pointer to the RocksDB instance.
+        rocksdb::TransactionDB* db_;  // Pointer to the RocksDB transactional instance.
         rocksdb::Options options_;  // Options for RocksDB configuration.
+        rocksdb::TransactionDBOptions txn_options_; // Transaction-specific options.
 };
 
 #endif

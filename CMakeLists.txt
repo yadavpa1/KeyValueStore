@@ -36,7 +36,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/server")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/client")
 set(CACHE_BUILD_TESTS OFF)
 set(CACHE_BUILD_EXAMPLES OFF)
-
 add_subdirectory(external/Cache)
 
 # kvs_grpc_proto
