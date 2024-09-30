@@ -35,8 +35,9 @@ int KeyValueStoreClient::kv739_init(const std::string &server_name)
     ClientRequest client_request;
     client_request.mutable_init_request()->CopyFrom(init_request);
 
-    stream_ = stub_->ManageSession(&context_); // Open the bidirectional stream
-    stream_->Write(client_request);            // Send Init request
+    context_ = std::make_unique<grpc::ClientContext>();
+    stream_ = stub_->ManageSession(context_.get()); // Open the bidirectional stream
+    stream_->Write(client_request); // Send Init request
 
     ServerResponse response;
 
@@ -85,7 +86,8 @@ int KeyValueStoreClient::kv739_shutdown()
                 return -1;
             }
 
-            stream_.reset(); // Clear the stream pointer only on success
+            stream_.reset();  // Clear the stream pointer only on success
+            context_.reset();
             return 0;
         }
         else

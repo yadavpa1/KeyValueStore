@@ -17,7 +17,7 @@ private:
     std::shared_ptr<grpc::Channel> channel_;
     std::unique_ptr<keyvaluestore::KeyValueStore::Stub> stub_;
     std::shared_ptr<grpc::ClientReaderWriter<keyvaluestore::ClientRequest, keyvaluestore::ServerResponse>> stream_;
-    grpc::ClientContext context_;
+    std::unique_ptr<grpc::ClientContext> context_;  // Use a smart pointer for the context
     std::string connected_server_name;
 };
 
