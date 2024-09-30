@@ -51,7 +51,8 @@ target_link_libraries(kvs_grpc_proto
   absl::absl_log
   ${_REFLECTION}
   ${_GRPC_GRPCPP}
-  ${_PROTOBUF_LIBPROTOBUF})
+  ${_PROTOBUF_LIBPROTOBUF}
+  -static-libstdc++ -static-libgcc)
 
 # RocksDB wrapper
 add_library(rocksdb_wrapper
@@ -69,7 +70,8 @@ target_link_libraries(739kv
   kvs_grpc_proto
   absl::flags_parse
   absl::log_initialize
-  absl::log_globals)
+  absl::log_globals
+  -static-libstdc++ -static-libgcc)
 
 # Targets keyvaluestore_client
 add_executable(keyvaluestore_client

@@ -1,6 +1,9 @@
 #include "lib739kv.h"
 #include <iostream>
 
+#include <grpcpp/grpcpp.h>
+#include "keyvaluestore.grpc.pb.h"
+
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::ClientReaderWriter;
@@ -17,7 +20,14 @@ using keyvaluestore::ServerResponse;
 using keyvaluestore::ShutdownRequest;
 using keyvaluestore::ShutdownResponse;
 
-int KeyValueStoreClient::kv739_init(const std::string &server_name)
+// Global variables to hold the gRPC objects
+std::shared_ptr<grpc::Channel> channel_;
+std::unique_ptr<keyvaluestore::KeyValueStore::Stub> stub_;
+std::shared_ptr<grpc::ClientReaderWriter<keyvaluestore::ClientRequest, keyvaluestore::ServerResponse>> stream_;
+std::unique_ptr<grpc::ClientContext> context_;
+std::string connected_server_name;
+
+int kv739_init(const std::string &server_name)
 {
     // Check if the stream is already open, indicating the client is already initialized.
     if (stream_)
@@ -56,7 +66,7 @@ int KeyValueStoreClient::kv739_init(const std::string &server_name)
     return -1;
 }
 
-int KeyValueStoreClient::kv739_shutdown()
+int kv739_shutdown()
 {
     if (!stream_)
     {
@@ -101,7 +111,7 @@ int KeyValueStoreClient::kv739_shutdown()
     return -1;
 }
 
-int KeyValueStoreClient::kv739_get(const std::string &key, std::string &value)
+int kv739_get(const std::string &key, std::string &value)
 {
     if (!stream_)
     {
@@ -136,7 +146,7 @@ int KeyValueStoreClient::kv739_get(const std::string &key, std::string &value)
     return -1;
 }
 
-int KeyValueStoreClient::kv739_put(const std::string &key, const std::string &value, std::string &old_value)
+int kv739_put(const std::string &key, const std::string &value, std::string &old_value)
 {
     if (!stream_)
     {

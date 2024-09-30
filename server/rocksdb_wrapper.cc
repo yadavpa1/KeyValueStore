@@ -12,17 +12,17 @@ RocksDBWrapper::RocksDBWrapper(const std::string& db_path) {
     // Open the RocksDB transactional database.
     rocksdb::Status status = rocksdb::TransactionDB::Open(options_, txn_options_, db_path, &db_);
     if (!status.ok()) {
-        std::cerr << "Error: Failed to open RocksDB at path: " << db_path << "\n"
+        std::cerr << "Error: Failed to open DB at path: " << db_path << "\n"
                   << status.ToString() << std::endl;
         db_ = nullptr;
     }
-    std::cout << "RocksDB initialized at path: " << db_path << std::endl;
+    std::cout << "DB initialized at path: " << db_path << std::endl;
 }
 
 
 bool RocksDBWrapper::Get(const std::string& key, std::string& value) const {
     if (!db_) {
-        std::cerr << "Error: RocksDB not initialized." << std::endl;
+        std::cerr << "Error: DB not initialized." << std::endl;
         return false;
     }
 
@@ -42,7 +42,7 @@ bool RocksDBWrapper::Get(const std::string& key, std::string& value) const {
 
 int RocksDBWrapper::Put(const std::string& key, const std::string& value, std::string& old_value) {
     if (!db_) {
-        std::cerr << "Error: RocksDB not initialized." << std::endl;
+        std::cerr << "Error: DB not initialized." << std::endl;
         return -1;
     }
 

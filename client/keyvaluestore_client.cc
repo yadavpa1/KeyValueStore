@@ -1,9 +1,11 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <sstream>
 #include "lib739kv.h"
 
-void print_welcome() {
+void print_welcome()
+{
     std::cout << "************************************************************\n";
     std::cout << "*          WELCOME TO CLUSTER CREW STORAGE SERVICES        *\n";
     std::cout << "************************************************************\n";
@@ -23,14 +25,15 @@ void print_welcome() {
     std::cout << "  \033[1;32mquit\033[0m                   - Exit the client\n";
 }
 
-void print_quit() {
+void print_quit()
+{
     std::cout << "\n**************************************************************\n";
     std::cout << "*   Thank you for choosing Cluster Crew for your storage     *\n";
     std::cout << "**************************************************************\n\n";
 }
 
-int main(int argc, char **argv) {
-    KeyValueStoreClient client;
+int main(int argc, char **argv)
+{
     std::string command, key, value;
     std::string old_value, retrieved_value;
     std::string server_address = "localhost:50051";
@@ -47,58 +50,76 @@ int main(int argc, char **argv) {
         std::string cmd;
         iss >> cmd;
 
-        if (cmd == "init") {
+        if (cmd == "init")
+        {
             iss >> server_address;
-            if (!server_address.empty()) {
-                if (client.kv739_init(server_address) != 0) {
+            if (!server_address.empty())
+            {
+                if (kv739_init(server_address) != 0)
+                {
                     std::cerr << "Failed to initialize client with server at " << server_address << std::endl;
                 }
-            } else {
+            }
+            else
+            {
                 std::cerr << "Usage: init <server_address>" << std::endl;
             }
-
-        } else if (cmd == "get") {
+        }
+        else if (cmd == "get")
+        {
             // Extract the entire rest of the line as the key (handles spaces)
             key = command.substr(command.find(" ") + 1);
-            if (!key.empty()) {
-                if (client.kv739_get(key, retrieved_value) != 0) {
+            if (!key.empty())
+            {
+                if (kv739_get(key, retrieved_value) != 0)
+                {
                     std::cerr << "Failed to get value for key: " << key << std::endl;
                 }
-            } else {
+            }
+            else
+            {
                 std::cerr << "Usage: get <key>" << std::endl;
             }
-
-        } else if (cmd == "put") {
+        }
+        else if (cmd == "put")
+        {
             // Prompt the user to enter the key and value interactively
             std::cout << "Enter key: ";
             std::getline(std::cin, key);
-            if (key.empty()) {
+            if (key.empty())
+            {
                 std::cerr << "Error: Key cannot be empty." << std::endl;
                 continue;
             }
 
             std::cout << "Enter value: ";
             std::getline(std::cin, value);
-            if (value.empty()) {
+            if (value.empty())
+            {
                 std::cerr << "Error: Value cannot be empty." << std::endl;
                 continue;
             }
 
-            if (client.kv739_put(key, value, old_value) == -1) {
+            if (kv739_put(key, value, old_value) == -1)
+            {
                 std::cerr << "Failed to put key-value pair: " << key << " -> " << value << std::endl;
             }
-
-        } else if (cmd == "shutdown") {
-            if (client.kv739_shutdown() != 0) {
+        }
+        else if (cmd == "shutdown")
+        {
+            if (kv739_shutdown() != 0)
+            {
                 std::cerr << "Failed to shut down the server." << std::endl;
             }
-
-        } else if (cmd == "quit") {
+        }
+        else if (cmd == "quit")
+        {
             std::cout << "Exiting client..." << std::endl;
             print_quit();
             break;
-
-        } else {
+        }
+        else
+        {
             print_welcome();
         }
     }
