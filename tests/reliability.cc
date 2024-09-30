@@ -423,5 +423,8 @@ int main(int argc, char* argv[]){
     run_concurrent_key_access(server_address, server_name, num_threads, key_set);
     sleep(1);
     run_concurrent_key_access_with_server_failure(server_address, server_name, num_threads, key_set);
+    std::cout << "\n=== Test Summary ===\n";
+    std::cout << "Total Passed Tests: " << passed_tests << "\n";
+    std::cout << "Total Failed Tests: " << failed_tests << "\n";
     return 0;
 }
