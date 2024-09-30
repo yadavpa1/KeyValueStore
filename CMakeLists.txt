@@ -37,9 +37,6 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/server")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/client")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/tests")
-set(CACHE_BUILD_TESTS OFF)
-set(CACHE_BUILD_EXAMPLES OFF)
-add_subdirectory(external/Cache)
 
 # kvs_grpc_proto
 add_library(kvs_grpc_proto
@@ -85,8 +82,7 @@ target_link_libraries(keyvaluestore_server
   rocksdb_wrapper
   absl::flags_parse
   absl::log_initialize
-  absl::log_globals
-  Cache)
+  absl::log_globals)
 
 # Targets Tests [correctenss, performance, reliability]
 # List of test executables
