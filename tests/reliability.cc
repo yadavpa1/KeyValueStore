@@ -113,8 +113,7 @@ bool shutdown_server(pid_t server_pid) {
 }
 
 void thread_operations_1_1(int thread_num, const std::string &server_address, const std::vector<std::string> &key_set, std::atomic<bool> &failure_flag){
-    KeyValueStoreClient client;
-    if (client.kv739_init(server_address) != 0) {
+    if (kv739_init(server_address) != 0) {
         cerr << "Failed to initialize client with server at " << server_address << endl;
         failure_flag = true;
         return;
@@ -134,7 +133,7 @@ void thread_operations_1_1(int thread_num, const std::string &server_address, co
         std::string value = std::to_string(cycle*thread_num);
         std::string old_value;
 
-        if(client.kv739_put(key, value, old_value) == -1){
+        if(kv739_put(key, value, old_value) == -1){
             cerr << "Failed to put key-value pair: " << key << " -> " << value << endl;
             failure_flag = true;
             break;
@@ -144,13 +143,12 @@ void thread_operations_1_1(int thread_num, const std::string &server_address, co
         }
     }
     // shutdown client
-    client.kv739_shutdown();
+    kv739_shutdown();
     return;
 }
 
 void thread_operations_1_2(int thread_num, const std::string &server_address, const std::vector<std::string> &key_set, std::atomic<bool> &failure_flag){
-    KeyValueStoreClient client;
-    if (client.kv739_init(server_address) != 0) {
+    if (kv739_init(server_address) != 0) {
         failure_flag = true;
         return;
     }
@@ -168,7 +166,7 @@ void thread_operations_1_2(int thread_num, const std::string &server_address, co
         std::string value = std::to_string(cycle*thread_num);
         std::string old_value;
 
-        if(client.kv739_put(key, value, old_value) == -1){
+        if(kv739_put(key, value, old_value) == -1){
             failure_flag = true;
             break;
         }
@@ -176,13 +174,12 @@ void thread_operations_1_2(int thread_num, const std::string &server_address, co
             cycle++;
         }
     }
-    client.kv739_shutdown();
+    kv739_shutdown();
     return;
 }
 
 void thread_operations_1_3(int thread_num, const std::string &server_address, const std::vector<std::string> &key_set, std::atomic<bool> &failure_flag){
-    KeyValueStoreClient client;
-    if (client.kv739_init(server_address) != 0) {
+    if (kv739_init(server_address) != 0) {
         failure_flag = true;
         return;
     }
@@ -200,7 +197,7 @@ void thread_operations_1_3(int thread_num, const std::string &server_address, co
         std::string value = std::to_string(cycle*thread_num);
         std::string old_value;
 
-        if(client.kv739_put(key, value, old_value) == -1){
+        if(kv739_put(key, value, old_value) == -1){
             failure_flag = true;
             break;
         }
@@ -214,14 +211,13 @@ void thread_operations_1_3(int thread_num, const std::string &server_address, co
 }
 
 bool is_valid_key_value_pair_1_1(const std::string &server_address, const std::vector<std::string> &key_set){
-    KeyValueStoreClient client;
-    if (client.kv739_init(server_address) != 0) {
+    if (kv739_init(server_address) != 0) {
         return false;
     }
 
     for(const auto &key:key_set){
         std::string value;
-        if(client.kv739_get(key, value) != 0){
+        if(kv739_get(key, value) != 0){
             return false;
         }
         int key_num = std::stoi(key.substr(1));
@@ -235,14 +231,13 @@ bool is_valid_key_value_pair_1_1(const std::string &server_address, const std::v
 }
 
 bool is_valid_key_value_pair_1_2(const std::string &server_address, const std::vector<std::string> &key_set){
-    KeyValueStoreClient client;
-    if (client.kv739_init(server_address) != 0) {
+    if (kv739_init(server_address) != 0) {
         return false;
     }
     // any key kn should be 1000*(2n-1) or 1000*(2n)
     for(const auto &key:key_set){
         std::string value;
-        if(client.kv739_get(key, value) != 0){
+        if(kv739_get(key, value) != 0){
             return false;
         }
         int key_num = std::stoi(key.substr(1));
@@ -255,14 +250,13 @@ bool is_valid_key_value_pair_1_2(const std::string &server_address, const std::v
 }
 
 bool is_valid_key_value_pair_1_3(const std::string &server_address, const std::vector<std::string> &key_set){
-    KeyValueStoreClient client;
-    if (client.kv739_init(server_address) != 0) {
+    if (kv739_init(server_address) != 0) {
         return false;
     }
     // any key kn should be 1000*(2n-1) or 1000*(2n)
     for(const auto &key:key_set){
         std::string value;
-        if(client.kv739_get(key, value) != 0){
+        if(kv739_get(key, value) != 0){
             return false;
         }
         int key_num = std::stoi(key.substr(1));
