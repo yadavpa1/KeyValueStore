@@ -9,8 +9,6 @@ find_package(absl CONFIG REQUIRED)
 
 # Find RocksDB
 find_library(ROCKSDB_LIB rocksdb REQUIRED)
-# find_library(ROCKSDB_LIB rocksdb_static REQUIRED)
-# set(ROCKSDB_LIB "/home/catchashu10/rocksdb/build/librocksdb.a") # Hack to run in Ashu's machine for static rocksDB linking
 
 # Proto file
 get_filename_component(kvs_proto "./proto/keyvaluestore.proto" ABSOLUTE)
@@ -37,6 +35,11 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/server")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/client")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/tests")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/tests")
+set(CACHE_BUILD_TESTS OFF)
+set(CACHE_BUILD_EXAMPLES OFF)
+add_subdirectory(external/Cache)
+add_subdirectory(external/cxxopts)
 
 # kvs_grpc_proto
 add_library(kvs_grpc_proto
@@ -89,11 +92,11 @@ target_link_libraries(keyvaluestore_server
 set(TEST_EXECUTABLES
   correctness
   # performance
-  # reliability
+  reliability
 )
 
 # Loop to add test executables
 foreach(test ${TEST_EXECUTABLES})
   add_executable(${test} tests/${test}.cc)
-  target_link_libraries(${test} 739kv)
+  target_link_libraries(${test} 739kv cxxopts)
 endforeach()
