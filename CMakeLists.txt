@@ -85,7 +85,8 @@ target_link_libraries(keyvaluestore_server
   rocksdb_wrapper
   absl::flags_parse
   absl::log_initialize
-  absl::log_globals)
+  absl::log_globals
+  Cache)
 
 # Targets Tests [correctenss, performance, reliability]
 # List of test executables
