@@ -19,17 +19,14 @@ using namespace std;
 This file contains the implementation of the first reliability test case.
 This test case basically spins up multiple threads and each thread performs a series of operations on the key-value store.
 The operations are such that the 90-10% rule is followed. 90% of the operations are to 10% of the keys.
-The operations are as follows:
-Thread 1: Switches between writing and reading the keys k1 and k2 90% of the time and a random key 10% of the time
-Thread 2: Switches between writing and reading the keys k2 and k3 90% of the time and a random key 10% of the time
-Thread 3: Switches between writing and reading the keys k3 and k4 90% of the time and a random key 10% of the time
-Thread 4: Switches between writing and reading the keys k4 and k5 90% of the time and a random key 10% of the time
 ....
-Thread n: Switches between writing and reading the keys kn and k1 90% of the time and a random key 10% of the time
+
 Now after cycling through about 1000 operations, the server is shut down. This is done to test the reliability of the server.
-The server is now restarted and the same operations are performed again. This is done to test the persistence of the server.
+The server is then restarted and the client checks if the keys contain the correct values.
+
 The test case passes if all the keys contain the correct values at the end of the test case.
 The test case fails if any of the keys contain incorrect values at the end of the test case.
+
 End of the test case.
 Arguments to the test case:
     1. The server address
@@ -37,12 +34,50 @@ Arguments to the test case:
     3. Number of threads to spawn
     4. Process ID of the server
 
-Returns 0 if the test case passes, -1 if the test case fails
-k1, k2, k3, k4.....kn [10, 100, 1000, 10000, 100000]
-value iternum*threadnum
+TEST CASE 1.1: No concurrent key access but multiple threads concurrent access to different keys
+TEST CASE 1.2: Concurrent key access by multiple concurrent threads
+TEST CASE 1.3: Concurrent key access by multiple concurrent threads with server restart
 *****************************************************************************************/
 
-bool restart_server(const char* server_name) {
+int passed_tests = 0;
+int failed_tests = 0;
+
+int TOTAL_CYCLES = 1000;
+
+void print_test_result(const std::string &test_name, bool passed)
+{
+    if (passed)
+    {
+        std::cout << "    PASS: " << test_name << "\n";
+        ++passed_tests;
+    }
+    else
+    {
+        std::cerr << "    FAIL: " << test_name << "\n";
+        ++failed_tests;
+    }
+}
+
+int get_pid_of_server(const char* server_name) {
+    string command = "pidof -s ";
+    command += server_name;
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe) {
+        cerr << "Error: popen failed." << endl;
+        return -1;
+    }
+    char buffer[128];
+    string result = "";
+    while (!feof(pipe)) {
+        if (fgets(buffer, 128, pipe) != NULL) {
+            result += buffer;
+        }
+    }
+    pclose(pipe);
+    return stoi(result);
+}
+
+bool start_server(const char* server_name) {
     pid_t pid = fork();
     if (pid == -1) {
         cerr << "Error: Fork failed." << endl;
@@ -77,7 +112,7 @@ bool shutdown_server(pid_t server_pid) {
     return true;
 }
 
-void thread_operations(int thread_num, const std::string &server_address, const std::vector<std::string> &key_set, int total_cycles, std::atomic<bool> &failure_flag){
+void thread_operations_1_1(int thread_num, const std::string &server_address, const std::vector<std::string> &key_set, std::atomic<bool> &failure_flag){
     KeyValueStoreClient client;
     if (client.kv739_init(server_address) != 0) {
         cerr << "Failed to initialize client with server at " << server_address << endl;
@@ -92,7 +127,7 @@ void thread_operations(int thread_num, const std::string &server_address, const 
     std::uniform_real_distribution<> dis(0.0, 1.0);
     std::uniform_int_distribution<> rnd_dis(0, 1e5);
     int cycle = 1;
-    while(cycle<=total_cycles){
+    while(cycle<=TOTAL_CYCLES){
         // Generate a random number between 0 and 1
         float random_num = dis(gen);
         std::string key = (random_num < 0.9)?key1:std::to_string(rnd_dis(gen));
@@ -108,28 +143,90 @@ void thread_operations(int thread_num, const std::string &server_address, const 
             cycle++;
         }
     }
-    // exit without shutting down the client
-    // as if the server is down, the client will not be able to shut down
+    // shutdown client
+    client.kv739_shutdown();
     return;
 }
 
-bool is_valid_key_value_pair(const std::string &server_address, const std::vector<std::string> &key_set){
+void thread_operations_1_2(int thread_num, const std::string &server_address, const std::vector<std::string> &key_set, std::atomic<bool> &failure_flag){
     KeyValueStoreClient client;
     if (client.kv739_init(server_address) != 0) {
-        cerr << "Failed to initialize client with server at " << server_address << endl;
+        failure_flag = true;
+        return;
+    }
+
+    std::string key1 = key_set[std::ceil((float)thread_num/2)];
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+    std::uniform_int_distribution<> rnd_dis(0, 1e5);
+    int cycle = 1;
+    while(cycle<=TOTAL_CYCLES){
+        float random_num = dis(gen);
+        std::string key = (random_num < 0.9)?key1:std::to_string(rnd_dis(gen));
+        std::string value = std::to_string(cycle*thread_num);
+        std::string old_value;
+
+        if(client.kv739_put(key, value, old_value) == -1){
+            failure_flag = true;
+            break;
+        }
+        if(random_num<0.9){
+            cycle++;
+        }
+    }
+    client.kv739_shutdown();
+    return;
+}
+
+void thread_operations_1_3(int thread_num, const std::string &server_address, const std::vector<std::string> &key_set, std::atomic<bool> &failure_flag){
+    KeyValueStoreClient client;
+    if (client.kv739_init(server_address) != 0) {
+        failure_flag = true;
+        return;
+    }
+
+    std::string key1 = key_set[std::ceil((float)thread_num/2)];
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+    std::uniform_int_distribution<> rnd_dis(0, 1e5);
+    int cycle = 1;
+    while(cycle<=TOTAL_CYCLES){
+        float random_num = dis(gen);
+        std::string key = (random_num < 0.9)?key1:std::to_string(rnd_dis(gen));
+        std::string value = std::to_string(cycle*thread_num);
+        std::string old_value;
+
+        if(client.kv739_put(key, value, old_value) == -1){
+            failure_flag = true;
+            break;
+        }
+        if(random_num<0.9){
+            cycle++;
+        }
+    }
+    // don't shutdown the client
+    // as if server fails
+    return;
+}
+
+bool is_valid_key_value_pair_1_1(const std::string &server_address, const std::vector<std::string> &key_set){
+    KeyValueStoreClient client;
+    if (client.kv739_init(server_address) != 0) {
         return false;
     }
-    // Now each key should basically be a multiple of 1000
-    // For any key kn, the multiple should either be n or n+1%key_set.size()
+
     for(const auto &key:key_set){
         std::string value;
         if(client.kv739_get(key, value) != 0){
-            cerr << "Failed to get value for key: " << key << endl;
             return false;
         }
         int key_num = std::stoi(key.substr(1));
         int value_num = std::stoi(value);
-        if(value_num%1000 != 0 || value_num/1000 != key_num){
+        if(value_num != key_num*TOTAL_CYCLES){
             cerr << "Key: " << key << " has incorrect value: " << value << endl;
             return false;
         }
@@ -137,64 +234,194 @@ bool is_valid_key_value_pair(const std::string &server_address, const std::vecto
     return true;
 }
 
-int main(int argc, char* argv[]){
-    cxxopts::Options options("reliability_guarantees", "Test the reliability guarantees of the key-value store");
-    options.add_options()
-        ("a,address", "Server address", cxxopts::value<std::string>())
-        ("f,file", "Name of the server file", cxxopts::value<std::string>())
-        ("t,threads", "Number of threads to spawn", cxxopts::value<int>())
-        ("p,pid", "Process ID of the server", cxxopts::value<int>());
-
-    auto cl_options = options.parse(argc, argv);
-
-    std::string server_address = cl_options["address"].as<std::string>();
-    std::string server_name = cl_options["file"].as<std::string>();
-    int num_threads = cl_options["threads"].as<int>();
-    int server_pid = cl_options["pid"].as<int>();
-
-    std::vector<std::string> key_set;
-    for(int i = 1;i<=num_threads;++i){
-        key_set.push_back("k"+std::to_string(i));
+bool is_valid_key_value_pair_1_2(const std::string &server_address, const std::vector<std::string> &key_set){
+    KeyValueStoreClient client;
+    if (client.kv739_init(server_address) != 0) {
+        return false;
     }
+    // any key kn should be 1000*(2n-1) or 1000*(2n)
+    for(const auto &key:key_set){
+        std::string value;
+        if(client.kv739_get(key, value) != 0){
+            return false;
+        }
+        int key_num = std::stoi(key.substr(1));
+        int value_num = std::stoi(value);
+        if(value_num != TOTAL_CYCLES*(2*key_num-1) && value_num != TOTAL_CYCLES*(2*key_num)){
+            return false;
+        }
+    }
+    return true;
+}
 
+bool is_valid_key_value_pair_1_3(const std::string &server_address, const std::vector<std::string> &key_set){
+    KeyValueStoreClient client;
+    if (client.kv739_init(server_address) != 0) {
+        return false;
+    }
+    // any key kn should be 1000*(2n-1) or 1000*(2n)
+    for(const auto &key:key_set){
+        std::string value;
+        if(client.kv739_get(key, value) != 0){
+            return false;
+        }
+        int key_num = std::stoi(key.substr(1));
+        int value_num = std::stoi(value);
+        if(value_num != TOTAL_CYCLES*(2*key_num-1) && value_num != TOTAL_CYCLES*(2*key_num)){
+            return false;
+        }
+    }
+    return true;
+}
+
+/* 
+TESTS BEGIN HERE
+*/
+
+void run_no_concurrent_key_access(std::string server_address, std::string server_name, int num_threads, std::vector<std::string> key_set){
     std::atomic<bool> failure_flag(false);
-    int total_cycles = 1000;
 
-    /************ I] Spawn threads *****************/
     std::vector<std::thread> threads;
-    for(int i = 1;i<=num_threads;++i){
-        threads.push_back(std::thread(thread_operations, i, server_address, key_set, total_cycles, std::ref(failure_flag)));
+    // Start the server
+    if(start_server(server_name.c_str()) == false){
+        print_test_result("Test 1.1: No concurrent key access but multiple threads concurrent access to different keys", false);
+        failed_tests++;
+        return;
+    }
+    // Get process ID of the server
+    pid_t server_pid = get_pid_of_server(server_name.c_str());
+    if(server_pid == -1){
+        print_test_result("Test 1.1: No concurrent key access but multiple threads concurrent access to different keys", false);
+        failed_tests++;
+        return;
     }
 
-    // Wait for all threads to finish
+    for(int i = 1;i<=num_threads;++i){
+        threads.push_back(std::thread(thread_operations_1_1, i, server_address, key_set, std::ref(failure_flag)));
+    }
+
     for(auto &thread:threads){
         thread.join();
     }
 
     if(failure_flag){
         shutdown_server(server_pid);
-        std::cerr << "Test case failed." << std::endl;
-        return -1;
+        print_test_result("Test 1.1: No concurrent key access but multiple threads concurrent access to different keys", false);
+        failed_tests++;
+        return;
     }
-    
-    sleep(10);
-    // II] Shutdown the server
-    if(!shutdown_server(server_pid)){
-        std::cerr << "You didn't provide the correct server process ID. Re-run after checking process id with `ps -ef | grep <server_name>`" << std::endl;
-        return -1;
+    print_test_result("Test 1.1: No concurrent key access but multiple threads concurrent access to different keys", is_valid_key_value_pair_1_1(server_address, key_set));
+    shutdown_server(server_pid);
+}
+
+void run_concurrent_key_access(std::string server_address, std::string server_name, int num_threads, std::vector<std::string> key_set) {
+    std::atomic<bool> failure_flag(false);
+
+    std::vector<std::thread> threads;
+
+    if(start_server(server_name.c_str()) == false){
+        print_test_result("Test 1.2: Concurrent key access by multiple concurrent threads", false);
+        failed_tests++;
+        return;
     }
 
-    // III] Restart the server
-    if(!restart_server(server_name.c_str())){
-        std::cerr << "Failed to restart the server. Make sure that you have the executable in the same directory and don't pass any path." << std::endl;
-        return -1;
+    pid_t server_pid = get_pid_of_server(server_name.c_str());
+    if(server_pid == -1){
+        print_test_result("Test 1.2: Concurrent key access by multiple concurrent threads", false);
+        failed_tests++;
+        return;
+    }
+    for(int i = 1;i<=num_threads;++i){
+        threads.push_back(std::thread(thread_operations_1_2, i, server_address, key_set, std::ref(failure_flag)));
     }
 
-    // IV] Check if the server has persisted the data
-    if(!is_valid_key_value_pair(server_address, key_set)){
-        std::cerr << "Test case failed." << std::endl;
-        return -1;
+    for(auto &thread:threads){
+        thread.join();
     }
-    std::cout << "Test case passed." << std::endl;
+
+    if(failure_flag){
+        shutdown_server(server_pid);
+        print_test_result("Test 1.2: Concurrent key access by multiple concurrent threads", false);
+        failed_tests++;
+        return;
+    }
+    print_test_result("Test 1.2: Concurrent key access by multiple concurrent threads", is_valid_key_value_pair_1_2(server_address, key_set));
+    shutdown_server(server_pid);
+}
+
+void run_concurrent_key_access_with_server_failure(std::string server_address, std::string server_name, int num_threads, std::vector<std::string> key_set) {
+    std::atomic<bool> failure_flag(false);
+
+    std::vector<std::thread> threads;
+
+    if(start_server(server_name.c_str()) == false){
+        print_test_result("Test 1.3: Concurrent key access by multiple concurrent threads with server restart", false);
+        failed_tests++;
+        return;
+    }
+
+    pid_t server_pid = get_pid_of_server(server_name.c_str());
+    if(server_pid == -1){
+        print_test_result("Test 1.3: Concurrent key access by multiple concurrent threads with server restart", false);
+        failed_tests++;
+        return;
+    }
+    for(int i = 1;i<=num_threads;++i){
+        threads.push_back(std::thread(thread_operations_1_3, i, server_address, key_set, std::ref(failure_flag)));
+    }
+
+    for(auto &thread:threads){
+        thread.join();
+    }
+
+    if(failure_flag){
+        shutdown_server(server_pid);
+        print_test_result("Test 1.3: Concurrent key access by multiple concurrent threads with server restart", false);
+        failed_tests++;
+        return;
+    }
+    // Shutdown the server
+    shutdown_server(server_pid);
+    // Restart the server
+    if(start_server(server_name.c_str()) == false){
+        print_test_result("Test 1.3: Concurrent key access by multiple concurrent threads with server restart", false);
+        failed_tests++;
+        return;
+    }
+
+    // Get the process ID of the server
+    server_pid = get_pid_of_server(server_name.c_str());
+
+    print_test_result("Test 1.3: Concurrent key access by multiple concurrent threads with server restart", is_valid_key_value_pair_1_3(server_address, key_set));
+    shutdown_server(server_pid);
+    return;
+}
+
+/*
+TESTS END HERE
+*/
+
+int main(int argc, char* argv[]){
+    cxxopts::Options options("reliability_guarantees", "Test the reliability guarantees of the key-value store");
+    options.add_options()
+        ("a,address", "Server address", cxxopts::value<std::string>())
+        ("f,file", "Name of the server file", cxxopts::value<std::string>())
+        ("t,threads", "Number of threads to spawn", cxxopts::value<int>());
+
+    auto cl_options = options.parse(argc, argv);
+
+    std::string server_address = cl_options["address"].as<std::string>();
+    std::string server_name = cl_options["file"].as<std::string>();
+    int num_threads = cl_options["threads"].as<int>();
+
+    std::vector<std::string> key_set;
+    for(int i = 1;i<=num_threads;++i){
+        key_set.push_back("k"+std::to_string(i));
+    }
+    run_no_concurrent_key_access(server_address, server_name, num_threads, key_set);
+    sleep(1);
+    run_concurrent_key_access(server_address, server_name, num_threads, key_set);
+    sleep(1);
+    run_concurrent_key_access_with_server_failure(server_address, server_name, num_threads, key_set);
     return 0;
 }
