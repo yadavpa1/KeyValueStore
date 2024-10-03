@@ -1,5 +1,6 @@
 #include "lib739kv.h"
 #include <iostream>
+#include <thread>
 
 #include <grpcpp/grpcpp.h>
 #include "keyvaluestore.grpc.pb.h"
@@ -27,17 +28,23 @@ std::shared_ptr<grpc::ClientReaderWriter<keyvaluestore::ClientRequest, keyvalues
 std::unique_ptr<grpc::ClientContext> context_;
 std::string connected_server_name;
 
-int kv739_init(const std::string &server_name)
+// Channel arguments for automatic reconnection and keepalive
+grpc::ChannelArguments GetChannelArguments()
 {
-    // Check if the stream is already open, indicating the client is already initialized.
-    if (stream_)
-    {
-        std::cerr << "Error: Client is already initialized at server: " << connected_server_name << std::endl;
-        return -1;
-    }
+    grpc::ChannelArguments args;
+    // Set reconnection policies
+    args.SetInt(GRPC_ARG_INITIAL_RECONNECT_BACKOFF_MS, 1000); // Initial backoff 1 second
+    args.SetInt(GRPC_ARG_MAX_RECONNECT_BACKOFF_MS, 20000);    // Max backoff 20 seconds
+    args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 10000);           // Keepalive ping every 10 seconds
+    args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 5000);         // Timeout after 5 seconds if no response
+    return args;
+}
 
-    channel_ = grpc::CreateChannel(server_name, grpc::InsecureChannelCredentials());
-    stub_ = KeyValueStore::NewStub(channel_);
+// Helper function to reset the gRPC stream and context
+bool InitializeStream(const std::string &server_name)
+{
+    context_ = std::make_unique<grpc::ClientContext>();
+    stream_ = stub_->ManageSession(context_.get());
 
     InitRequest init_request;
     init_request.set_server_name(server_name);
@@ -45,25 +52,54 @@ int kv739_init(const std::string &server_name)
     ClientRequest client_request;
     client_request.mutable_init_request()->CopyFrom(init_request);
 
-    context_ = std::make_unique<grpc::ClientContext>();
-    stream_ = stub_->ManageSession(context_.get()); // Open the bidirectional stream
-    stream_->Write(client_request); // Send Init request
+    if (!stream_->Write(client_request)) // Send Init request
+    {
+        return false;
+    }
 
     ServerResponse response;
-
-    // Read Init response
-    if (stream_->Read(&response) && response.has_init_response())
+    if (stream_->Read(&response) && response.has_init_response() && response.init_response().success())
     {
-        if (response.init_response().success())
-        {
-            std::cout << "Client successfully initialized with server: " << server_name << std::endl;
-            connected_server_name = server_name;
-            return 0;
-        }
+        std::cout << "Client successfully initialized with server: " << server_name << std::endl;
+        return true;
     }
 
     std::cerr << "Error: Failed to initialize the client." << std::endl;
-    return -1;
+    return false;
+}
+
+// Helper function to reset the channel and stream if connection fails
+bool Reconnect()
+{
+    std::cerr << "Reconnecting to server..." << std::endl;
+    while (!InitializeStream(connected_server_name))
+    {
+        std::cerr << "Reconnection failed. Retrying..." << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(5000)); // Retry every 5 seconds
+    }
+    std::cout << "Reconnected successfully." << std::endl;
+    return true;
+}
+
+int kv739_init(const std::string &server_name)
+{
+    if (stream_)
+    {
+        std::cerr << "Error: Client is already initialized at server: " << connected_server_name << std::endl;
+        return -1;
+    }
+
+    // Create a channel with reconnection support
+    channel_ = grpc::CreateCustomChannel(server_name, grpc::InsecureChannelCredentials(), GetChannelArguments());
+    stub_ = KeyValueStore::NewStub(channel_);
+
+    if (!InitializeStream(server_name))
+    {
+        return -1;
+    }
+
+    connected_server_name = server_name;
+    return 0;
 }
 
 int kv739_shutdown()
@@ -80,31 +116,31 @@ int kv739_shutdown()
     ClientRequest client_request;
     client_request.mutable_shutdown_request()->CopyFrom(shutdown_request);
 
-    stream_->Write(client_request); // Send Shutdown request
-    stream_->WritesDone();          // Close the stream
-
-    if (stream_->Read(&response) && response.has_shutdown_response())
+    if (!stream_->Write(client_request)) // Send Shutdown request
     {
-        if (response.shutdown_response().success())
+        std::cerr << "Error: Failed to write shutdown request. Reconnecting..." << std::endl;
+        if (!Reconnect())
         {
-            std::cout << "Client successfully shut down." << std::endl;
-
-            grpc::Status status = stream_->Finish();
-            if (!status.ok())
-            {
-                std::cerr << "Error: Shutdown stream failed with status: " << status.error_message() << std::endl;
-                return -1;
-            }
-
-            stream_.reset();  // Clear the stream pointer only on success
-            context_.reset();
-            return 0;
-        }
-        else
-        {
-            std::cerr << "Shutdown request failed on the server." << std::endl;
             return -1;
         }
+        stream_->Write(client_request); // Retry after reconnecting
+    }
+    stream_->WritesDone(); // Close the stream
+
+    if (stream_->Read(&response) && response.has_shutdown_response() && response.shutdown_response().success())
+    {
+        std::cout << "Client successfully shut down." << std::endl;
+
+        grpc::Status status = stream_->Finish();
+        if (!status.ok())
+        {
+            std::cerr << "Error: Shutdown stream failed with status: " << status.error_message() << std::endl;
+            return -1;
+        }
+
+        stream_.reset(); // Clear the stream pointer only on success
+        context_.reset();
+        return 0;
     }
 
     std::cerr << "Error: Shutdown operation failed, unable to read server response." << std::endl;
@@ -124,7 +160,14 @@ int kv739_get(const std::string &key, std::string &value)
     get_request.set_key(key);
     client_request.mutable_get_request()->CopyFrom(get_request);
 
-    stream_->Write(client_request); // Send Get request
+    if (!stream_->Write(client_request)) // Send Get request
+    {
+        if (!Reconnect())
+        {
+            return -1;
+        }
+        stream_->Write(client_request); // Retry after reconnecting
+    }
 
     ServerResponse response;
     if (stream_->Read(&response) && response.has_get_response())
@@ -161,7 +204,14 @@ int kv739_put(const std::string &key, const std::string &value, std::string &old
     ClientRequest client_request;
     client_request.mutable_put_request()->CopyFrom(put_request);
 
-    stream_->Write(client_request); // Send Put request
+    if (!stream_->Write(client_request)) // Send Put request
+    {
+        if (!Reconnect())
+        {
+            return -1;
+        }
+        stream_->Write(client_request); // Retry after reconnecting
+    }
 
     ServerResponse response;
     if (stream_->Read(&response) && response.has_put_response())
