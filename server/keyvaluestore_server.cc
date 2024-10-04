@@ -4,8 +4,6 @@
 #include <grpcpp/grpcpp.h>
 #include "keyvaluestore.grpc.pb.h"
 #include "rocksdb_wrapper.h"
-#include "Cache/Cache.h"
-#include "Cache/Policy/LRU.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -27,8 +25,8 @@ using keyvaluestore::ShutdownResponse;
 class KeyValueStoreServiceImpl final : public KeyValueStore::Service
 {
 public:
-    KeyValueStoreServiceImpl(const std::string &db_path, Cache<std::string, std::string, Policy::LRU, std::mutex> &cache)
-        : db_(db_path), cache_(cache) {}
+    KeyValueStoreServiceImpl(const std::string &db_path, int num_partitions)
+        : db_(db_path, num_partitions) {}
 
     Status ManageSession(ServerContext *context, ServerReaderWriter<ServerResponse, ClientRequest> *stream) override
     {
@@ -57,8 +55,7 @@ public:
     }
 
 private:
-    RocksDBWrapper db_;                                               // RocksDBWrapper instance for database operations
-    Cache<std::string, std::string, Policy::LRU, std::mutex> &cache_; // Reference to the Cache instance
+    RocksDBWrapper db_; // RocksDBWrapper instance for database operations
 
     void HandleInitRequest(const InitRequest &request, ServerReaderWriter<ServerResponse, ClientRequest> *stream)
     {
@@ -81,31 +78,15 @@ private:
 
         std::string value;
 
-        // Check if key is in cache
-        if (cache_.contains(request.key()))
+        if (db_.Get(request.key(), value))
         {
-            value = cache_[request.key()];
-            // std::cout << "Cache hit for key: " << request.key() << std::endl;
             get_response.set_value(value);
             get_response.set_key_found(true);
         }
         else
         {
-            // If not in cache, use snapshot isolation to read from the DB
-            if (db_.Get(request.key(), value))
-            {
-                // std::cout << "Cache miss, fetching from DB for key: " << request.key() << std::endl;
-                get_response.set_value(value);
-                get_response.set_key_found(true);
-
-                // Insert into cache
-                cache_.insert(request.key(), value);
-            }
-            else
-            {
-                std::cout << "Key not found: " << request.key() << std::endl;
-                get_response.set_key_found(false);
-            }
+            std::cout << "Key not found: " << request.key() << std::endl;
+            get_response.set_key_found(false);
         }
 
         *response.mutable_get_response() = get_response;
@@ -120,7 +101,7 @@ private:
         PutResponse put_response;
 
         std::string old_value;
-        // Use RocksDB transactions for the Put operation
+        // Use RocksDB transactions with partitioning for the Put operation
         int result = db_.Put(request.key(), request.value(), old_value);
 
         if (result == 0)
@@ -128,17 +109,11 @@ private:
             put_response.set_old_value(old_value);
             put_response.set_key_found(true);
             std::cout << "Updated key: " << request.key() << " with old value: " << old_value << std::endl;
-
-            // Update cache with the new value
-            cache_.insert(request.key(), request.value());
         }
         else if (result == 1)
         {
             put_response.set_key_found(false);
             std::cout << "Inserted new key: " << request.key() << " with value: " << request.value() << std::endl;
-
-            // Update cache with the new value
-            cache_.insert(request.key(), request.value());
         }
         else
         {
@@ -164,11 +139,8 @@ private:
 
 void RunServer(const std::string &server_address, const std::string &db_path)
 {
-    // Create an instance of Cache with a capacity of 10,000 entries
-    Cache<std::string, std::string, Policy::LRU, std::mutex> cache(10000);
-
-    // Pass the cache instance to the KeyValueStoreServiceImpl
-    KeyValueStoreServiceImpl service(db_path, cache);
+    // Pass the db_path and number of partitions to the KeyValueStoreServiceImpl
+    KeyValueStoreServiceImpl service(db_path, 4);
 
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
