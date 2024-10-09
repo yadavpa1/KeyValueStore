@@ -10,7 +10,7 @@ class RocksDBWrapper
 {
 public:
     // Constructor initializes the RocksDB database at the given path.
-    RocksDBWrapper(const std::string &db_path);
+    RocksDBWrapper(const std::string &db_path, size_t cache_size);
 
     // Destructor to close the RocksDB instance.
     ~RocksDBWrapper();
@@ -29,6 +29,7 @@ private:
     rocksdb::TransactionDB *db_;                // Pointer to the RocksDB transactional instance.
     rocksdb::Options options_;                  // Options for RocksDB configuration.
     rocksdb::TransactionDBOptions txn_options_; // Transaction-specific options.
+    std::shared_ptr<rocksdb::Cache> cache_;
 };
 
 #endif

@@ -1,14 +1,21 @@
 #include "rocksdb_wrapper.h"
+#include<rocksdb/table.h>
 #include <iostream>
 #include <thread> // For std::this_thread::sleep_for
 #include <chrono> // For delay between retries
 
-RocksDBWrapper::RocksDBWrapper(const std::string &db_path)
+RocksDBWrapper::RocksDBWrapper(const std::string &db_path, const size_t cache_size)
 {
     options_.create_if_missing = true;
 
     // Set a lock timeout (in ms) for pessimistic transactions.
     txn_options_.default_lock_timeout = 1000;
+
+    // Customize cache size
+    cache_ = rocksdb::NewLRUCache(cache_size);
+    rocksdb::BlockBasedTableOptions table_options;
+    table_options.block_cache = cache_;
+    options_.table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
 
     // Open the RocksDB transactional database.
     rocksdb::Status status = rocksdb::TransactionDB::Open(options_, txn_options_, db_path, &db_);
