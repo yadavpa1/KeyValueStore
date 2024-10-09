@@ -1,5 +1,6 @@
 #include "rocksdb_wrapper.h"
 #include <iostream>
+#include<rocksdb/table.h>
 #include <thread> // For std::this_thread::sleep_for
 #include <chrono> // For delay between retries
 
@@ -10,9 +11,11 @@ RocksDBWrapper::RocksDBWrapper(const std::string &db_path, int num_partitions, s
     // Set a lock timeout (in ms) for pessimistic transactions.
     txn_options_.default_lock_timeout = 1000;
 
+    // Customize cache size
     cache_ = rocksdb::NewLRUCache(cache_size);
-
-    options_.blob_cache = cache_;
+    rocksdb::BlockBasedTableOptions table_options;
+    table_options.block_cache = cache_;
+    options_.table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
 
     for (int i = 0; i < num_partitions_; ++i)
     {
