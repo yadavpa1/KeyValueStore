@@ -25,8 +25,7 @@ using keyvaluestore::ShutdownResponse;
 class KeyValueStoreServiceImpl final : public KeyValueStore::Service
 {
 public:
-    KeyValueStoreServiceImpl(const std::string &db_path, int num_partitions)
-        : db_(db_path, num_partitions) {}
+    KeyValueStoreServiceImpl(const std::string &db_path) : db_(db_path) {}
 
     Status ManageSession(ServerContext *context, ServerReaderWriter<ServerResponse, ClientRequest> *stream) override
     {
@@ -139,8 +138,8 @@ private:
 
 void RunServer(const std::string &server_address, const std::string &db_path)
 {
-    // Pass the db_path and number of partitions to the KeyValueStoreServiceImpl
-    KeyValueStoreServiceImpl service(db_path, 4);
+    // Pass the db_path to the KeyValueStoreServiceImpl
+    KeyValueStoreServiceImpl service(db_path);
 
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
