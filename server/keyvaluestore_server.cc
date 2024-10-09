@@ -22,11 +22,14 @@ using keyvaluestore::ServerResponse;
 using keyvaluestore::ShutdownRequest;
 using keyvaluestore::ShutdownResponse;
 
+const size_t CACHE_SIZE = 20*1024*1024; // Cache size is 20MB covering a db size of 200MB
+const int NUM_PARTITIONS = 4;
+
 class KeyValueStoreServiceImpl final : public KeyValueStore::Service
 {
-public:
-    KeyValueStoreServiceImpl(const std::string &db_path, int num_partitions)
-        : db_(db_path, num_partitions) {}
+    public:
+    KeyValueStoreServiceImpl(const std::string &db_path, int num_partitions, size_t cache_size)
+        : db_(db_path, num_partitions, cache_size) {}
 
     Status ManageSession(ServerContext *context, ServerReaderWriter<ServerResponse, ClientRequest> *stream) override
     {
@@ -54,7 +57,7 @@ public:
         return Status::OK;
     }
 
-private:
+    private:
     RocksDBWrapper db_; // RocksDBWrapper instance for database operations
 
     void HandleInitRequest(const InitRequest &request, ServerReaderWriter<ServerResponse, ClientRequest> *stream)
@@ -137,10 +140,9 @@ private:
     }
 };
 
-void RunServer(const std::string &server_address, const std::string &db_path)
+void RunServer(const std::string &server_address, const std::string &db_path, const size_t cache_size)
 {
-    // Pass the db_path and number of partitions to the KeyValueStoreServiceImpl
-    KeyValueStoreServiceImpl service(db_path, 4);
+    KeyValueStoreServiceImpl service(db_path, NUM_PARTITIONS, cache_size);
 
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
@@ -155,6 +157,6 @@ int main(int argc, char **argv)
 {
     std::string server_address("0.0.0.0:50051");
     std::string db_path = "keyvaluestore.db";
-    RunServer(server_address, db_path);
+    RunServer(server_address, db_path, CACHE_SIZE);
     return 0;
 }

@@ -5,11 +5,12 @@
 #include <rocksdb/db.h>
 #include <rocksdb/utilities/transaction.h>
 #include <rocksdb/utilities/transaction_db.h>
+#include <rocksdb/cache.h>
 
 class RocksDBWrapper {
     public:
         // Constructor initializes the RocksDB database at the given path.
-        RocksDBWrapper(const std::string& db_path, int num_partitions);
+        RocksDBWrapper(const std::string& db_path, int num_partitions, size_t cache_size);
 
         // Destructor to close the RocksDB instance.
         ~RocksDBWrapper();
@@ -23,6 +24,7 @@ class RocksDBWrapper {
         int num_partitions_;
         rocksdb::Options options_;  // Options for RocksDB configuration.
         rocksdb::TransactionDBOptions txn_options_; // Transaction-specific options.
+        std::shared_ptr<rocksdb::Cache> cache_;
 };
 
 #endif

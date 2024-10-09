@@ -3,12 +3,16 @@
 #include <thread> // For std::this_thread::sleep_for
 #include <chrono> // For delay between retries
 
-RocksDBWrapper::RocksDBWrapper(const std::string &db_path, int num_partitions) : num_partitions_(num_partitions)
+RocksDBWrapper::RocksDBWrapper(const std::string &db_path, int num_partitions, size_t cache_size) : num_partitions_(num_partitions)
 {
     options_.create_if_missing = true;
 
     // Set a lock timeout (in ms) for pessimistic transactions.
     txn_options_.default_lock_timeout = 1000;
+
+    cache_ = rocksdb::NewLRUCache(cache_size);
+
+    options_.blob_cache = cache_;
 
     for (int i = 0; i < num_partitions_; ++i)
     {

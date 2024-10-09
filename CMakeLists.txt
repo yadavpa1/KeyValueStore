@@ -38,8 +38,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/tests")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/tests")
 set(CACHE_BUILD_TESTS OFF)
 set(CACHE_BUILD_EXAMPLES OFF)
-add_subdirectory(external/Cache)
-add_subdirectory(external/cxxopts)
 
 # kvs_grpc_proto
 add_library(kvs_grpc_proto
@@ -87,19 +85,18 @@ target_link_libraries(keyvaluestore_server
   rocksdb_wrapper
   absl::flags_parse
   absl::log_initialize
-  absl::log_globals
-  Cache)
+  absl::log_globals)
 
 # Targets Tests [correctenss, performance, reliability]
 # List of test executables
 set(TEST_EXECUTABLES
   correctness
-  # performance
+  performance
   reliability
 )
 
 # Loop to add test executables
 foreach(test ${TEST_EXECUTABLES})
   add_executable(${test} tests/${test}.cc)
-  target_link_libraries(${test} 739kv cxxopts)
+  target_link_libraries(${test} 739kv)
 endforeach()
