@@ -29,7 +29,6 @@ private:
     rocksdb::TransactionDB *db_;                // Pointer to the RocksDB transactional instance.
     rocksdb::Options options_;                  // Options for RocksDB configuration.
     rocksdb::TransactionDBOptions txn_options_; // Transaction-specific options.
-    std::shared_ptr<rocksdb::Cache> cache_;
 };
 
 #endif

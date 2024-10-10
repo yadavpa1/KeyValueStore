@@ -12,9 +12,9 @@ RocksDBWrapper::RocksDBWrapper(const std::string &db_path, const size_t cache_si
     txn_options_.default_lock_timeout = 1000;
 
     // Customize cache size
-    cache_ = rocksdb::NewLRUCache(cache_size);
+    std::shared_ptr<rocksdb::Cache> cache = rocksdb::NewLRUCache(cache_size);
     rocksdb::BlockBasedTableOptions table_options;
-    table_options.block_cache = cache_;
+    table_options.block_cache = cache;
     options_.table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
 
     // Open the RocksDB transactional database.
