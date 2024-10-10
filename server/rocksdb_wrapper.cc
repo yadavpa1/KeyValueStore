@@ -11,11 +11,10 @@ RocksDBWrapper::RocksDBWrapper(const std::string &db_path, const size_t cache_si
     // Set a lock timeout (in ms) for pessimistic transactions.
     txn_options_.default_lock_timeout = 1000;
 
-    // Customize cache size
-    std::shared_ptr<rocksdb::Cache> cache = rocksdb::NewLRUCache(cache_size);
-    rocksdb::BlockBasedTableOptions table_options;
-    table_options.block_cache = cache;
-    options_.table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
+    // Set up block-based table options with a cache.
+    cache_ = rocksdb::NewLRUCache(cache_size);
+    table_options_.block_cache = cache_;  // Associate the cache with table options
+    options_.table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options_));
 
     // Open the RocksDB transactional database.
     rocksdb::Status status = rocksdb::TransactionDB::Open(options_, txn_options_, db_path, &db_);

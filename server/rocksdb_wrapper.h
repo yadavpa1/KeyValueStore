@@ -5,6 +5,7 @@
 #include <rocksdb/db.h>
 #include <rocksdb/utilities/transaction.h>
 #include <rocksdb/utilities/transaction_db.h>
+#include <rocksdb/table.h>
 
 class RocksDBWrapper
 {
@@ -26,9 +27,11 @@ public:
     void ReleaseSnapshot(const rocksdb::Snapshot *snapshot);
 
 private:
-    rocksdb::TransactionDB *db_;                // Pointer to the RocksDB transactional instance.
-    rocksdb::Options options_;                  // Options for RocksDB configuration.
-    rocksdb::TransactionDBOptions txn_options_; // Transaction-specific options.
+    rocksdb::TransactionDB *db_;                    // Pointer to the RocksDB transactional instance.
+    rocksdb::Options options_;                      // Options for RocksDB configuration.
+    rocksdb::TransactionDBOptions txn_options_;     // Transaction-specific options.
+    rocksdb::BlockBasedTableOptions table_options_; // Table options for caching.
+    std::shared_ptr<rocksdb::Cache> cache_;         // Cache for RocksDB.
 };
 
 #endif
