@@ -155,14 +155,12 @@ void RunServer(const std::string &server_address, const std::string &db_path, co
 std::string parseArguments(int argc, char **argv, const std::string &default_port)
 {
     std::string server_address = "0.0.0.0:" + default_port;
-
-    // Parse command-line arguments
     for (int i = 1; i < argc; ++i)
     {
         std::string arg = argv[i];
         if (arg == "-p" || arg == "--port")
         {
-            if (i + 1 < argc)  // Check if the port number follows the flag
+            if (i + 1 < argc)
             {
                 std::string port = argv[i + 1];
                 server_address = "0.0.0.0:" + port;
@@ -183,7 +181,7 @@ int main(int argc, char **argv)
     std::string default_port = "50051";
     std::string server_address = parseArguments(argc, argv, default_port);
     std::string db_path = "keyvaluestore.db";
-    
+
     RunServer(server_address, db_path, CACHE_SIZE);
     return 0;
 }

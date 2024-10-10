@@ -18,7 +18,7 @@ void print_welcome()
 
     std::cout << "Available Commands:\n";
     std::cout << "-------------------\n";
-    std::cout << "  \033[1;32minit <server_address>\033[0m  - Initialize connection to the server (eg. init localhost:50051 ) \n";
+    std::cout << "  \033[1;32minit\033[0m                   - Initialize connection to the server (eg. init ) \n";
     std::cout << "  \033[1;32mget <key>\033[0m              - Retrieve value by key (eg. get 1 )\n";
     std::cout << "  \033[1;32mput\033[0m                    - Store a key-value pair (you will be prompted for input)\n";
     std::cout << "  \033[1;32mshutdown\033[0m               - Shut down the server\n";
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 {
     std::string command, key, value;
     std::string old_value, retrieved_value;
-    std::string server_address = "localhost:50051";
+    std::string config_file = "config";
 
     print_welcome();
 
@@ -52,17 +52,9 @@ int main(int argc, char **argv)
 
         if (cmd == "init")
         {
-            iss >> server_address;
-            if (!server_address.empty())
+            if (kv739_init(config_file) != 0)
             {
-                if (kv739_init(server_address) != 0)
-                {
-                    std::cerr << "Failed to initialize client with server at " << server_address << std::endl;
-                }
-            }
-            else
-            {
-                std::cerr << "Usage: init <server_address>" << std::endl;
+                std::cerr << "Failed to initialize client with server" << std::endl;
             }
         }
         else if (cmd == "get")

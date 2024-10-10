@@ -1,6 +1,12 @@
 #include "lib739kv.h"
 #include <iostream>
 #include <thread>
+#include <random>
+#include <vector>
+#include <string>
+#include <utility>
+#include <fstream>
+#include <chrono>
 
 #include <grpcpp/grpcpp.h>
 #include "keyvaluestore.grpc.pb.h"
@@ -27,6 +33,11 @@ std::unique_ptr<keyvaluestore::KeyValueStore::Stub> stub_;
 std::shared_ptr<grpc::ClientReaderWriter<keyvaluestore::ClientRequest, keyvaluestore::ServerResponse>> stream_;
 std::unique_ptr<grpc::ClientContext> context_;
 std::string connected_server_name;
+
+// Global variables to store server names
+std::vector<std::string> servers;
+std::vector<std::pair<std::string, std::chrono::_V2::system_clock::time_point>> defunct_servers;
+bool servers_init = false;
 
 // Channel arguments for automatic reconnection and keepalive
 grpc::ChannelArguments GetChannelArguments()
@@ -81,7 +92,57 @@ bool Reconnect()
     return true;
 }
 
-int kv739_init(const std::string &server_name)
+std::vector<std::string> read_config_file(const std::string &config_file)
+{
+    std::ifstream file(config_file);
+    std::vector<std::string> servers;
+
+    if(!file.is_open()){
+        std::cerr << "Error: Unable to open config file: " << config_file << std::endl;
+        return servers;
+    }
+    std::string line;
+    while(std::getline(file, line))
+    {
+        if(!line.empty())
+        {
+            servers.push_back(line);
+        }
+    }
+    file.close();
+    return servers;
+}
+
+std::string select_random_server(const std::vector<std::string> &servers){
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, servers.size()-1);
+
+    return servers[distrib(gen)];
+}
+
+void refresh_defunct_servers()
+{
+    auto now = std::chrono::_V2::system_clock::now();
+    auto it = defunct_servers.begin();
+
+    while(it!=defunct_servers.end()){
+        if(now>=it->second){
+            servers.push_back(it->first);
+            it = defunct_servers.erase(it);
+        } else {
+            it++;
+        }
+    }
+    return;
+}
+
+void mark_server_defunct(const std::string &server_name){
+    auto timeout = std::chrono::_V2::system_clock::now()+std::chrono::seconds(10);
+    defunct_servers.emplace_back(server_name, timeout);
+}
+
+int kv739_init(const std::string &config_file)
 {
     if (stream_)
     {
@@ -89,17 +150,43 @@ int kv739_init(const std::string &server_name)
         return -1;
     }
 
-    // Create a channel with reconnection support
-    channel_ = grpc::CreateCustomChannel(server_name, grpc::InsecureChannelCredentials(), GetChannelArguments());
-    stub_ = KeyValueStore::NewStub(channel_);
-
-    if (!InitializeStream(server_name))
-    {
-        return -1;
+    // read config file if not already read
+    if(!servers_init){
+        servers = read_config_file(config_file);
+        if(servers.empty()){
+            return -1;
+        }
+        servers_init = true;
     }
+    
+    while(!servers.empty()){
+        // refresh the servers just in case
+        refresh_defunct_servers();
 
-    connected_server_name = server_name;
-    return 0;
+        if(servers.empty()){
+            std::cerr << "Error: All servers are down🙈" << std::endl;
+            return -1;
+        }
+        // select a server to send a request to and set to server name
+        std::string server_name = select_random_server(servers);
+
+        // Create a channel with reconnection support
+        channel_ = grpc::CreateCustomChannel(server_name, grpc::InsecureChannelCredentials(), GetChannelArguments());
+        stub_ = KeyValueStore::NewStub(channel_);
+        if (!InitializeStream(server_name))
+        {
+            std::cerr << "Error: Failed to initialize stream with server " << server_name << ". Marking as defunct for 10s" << std::endl;
+            servers.erase(std::remove(servers.begin(), servers.end(), server_name), servers.end());
+            mark_server_defunct(server_name);
+        } else {
+            connected_server_name = server_name;
+            return 0;
+        }
+        // sleep for a bit to prevent cycling through too fast!
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+    std::cerr << "Error: Bizarre! All our servers appear to be down" << std::endl;
+    return -1;
 }
 
 int kv739_shutdown()
