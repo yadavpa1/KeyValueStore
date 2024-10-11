@@ -78,9 +78,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 #  739kv)
 
 # Targets keyvaluestore_server
-add_executable(raft_server
-  server/raft_server.cc)
-target_link_libraries(raft_server
+# add_executable(raft_server
+#   server/raft_server.cc)
+add_executable(distributed_keyvaluestore
+  server/distributed_keyvaluestore.cc  # New file where main() resides
+  server/raft_server.cc                # Raft server functionality
+)
+target_link_libraries(distributed_keyvaluestore
   kvs_grpc_proto
   rocksdb_wrapper
   absl::flags_parse
