@@ -5,6 +5,9 @@
 #include <atomic>
 #include <grpcpp/grpcpp.h>
 #include <chrono>
+#include <algorithm>
+#include <cctype>
+#include <locale>
 
 using grpc::Status;
 using grpc::ServerBuilder;
@@ -48,6 +51,10 @@ void RaftServer::Run() {
     ResetElectionTimeout();
     std::thread(&RaftServer::SendHeartbeat, this).detach();
 
+    if(server_id==0){
+        std::thread(&RaftServer::StartElection, this).detach();
+    }
+
     server->Wait();
 }
 
@@ -61,29 +68,46 @@ Status RaftServer::AppendEntries(
     AppendEntriesResponse* response
 ) {
     std::lock_guard<std::mutex> lock(state_mutex);
+
+    // Set the current term in the response
     response->set_term(current_term);
     response->set_success(false);
 
+    // Step 1: If the term in the request is smaller than the current term, reject the request
     if (request->term() < current_term) {
         return Status::OK;
     }
 
+    // Step 2: Update the current term if the request has a higher term
     if (request->term() > current_term) {
         current_term = request->term();
-        BecomeFollower();
+        BecomeFollower(request->leader_id());
     }
 
-    if (request->prev_log_index() >= raft_log.size() ||
-        (request->prev_log_index() != -1 && raft_log[request->prev_log_index()].term() != request->prev_log_term())) {
-        return Status::OK;
+    // Step 3: Check if the previous log index is out of bounds or the log is empty
+    if (raft_log.empty()) {
+        // If the log is empty, ensure that prev_log_index is -1 (indicating no prior logs)
+        if (request->prev_log_index() != -1) {
+            return Status::OK;  // Mismatch: follower's log is empty, but prev_log_index isn't -1
+        }
+    } else {
+        // If the log is not empty, ensure the prev_log_index is valid
+        if (request->prev_log_index() >= raft_log.size() || 
+            (request->prev_log_index() != -1 && raft_log[request->prev_log_index()].term() != request->prev_log_term())) {
+            return Status::OK;  // Mismatch between the log's term and the request's prev_log_term
+        }
     }
 
+    // Step 4: Append new entries from the leader to the log
     for (const auto& entry : request->entries()) {
         raft_log.push_back(entry);
     }
 
+    // Step 5: Update the commit index if necessary
     if (request->leader_commit() > commit_index) {
         commit_index = std::min(request->leader_commit(), static_cast<int64_t>(raft_log.size() - 1));
+
+        // Apply the committed log entries to the state machine
         while (last_applied < commit_index) {
             last_applied++;
             std::string old_value;
@@ -91,6 +115,7 @@ Status RaftServer::AppendEntries(
         }
     }
 
+    // Step 6: Set success to true and return
     response->set_success(true);
     return Status::OK;
 }
@@ -111,12 +136,21 @@ Status RaftServer::RequestVote(
 
     if (request->term() > current_term) {
         current_term = request->term();
-        BecomeFollower();
+        BecomeFollower(request->candidate_id());
     }
 
-    if ((voted_for == -1 || voted_for == request->candidate_id()) &&
-        (request->last_log_term() > raft_log.back().term() ||
-        (request->last_log_term() == raft_log.back().term() && request->last_log_index() >= raft_log.size() - 1))) {
+    bool log_ok = false;
+    if (raft_log.empty()) {
+        log_ok = true;
+    } else {
+        if (request->last_log_term() > raft_log.back().term()) {
+            log_ok = true;
+        } else if (request->last_log_term() == raft_log.back().term() && request->last_log_index() >= raft_log.size() - 1) {
+            log_ok = true;
+        }
+    }
+
+    if ((voted_for == -1 || voted_for == request->candidate_id()) && log_ok) {
         voted_for = request->candidate_id();
         response->set_vote_granted(true);
     }
@@ -139,7 +173,7 @@ Status RaftServer::Heartbeat(
 
     if (request->term() > current_term) {
         current_term = request->term();
-        BecomeFollower();
+        BecomeFollower(request->leader_id());
     }
 
     // Reset the election timeout when heartbeats are received
@@ -149,7 +183,8 @@ Status RaftServer::Heartbeat(
     return Status::OK;
 }
 
-void RaftServer::BecomeFollower() {
+void RaftServer::BecomeFollower(int leader_id) {
+    current_leader = leader_id;
     state = RaftState::FOLLOWER;
     voted_for = -1;
 }
@@ -159,7 +194,8 @@ void RaftServer::StartElection() {
     current_term++;
     voted_for = server_id;
 
-    std::atomic<int> votes_gained(1);  // Self-vote
+    std::atomic<int> votes_gained(1);
+
     for (int i = 0; i < host_list.size(); ++i) {
         if (i != server_id) {
             std::thread(&RaftServer::InvokeRequestVote, this, i, &votes_gained).detach();
@@ -171,18 +207,19 @@ void RaftServer::StartElection() {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    BecomeLeader();
+    if (votes_gained > host_list.size() / 2) {
+        BecomeLeader();
+    }
 }
 
 void RaftServer::BecomeLeader() {
     state = RaftState::LEADER;
     current_leader = server_id;
 
-    // Initialize nextIndex and matchIndex for log replication
+    ResetElectionTimeout();
     next_index.assign(host_list.size(), raft_log.size());
     match_index.assign(host_list.size(), -1);
 
-    // Send heartbeats to followers
     SendHeartbeat();
 }
 
@@ -210,22 +247,38 @@ void RaftServer::InvokeAppendEntries(int peer_id) {
     AppendEntriesRequest request;
     AppendEntriesResponse response;
 
+    // Set the current term and leader ID
     request.set_term(current_term);
     request.set_leader_id(server_id);
-    request.set_prev_log_index(next_index[peer_id] - 1);
-    request.set_prev_log_term((next_index[peer_id] - 1 == -1) ? -1 : raft_log[next_index[peer_id] - 1].term());
-    for (int i = next_index[peer_id]; i < raft_log.size(); ++i) {
-        *request.add_entries() = raft_log[i];
+
+    // Handle the case where the log is empty
+    if (raft_log.empty()) {
+        request.set_prev_log_index(-1);
+        request.set_prev_log_term(-1);
+    } else {
+        // Set the previous log index and term
+        request.set_prev_log_index(next_index[peer_id] - 1);
+        request.set_prev_log_term((next_index[peer_id] - 1 == -1) ? -1 : raft_log[next_index[peer_id] - 1].term());
+
+        // Add log entries to the request starting from the next index for this peer
+        for (int i = next_index[peer_id]; i < raft_log.size(); ++i) {
+            *request.add_entries() = raft_log[i];
+        }
     }
+
+    // Set the leader's commit index
     request.set_leader_commit(commit_index);
 
+    // Send the AppendEntries RPC to the peer
     peer_stubs[peer_id]->AppendEntries(&context, request, &response);
 
+    // Update the next_index and match_index based on the response
     if (response.success()) {
         next_index[peer_id] = raft_log.size();
         match_index[peer_id] = raft_log.size() - 1;
     } else {
-        next_index[peer_id]--;
+        // Decrement the next_index to retry with the previous entry
+        next_index[peer_id] = std::max(0, next_index[peer_id] - 1);
     }
 }
 
@@ -236,15 +289,24 @@ void RaftServer::InvokeRequestVote(int peer_id, std::atomic<int>* votes_gained) 
 
     request.set_term(current_term);
     request.set_candidate_id(server_id);
-    request.set_last_log_index(raft_log.size() - 1);
-    request.set_last_log_term(raft_log.empty() ? -1 : raft_log.back().term());
 
+    if (raft_log.empty()) {
+        request.set_last_log_index(-1);
+        request.set_last_log_term(-1);
+    } else {
+        request.set_last_log_index(raft_log.size() - 1);
+        request.set_last_log_term(raft_log.back().term());
+    }
+
+    // Send the RequestVote RPC
     peer_stubs[peer_id]->RequestVote(&context, request, &response);
 
+    // Increment the votes_gained if the vote was granted
     if (response.vote_granted()) {
         (*votes_gained)++;
     }
 }
+
 
 void RaftServer::ResetElectionTimeout() {
     election_timeout = min_election_timeout + (rand() % (max_election_timeout - min_election_timeout));
@@ -342,22 +404,44 @@ Status RaftServer::Shutdown(
     return Status::OK;
 }
 
+static inline std::string trim(const std::string &s) {
+    auto start = s.begin();
+    while (start != s.end() && std::isspace(*start)) {
+        start++;
+    }
+
+    auto end = s.end();
+    do {
+        end--;
+    } while (std::distance(start, end) > 0 && std::isspace(*end));
+
+    return std::string(start, end + 1);
+}
+
 std::vector<std::string> readConfigFile(const std::string &filepath) {
     std::vector<std::string> host_list;
     std::ifstream config_file(filepath);
-    
-    if (!config_file) {
+
+    // Check if the file is opened successfully
+    if (!config_file.is_open()) {
         std::cerr << "Error: Could not open config file: " << filepath << std::endl;
-        exit(1);
+        return host_list; // return empty list to avoid undefined behavior
     }
 
     std::string line;
     while (std::getline(config_file, line)) {
+        // Trim and skip empty lines (also remove any trailing or leading spaces)
+        line = trim(line);
         if (!line.empty()) {
             host_list.push_back(line);
         }
     }
-    
+
+    // Check if hosts were loaded
+    if (host_list.empty()) {
+        std::cerr << "Error: No hosts found in the config file." << std::endl;
+    }
+
     return host_list;
 }
 
@@ -365,32 +449,39 @@ int main(int argc, char** argv) {
     std::string config_file;
     int server_id = -1;
 
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
-        if (arg == "-f" && i + 1 < argc) {
+    // Parse command line arguments
+    for (int i = 1; i < argc; i++) {
+        if (std::string(argv[i]) == "-c") {
             config_file = argv[i + 1];
             i++;
-        } else if (arg == "-i" && i + 1 < argc) {
+        } else if (std::string(argv[i]) == "-i") {
             server_id = std::stoi(argv[i + 1]);
             i++;
-        } else {
-            std::cerr << "Usage: " << argv[0] << " -f <config_filepath> -i <server_id>" << std::endl;
-            return 1;
         }
     }
 
+    // Check if required arguments are provided
     if (config_file.empty() || server_id == -1) {
-        std::cerr << "Error: Missing -f <config_filepath> or -i <server_id>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " -c <config_file> -i <server_id>" << std::endl;
         return 1;
     }
 
+    // Read host list from file
     std::vector<std::string> host_list = readConfigFile(config_file);
-    
+
+    // Check if host_list is valid
+    if (host_list.empty()) {
+        std::cerr << "Error: Host list is empty or file could not be read properly" << std::endl;
+        return 1;
+    }
+
+    // Validate server_id against the host list size
     if (server_id < 0 || server_id >= host_list.size()) {
         std::cerr << "Error: Invalid server_id. Must be between 0 and " << host_list.size() - 1 << std::endl;
         return 1;
     }
 
+    // Start the Raft server
     std::string db_path = "raft_db";
     size_t cache_size = 20 * 1024 * 1024; // 20MB cache
 

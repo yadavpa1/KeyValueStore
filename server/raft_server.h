@@ -108,7 +108,7 @@ class RaftServer final : public raft_group::Raft::Service, public raft_group::Ke
         // Raft operations
         void StartElection();
         void BecomeLeader();
-        void BecomeFollower();
+        void BecomeFollower(int leader_id);
         void ReplicateLogEntries();
         void InvokeRequestVote(int peer_id, std::atomic<int>* votes_gained);
         void InvokeAppendEntries(int peer_id);
