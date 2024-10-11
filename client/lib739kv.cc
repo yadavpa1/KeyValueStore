@@ -7,37 +7,43 @@
 #include <utility>
 #include <fstream>
 #include <chrono>
+#include <algorithm>
+#include <cctype>
+#include <locale>
 
 #include <grpcpp/grpcpp.h>
 #include "keyvaluestore.grpc.pb.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
-using grpc::ClientReaderWriter;
 using grpc::Status;
-using keyvaluestore::ClientRequest;
-using keyvaluestore::GetRequest;
-using keyvaluestore::GetResponse;
-using keyvaluestore::InitRequest;
-using keyvaluestore::InitResponse;
-using keyvaluestore::KeyValueStore;
-using keyvaluestore::PutRequest;
-using keyvaluestore::PutResponse;
-using keyvaluestore::ServerResponse;
-using keyvaluestore::ShutdownRequest;
-using keyvaluestore::ShutdownResponse;
+using raft_group::GetRequest;
+using raft_group::GetResponse;
+using raft_group::InitRequest;
+using raft_group::InitResponse;
+using raft_group::PutRequest;
+using raft_group::PutResponse;
+using raft_group::ShutdownRequest;
+using raft_group::ShutdownResponse;
+using raft_group::KeyValueStore;
 
 // Global variables to hold the gRPC objects
-std::shared_ptr<grpc::Channel> channel_;
-std::unique_ptr<keyvaluestore::KeyValueStore::Stub> stub_;
-std::shared_ptr<grpc::ClientReaderWriter<keyvaluestore::ClientRequest, keyvaluestore::ServerResponse>> stream_;
-std::unique_ptr<grpc::ClientContext> context_;
-std::string connected_server_name;
+std::map<int, std::shared_ptr<grpc::Channel>> channels_;
+std::map<int, std::unique_ptr<KeyValueStore::Stub>> stubs_;
+
+std::map<int, std::string> leader_addresses_;
+std::map<int, std::vector<std::string>> partition_instances_;
+
+int NUM_PARTITIONS = 20;
+const int NODES_PER_PARTITION = 5;
 
 // Global variables to store server names
-std::vector<std::string> servers;
-std::vector<std::pair<std::string, std::chrono::_V2::system_clock::time_point>> defunct_servers;
-bool servers_init = false;
+std::vector<std::string> service_instances_;
+
+int HashKey(const std::string &key){
+    std::hash<std::string> hash_fn;
+    return hash_fn(key) % NUM_PARTITIONS;
+}
 
 // Channel arguments for automatic reconnection and keepalive
 grpc::ChannelArguments GetChannelArguments()
@@ -51,47 +57,22 @@ grpc::ChannelArguments GetChannelArguments()
     return args;
 }
 
-// Helper function to reset the gRPC stream and context
-bool InitializeStream(const std::string &server_name)
-{
-    context_ = std::make_unique<grpc::ClientContext>();
-    stream_ = stub_->ManageSession(context_.get());
-
-    InitRequest init_request;
-    init_request.set_server_name(server_name);
-
-    ClientRequest client_request;
-    client_request.mutable_init_request()->CopyFrom(init_request);
-
-    if (!stream_->Write(client_request)) // Send Init request
-    {
-        return false;
+// Utility function to trim strings
+static inline std::string trim(const std::string &s) {
+    auto start = s.begin();
+    while (start != s.end() && std::isspace(*start)) {
+        start++;
     }
 
-    ServerResponse response;
-    if (stream_->Read(&response) && response.has_init_response() && response.init_response().success())
-    {
-        std::cout << "Client successfully initialized with server: " << server_name << std::endl;
-        return true;
-    }
+    auto end = s.end();
+    do {
+        end--;
+    } while (std::distance(start, end) > 0 && std::isspace(*end));
 
-    std::cerr << "Error: Failed to initialize the client." << std::endl;
-    return false;
+    return std::string(start, end + 1);
 }
 
-// Helper function to reset the channel and stream if connection fails
-bool Reconnect()
-{
-    std::cerr << "Reconnecting to server..." << std::endl;
-    while (!InitializeStream(connected_server_name))
-    {
-        std::cerr << "Reconnection failed. Retrying..." << std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(5000)); // Retry every 5 seconds
-    }
-    std::cout << "Reconnected successfully." << std::endl;
-    return true;
-}
-
+// Function to read the configuration file with host addresses
 std::vector<std::string> read_config_file(const std::string &config_file)
 {
     std::ifstream file(config_file);
@@ -104,216 +85,326 @@ std::vector<std::string> read_config_file(const std::string &config_file)
     std::string line;
     while(std::getline(file, line))
     {
+        line = trim(line);
         if(!line.empty())
         {
             servers.push_back(line);
         }
     }
+
+    if (servers.empty()) {
+        std::cerr << "Error: No hosts found in the config file." << std::endl;
+    }
     file.close();
     return servers;
 }
 
-std::string select_random_server(const std::vector<std::string> &servers){
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distrib(0, servers.size()-1);
-
-    return servers[distrib(gen)];
-}
-
-void refresh_defunct_servers()
-{
-    auto now = std::chrono::_V2::system_clock::now();
-    auto it = defunct_servers.begin();
-
-    while(it!=defunct_servers.end()){
-        if(now>=it->second){
-            servers.push_back(it->first);
-            it = defunct_servers.erase(it);
-        } else {
-            it++;
+int kv739_init(const std::string &file_name) {
+    // Ensure streams are not already initialized
+    for (int i = 0; i < NUM_PARTITIONS; i++) {
+        if (stubs_[i]) {
+            std::cerr << "Error: Client is already initialized for partition " << i << std::endl;
+            return -1;
         }
     }
-    return;
-}
 
-void mark_server_defunct(const std::string &server_name){
-    auto timeout = std::chrono::_V2::system_clock::now()+std::chrono::seconds(10);
-    defunct_servers.emplace_back(server_name, timeout);
-}
+    // Read the list of service instances from the file and map them to partitions
+    service_instances_ = read_config_file(file_name);
+    NUM_PARTITIONS = service_instances_.size() / NODES_PER_PARTITION;
 
-int kv739_init(const std::string &config_file)
-{
-    if (stream_)
-    {
-        std::cerr << "Error: Client is already initialized at server: " << connected_server_name << std::endl;
+    if (service_instances_.empty() || NUM_PARTITIONS == 0) {
+        std::cerr << "Error: Failed to read service instances from file." << std::endl;
         return -1;
     }
 
-    // read config file if not already read
-    if(!servers_init){
-        servers = read_config_file(config_file);
-        if(servers.empty()){
+    // Initialize partition_instances_ based on NUM_PARTITIONS and NODES_PER_PARTITION
+    for (int i = 0; i < NUM_PARTITIONS; i++) {
+        for (int j = 0; j < NODES_PER_PARTITION; j++) {
+            int instance_idx = i * NODES_PER_PARTITION + j;
+            if (instance_idx < service_instances_.size()) {
+                partition_instances_[i].push_back(service_instances_[instance_idx]);
+            }
+        }
+    }
+
+    // Initialize stubs for each service instance
+    for (int i = 0; i < service_instances_.size(); i++) {
+        std::string server_address = service_instances_[i];
+        auto channel = grpc::CreateCustomChannel(server_address, grpc::InsecureChannelCredentials(), GetChannelArguments());
+        stubs_[i] = KeyValueStore::NewStub(channel);
+    }
+
+    // Initialize connection by selecting the first node of each partition
+    for (int i = 0; i < NUM_PARTITIONS; i++) {
+        leader_addresses_[i] = partition_instances_[i][0];  // Assume first node in partition group is the leader
+        std::string leader_address = leader_addresses_[i];
+
+        // Find the leader id based on the leader address
+        int leader_id = -1;
+        for (int j = 0; j < service_instances_.size(); j++) {
+            if (service_instances_[j] == leader_address) {
+                leader_id = j;
+                break;
+            }
+        }
+
+        if (leader_id == -1) {
+            std::cerr << "Error: Could not find the leader in service instances." << std::endl;
             return -1;
         }
-        servers_init = true;
-    }
-    
-    while(!servers.empty()){
-        // refresh the servers just in case
-        refresh_defunct_servers();
 
-        if(servers.empty()){
-            std::cerr << "Error: All servers are down🙈" << std::endl;
+        // Get the stub for the leader
+        auto leader_stub = stubs_[leader_id].get();  // Use .get() to get the raw pointer
+
+        // Prepare the Init request
+        ClientContext context;
+        InitRequest init_request;
+        init_request.set_server_name(leader_address);
+        InitResponse init_response;
+
+        // Send the Init request to the leader
+        Status status = leader_stub->Init(&context, init_request, &init_response);
+
+        // Check if the gRPC call was successful
+        if (!status.ok()) {
+            std::cerr << "gRPC Init failed: " << status.error_message() << std::endl;
             return -1;
         }
-        // select a server to send a request to and set to server name
-        std::string server_name = select_random_server(servers);
 
-        // Create a channel with reconnection support
-        channel_ = grpc::CreateCustomChannel(server_name, grpc::InsecureChannelCredentials(), GetChannelArguments());
-        stub_ = KeyValueStore::NewStub(channel_);
-        if (!InitializeStream(server_name))
-        {
-            std::cerr << "Error: Failed to initialize stream with server " << server_name << ". Marking as defunct for 10s" << std::endl;
-            servers.erase(std::remove(servers.begin(), servers.end(), server_name), servers.end());
-            mark_server_defunct(server_name);
-        } else {
-            connected_server_name = server_name;
-            return 0;
+        // If the request returns a leader redirection
+        if (init_response.leader_server() != leader_address) {
+            std::cout << "Leader redirection detected during Init. Updating leader info for partition " << i << "." << std::endl;
+
+            // Update the leader address for the partition
+            leader_addresses_[i] = init_response.leader_server();
+
+            // Retry the request with the new leader
+            leader_address = init_response.leader_server();
+
+            // Find the new leader id based on the updated leader address
+            for (int j = 0; j < service_instances_.size(); j++) {
+                if (service_instances_[j] == leader_address) {
+                    leader_id = j;
+                    break;
+                }
+            }
+
+            if (leader_id == -1) {
+                std::cerr << "Error: Could not find the new leader in service instances." << std::endl;
+                return -1;
+            }
+
+            leader_stub = stubs_[leader_id].get();  // Use .get() to get the raw pointer
+
+            // Retry Init request with the new leader
+            ClientContext new_context;
+            Status retry_status = leader_stub->Init(&new_context, init_request, &init_response);
+
+            if (!retry_status.ok()) {
+                std::cerr << "gRPC Init retry failed: " << retry_status.error_message() << std::endl;
+                return -1;
+            }
         }
-        // sleep for a bit to prevent cycling through too fast!
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+        if (!init_response.success()) {
+            std::cerr << "Init operation failed for partition " << i << "." << std::endl;
+            return -1;
+        }
+
+        std::cout << "Init operation successful for partition " << i << "." << std::endl;
     }
-    std::cerr << "Error: Bizarre! All our servers appear to be down" << std::endl;
-    return -1;
+
+    return 0;
 }
 
 int kv739_shutdown()
 {
-    if (!stream_)
-    {
-        std::cerr << "Error: No active session to shut down." << std::endl;
-        return -1;
-    }
-
-    ShutdownRequest shutdown_request;
-    ServerResponse response;
-
-    ClientRequest client_request;
-    client_request.mutable_shutdown_request()->CopyFrom(shutdown_request);
-
-    if (!stream_->Write(client_request)) // Send Shutdown request
-    {
-        std::cerr << "Error: Failed to write shutdown request. Reconnecting..." << std::endl;
-        if (!Reconnect())
-        {
+    for(int i = 0; i < service_instances_.size(); i++){
+        ClientContext context;
+        ShutdownRequest request;
+        ShutdownResponse response;
+        Status status = stubs_[i]->Shutdown(&context, request, &response);
+        if(!status.ok()){
+            std::cerr << "Error: Shutdown failed for server: " << service_instances_[i] << std::endl;
             return -1;
         }
-        stream_->Write(client_request); // Retry after reconnecting
     }
-    stream_->WritesDone(); // Close the stream
-
-    if (stream_->Read(&response) && response.has_shutdown_response() && response.shutdown_response().success())
-    {
-        std::cout << "Client successfully shut down." << std::endl;
-
-        grpc::Status status = stream_->Finish();
-        if (!status.ok())
-        {
-            std::cerr << "Error: Shutdown stream failed with status: " << status.error_message() << std::endl;
-            return -1;
-        }
-
-        stream_.reset(); // Clear the stream pointer only on success
-        context_.reset();
-        return 0;
-    }
-
-    std::cerr << "Error: Shutdown operation failed, unable to read server response." << std::endl;
-    return -1;
+    return 0;
 }
 
-int kv739_get(const std::string &key, std::string &value)
-{
-    if (!stream_)
-    {
-        std::cerr << "Error: No active session to perform Get." << std::endl;
+int kv739_get(const std::string &key, std::string &value) {
+    // Hash the key to determine the partition
+    int partition = HashKey(key);
+
+    // print partition and partition leader address
+    std::cout << "Partition: " << partition << " with leader address " << leader_addresses_[partition] << std::endl;
+
+    // Get the leader address for the partition
+    std::string leader_address = leader_addresses_[partition];
+
+    // Get the leader id based on the leader address
+    int leader_id = -1;
+    for (int i = 0; i < service_instances_.size(); i++) {
+        if (service_instances_[i] == leader_address) {
+            leader_id = i;
+            break;
+        }
+    }
+
+    if (leader_id == -1) {
+        std::cerr << "Error: Could not find the leader in service instances." << std::endl;
         return -1;
     }
 
-    ClientRequest client_request;
+    // Get the stub for the leader
+    auto* leader_stub = stubs_[leader_id].get();  // Use .get() to get the raw pointer
+
+    // Send the Get request to the leader
+    ClientContext context;
     GetRequest get_request;
     get_request.set_key(key);
-    client_request.mutable_get_request()->CopyFrom(get_request);
+    GetResponse get_response;
+    Status status = leader_stub->Get(&context, get_request, &get_response);
 
-    if (!stream_->Write(client_request)) // Send Get request
-    {
-        if (!Reconnect())
-        {
-            return -1;
-        }
-        stream_->Write(client_request); // Retry after reconnecting
+    // Check if the gRPC call was successful
+    if (!status.ok()) {
+        std::cerr << "gRPC Get failed: " << status.error_message() << std::endl;
+        return -1;
     }
 
-    ServerResponse response;
-    if (stream_->Read(&response) && response.has_get_response())
-    {
-        if (response.get_response().key_found())
-        {
-            value = response.get_response().value();
-            std::cout << "Get operation successful. Key: '" << key << "', Value: '" << value << "'." << std::endl;
-            return 0;
+    // If the request returns a leader redirection
+    if (get_response.leader_server() != leader_address) {
+        std::cout << "Leader redirection detected. Updating leader info." << std::endl;
+
+        // Update the leader address for the partition
+        leader_addresses_[partition] = get_response.leader_server();
+
+        // Retry the request with the new leader
+        leader_address = get_response.leader_server();
+
+        // Find the new leader id based on the updated leader address
+        for (int i = 0; i < service_instances_.size(); i++) {
+            if (service_instances_[i] == leader_address) {
+                leader_id = i;
+                break;
+            }
         }
-        else
-        {
-            std::cout << "Key '" << key << "' not found." << std::endl;
-            return 1;
+
+        if (leader_id == -1) {
+            std::cerr << "Error: Could not find the new leader in service instances." << std::endl;
+            return -1;
         }
+
+        leader_stub = stubs_[leader_id].get();  // Use .get() to get the raw pointer
+
+        // Retry Get request with the new leader
+        ClientContext new_context;
+        Status retry_status = leader_stub->Get(&new_context, get_request, &get_response);
+
+        if (!retry_status.ok()) {
+            std::cerr << "gRPC Get retry failed: " << retry_status.error_message() << std::endl;
+            return -1;
+        }
+    }
+
+    // If key is found, return the value
+    if (get_response.key_found()) {
+        value = get_response.value();
+        std::cout << "Get operation successful. Key: '" << key << "', Value: '" << value << "'." << std::endl;
+        return 0;
+    } else {
+        std::cout << "Key '" << key << "' not found." << std::endl;
+        return 1;  // Key not found
     }
 
     std::cerr << "Error: Get operation failed for key: '" << key << "'." << std::endl;
     return -1;
 }
 
-int kv739_put(const std::string &key, const std::string &value, std::string &old_value)
-{
-    if (!stream_)
-    {
-        std::cerr << "Error: No active session to perform Put." << std::endl;
+int kv739_put(const std::string &key, const std::string &value, std::string &old_value) {
+    // Hash the key to determine the partition
+    int partition = HashKey(key);
+    std::cout << "Partition: " << partition << " with leader address " << leader_addresses_[partition] << std::endl;
+
+    // Get the leader address for the partition
+    std::string leader_address = leader_addresses_[partition];
+
+    // Get the leader id based on the leader address
+    int leader_id = -1;
+    for (int i = 0; i < service_instances_.size(); i++) {
+        if (service_instances_[i] == leader_address) {
+            leader_id = i;
+            break;
+        }
+    }
+
+    if (leader_id == -1) {
+        std::cerr << "Error: Could not find the leader in service instances." << std::endl;
         return -1;
     }
 
+    // Get the stub for the leader
+    auto* leader_stub = stubs_[leader_id].get();  // Use .get() to get the raw pointer
+
+    // Prepare the Put request
+    ClientContext context;
     PutRequest put_request;
     put_request.set_key(key);
     put_request.set_value(value);
+    PutResponse put_response;
 
-    ClientRequest client_request;
-    client_request.mutable_put_request()->CopyFrom(put_request);
+    // Send the Put request to the leader
+    Status status = leader_stub->Put(&context, put_request, &put_response);
 
-    if (!stream_->Write(client_request)) // Send Put request
-    {
-        if (!Reconnect())
-        {
-            return -1;
-        }
-        stream_->Write(client_request); // Retry after reconnecting
+    // Check if the gRPC call was successful
+    if (!status.ok()) {
+        std::cerr << "gRPC Put failed: " << status.error_message() << std::endl;
+        return -1;
     }
 
-    ServerResponse response;
-    if (stream_->Read(&response) && response.has_put_response())
-    {
-        if (response.put_response().key_found())
-        {
-            old_value = response.put_response().old_value();
-            std::cout << "Put operation successful. Old value for key: '" << key << "' was: '" << old_value << "'." << std::endl;
-            return 0;
+    // If the request returns a leader redirection
+    if (put_response.leader_server() != leader_address) {
+        std::cout << "Leader redirection detected. Updating leader info." << std::endl;
+
+        // Update the leader address for the partition
+        leader_addresses_[partition] = put_response.leader_server();
+
+        // Retry the request with the new leader
+        leader_address = put_response.leader_server();
+
+        // Find the new leader id based on the updated leader address
+        for (int i = 0; i < service_instances_.size(); i++) {
+            if (service_instances_[i] == leader_address) {
+                leader_id = i;
+                break;
+            }
         }
-        else
-        {
-            std::cout << "Put operation successful. No old value existed for key: '" << key << "'." << std::endl;
-            return 1;
+
+        if (leader_id == -1) {
+            std::cerr << "Error: Could not find the new leader in service instances." << std::endl;
+            return -1;
         }
+
+        leader_stub = stubs_[leader_id].get();  // Use .get() to get the raw pointer
+
+        // Retry Put request with the new leader
+        ClientContext new_context;
+        Status retry_status = leader_stub->Put(&new_context, put_request, &put_response);
+
+        if (!retry_status.ok()) {
+            std::cerr << "gRPC Put retry failed: " << retry_status.error_message() << std::endl;
+            return -1;
+        }
+    }
+
+    // If the key was found, return the old value
+    if (put_response.key_found()) {
+        old_value = put_response.old_value();
+        std::cout << "Put operation successful. Old value for key: '" << key << "' was: '" << old_value << "'." << std::endl;
+        return 0;
+    } else {
+        std::cout << "Put operation successful. No old value existed for key: '" << key << "'." << std::endl;
+        return 1; // No old value
     }
 
     std::cerr << "Error: Put operation failed for key: '" << key << "'." << std::endl;

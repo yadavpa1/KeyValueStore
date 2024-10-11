@@ -62,20 +62,20 @@ target_link_libraries(rocksdb_wrapper
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 # Create shared library lib739kv.so from lib739kv.cc and #lib739kv.h
-#add_library(739kv SHARED
-#  client/lib739kv.cc)
-#target_link_libraries(739kv
-#  kvs_grpc_proto
-#  absl::flags_parse
-#  absl::log_initialize
-#  absl::log_globals
-#  -static-libstdc++ -static-libgcc)
+add_library(739kv SHARED
+ client/lib739kv.cc)
+target_link_libraries(739kv
+ kvs_grpc_proto
+ absl::flags_parse
+ absl::log_initialize
+ absl::log_globals
+ -static-libstdc++ -static-libgcc)
 
 # Targets keyvaluestore_client
-#add_executable(keyvaluestore_client
-#  client/keyvaluestore_client.cc)
-#target_link_libraries(keyvaluestore_client
-#  739kv)
+add_executable(keyvaluestore_client
+ client/keyvaluestore_client.cc)
+target_link_libraries(keyvaluestore_client
+ 739kv)
 
 # Targets keyvaluestore_server
 # add_executable(raft_server

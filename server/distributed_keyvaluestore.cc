@@ -108,6 +108,8 @@ int main(int argc, char** argv) {
                 std::cerr << "Error: Fork failed for server " << local_server_id << std::endl;
                 return 1;
             }
+            // Print the pid of the child process with the port number
+            std::cout << "Server " << raft_group[local_server_id] << " started with pid: " << pid << std::endl;
         }
     }
 
