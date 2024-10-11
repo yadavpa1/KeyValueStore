@@ -139,7 +139,7 @@ Status RaftServer::RequestVote(
 
     if (request->term() > current_term) {
         current_term = request->term();
-        BecomeFollower(request->candidate_id());
+        BecomeFollower(-1);
     }
 
     bool log_ok = false;
@@ -240,7 +240,7 @@ void RaftServer::BecomeLeader() {
     next_index.assign(host_list.size(), raft_log.size());
     match_index.assign(host_list.size(), -1);
 
-    std::cout << "Server " << server_id << " became the leader" << std::endl;
+    std::cout << "Server " << host_list[server_id] << " became the leader" << std::endl;
 
     SendHeartbeat();
 }
