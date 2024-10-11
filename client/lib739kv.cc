@@ -60,6 +60,8 @@ void CleanupConnection(int partition_id) {
 bool ConnectToLeader(int partition_id) {
     std::string leader_address = leader_addresses_[partition_id];
 
+    std::cout << "Attempting to connect to Raft leader at: " << leader_address << std::endl;
+
     // Create gRPC channel and stub for the leader of this partition
     channels_[partition_id] = grpc::CreateChannel(leader_address, grpc::InsecureChannelCredentials());
     stubs_[partition_id] = KeyValueStore::NewStub(channels_[partition_id]);
@@ -74,19 +76,26 @@ bool ConnectToLeader(int partition_id) {
     ClientRequest client_request;
     client_request.mutable_init_request()->CopyFrom(init_request);
 
-    if (!streams_[partition_id]->Write(client_request)) {  // Send Init request
+    // Add logging here
+    std::cout << "Sending init request to " << leader_address << std::endl;
+
+    if (!streams_[partition_id]->Write(client_request)) {
+        std::cerr << "Failed to send init request to leader: " << leader_address << std::endl;
         CleanupConnection(partition_id);  // Clean up on failure
         return false;
     }
 
     ServerResponse response;
     if (streams_[partition_id]->Read(&response) && response.has_init_response() && response.init_response().success()) {
+        std::cout << "Successfully initialized with leader: " << leader_address << std::endl;
         return true;
     }
 
+    std::cerr << "Failed to read init response from leader: " << leader_address << std::endl;
     CleanupConnection(partition_id);  // Clean up on failure
     return false;
 }
+
 
 
 bool ReadServiceInstancesFromFile(const std::string &file_name) {
@@ -154,9 +163,9 @@ bool HandleLeaderRedirection(int partition_id, const ClientRequest &client_reque
 
     // Read the response
     if (streams_[partition_id]->Read(&response)) {
-        if (response.has_not_leader()) {
+        if (response.has_not_leader_response()) {
             // If not a leader, update leader metadata and retry the request
-            std::string new_leader_address = response.not_leader().leader_address();
+            std::string new_leader_address = response.not_leader_response().leader_address();
             leader_addresses_[partition_id] = new_leader_address;  // Update leader address
             CleanupConnection(partition_id); // Close the stream with the old leader
 

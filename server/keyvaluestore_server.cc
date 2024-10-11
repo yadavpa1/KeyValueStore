@@ -1,189 +1,49 @@
+#include "keyvaluestore_server.h"
 #include <iostream>
-#include <string>
 
-#include <grpcpp/grpcpp.h>
-#include "keyvaluestore.grpc.pb.h"
-#include "rocksdb_wrapper.h"
+KeyValueStoreServer::KeyValueStoreServer(int node_id, int cluster_id, const std::string& db_path, const std::vector<std::string>& peers)
+    : db_(db_path, 1024), raft_node_(node_id, cluster_id, peers, db_path) {}
 
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
-using grpc::ServerReaderWriter;
-using grpc::Status;
-using keyvaluestore::ClientRequest;
-using keyvaluestore::GetRequest;
-using keyvaluestore::GetResponse;
-using keyvaluestore::InitRequest;
-using keyvaluestore::InitResponse;
-using keyvaluestore::KeyValueStore;
-using keyvaluestore::PutRequest;
-using keyvaluestore::PutResponse;
-using keyvaluestore::ServerResponse;
-using keyvaluestore::ShutdownRequest;
-using keyvaluestore::ShutdownResponse;
+grpc::Status KeyValueStoreServer::ManageSession(grpc::ServerContext* context, grpc::ServerReaderWriter<keyvaluestore::ServerResponse, keyvaluestore::ClientRequest>* stream) {
+    keyvaluestore::ClientRequest request;
+    
+    while (stream->Read(&request)) {
+        if (request.has_get_request()) {
+            std::string value;
+            keyvaluestore::GetResponse get_response;
 
-const size_t CACHE_SIZE = 20*1024*1024; // Cache size is 20MB covering a db size of 200MB
-
-class KeyValueStoreServiceImpl final : public KeyValueStore::Service
-{
-    public:
-    KeyValueStoreServiceImpl(const std::string &db_path, size_t cache_size)
-        : db_(db_path, cache_size) {}
-
-    Status ManageSession(ServerContext *context, ServerReaderWriter<ServerResponse, ClientRequest> *stream) override
-    {
-        ClientRequest client_request;
-        while (stream->Read(&client_request))
-        {
-            if (client_request.has_init_request())
-            {
-                HandleInitRequest(client_request.init_request(), stream);
+            if (db_.Get(request.get_request().key(), value)) {
+                get_response.set_value(value);
+                get_response.set_key_found(true);
+            } else {
+                get_response.set_key_found(false);
             }
-            else if (client_request.has_get_request())
-            {
-                HandleGetRequest(client_request.get_request(), stream);
-            }
-            else if (client_request.has_put_request())
-            {
-                HandlePutRequest(client_request.put_request(), stream);
-            }
-            else if (client_request.has_shutdown_request())
-            {
-                HandleShutdownRequest(stream);
-                break;
-            }
+            
+            keyvaluestore::ServerResponse response;
+            response.mutable_get_response()->CopyFrom(get_response);
+            stream->Write(response);
         }
-        return Status::OK;
-    }
-
-    private:
-    RocksDBWrapper db_; // RocksDBWrapper instance for database operations
-
-    void HandleInitRequest(const InitRequest &request, ServerReaderWriter<ServerResponse, ClientRequest> *stream)
-    {
-        std::cout << "Received InitRequest for Server: " << request.server_name() << std::endl;
-
-        InitResponse init_response;
-        init_response.set_success(true);
-
-        ServerResponse response;
-        *response.mutable_init_response() = init_response;
-        stream->Write(response);
-    }
-
-    void HandleGetRequest(const GetRequest &request, ServerReaderWriter<ServerResponse, ClientRequest> *stream)
-    {
-        std::cout << "Received GetRequest for key: " << request.key() << std::endl;
-
-        ServerResponse response;
-        GetResponse get_response;
-
-        std::string value;
-
-        if (db_.Get(request.key(), value))
-        {
-            get_response.set_value(value);
-            get_response.set_key_found(true);
-        }
-        else
-        {
-            std::cout << "Key not found: " << request.key() << std::endl;
-            get_response.set_key_found(false);
-        }
-
-        *response.mutable_get_response() = get_response;
-        stream->Write(response);
-    }
-
-    void HandlePutRequest(const PutRequest &request, ServerReaderWriter<ServerResponse, ClientRequest> *stream)
-    {
-        std::cout << "Received PutRequest for key: " << request.key() << " with value: " << request.value() << std::endl;
-
-        ServerResponse response;
-        PutResponse put_response;
-
-        std::string old_value;
-        // Use RocksDB transactions with partitioning for the Put operation
-        int result = db_.Put(request.key(), request.value(), old_value);
-
-        if (result == 0)
-        {
+        
+        if (request.has_put_request()) {
+            std::string old_value;
+            std::string key = request.put_request().key();
+            std::string value = request.put_request().value();
+            
+            // Append the put operation to Raft log for consensus
+            LogEntry log_entry = {key, value, raft_node_.GetCurrentTerm()};
+            raft_node_.AppendLog(log_entry);
+            
+            db_.Put(key, value, old_value);
+            
+            keyvaluestore::PutResponse put_response;
             put_response.set_old_value(old_value);
             put_response.set_key_found(true);
-            std::cout << "Updated key: " << request.key() << " with old value: " << old_value << std::endl;
-        }
-        else if (result == 1)
-        {
-            put_response.set_key_found(false);
-            std::cout << "Inserted new key: " << request.key() << " with value: " << request.value() << std::endl;
-        }
-        else
-        {
-            std::cerr << "Error updating key: " << request.key() << std::endl;
-        }
-
-        *response.mutable_put_response() = put_response;
-        stream->Write(response);
-    }
-
-    void HandleShutdownRequest(ServerReaderWriter<ServerResponse, ClientRequest> *stream)
-    {
-        std::cout << "Received ShutdownRequest. Shutting down server..." << std::endl;
-
-        ShutdownResponse shutdown_response;
-        shutdown_response.set_success(true);
-
-        ServerResponse response;
-        *response.mutable_shutdown_response() = shutdown_response;
-        stream->Write(response);
-    }
-};
-
-void RunServer(const std::string &server_address, const std::string &db_path, const size_t cache_size)
-{
-    KeyValueStoreServiceImpl service(db_path, cache_size);
-
-    ServerBuilder builder;
-    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-    builder.RegisterService(&service);
-
-    std::unique_ptr<Server> server(builder.BuildAndStart());
-    std::cout << "Server listening on " << server_address << std::endl;
-    server->Wait();
-}
-
-std::string parseArguments(int argc, char **argv, const std::string &default_port)
-{
-    std::string server_address = "0.0.0.0:" + default_port;
-
-    // Parse command-line arguments
-    for (int i = 1; i < argc; ++i)
-    {
-        std::string arg = argv[i];
-        if (arg == "-p" || arg == "--port")
-        {
-            if (i + 1 < argc)  // Check if the port number follows the flag
-            {
-                std::string port = argv[i + 1];
-                server_address = "0.0.0.0:" + port;
-            }
-            else
-            {
-                std::cerr << "Error: -p or --port flag requires a port number." << std::endl;
-                exit(1);
-            }
+            
+            keyvaluestore::ServerResponse response;
+            response.mutable_put_response()->CopyFrom(put_response);
+            stream->Write(response);
         }
     }
-
-    return server_address;
-}
-
-int main(int argc, char **argv)
-{
-    std::string default_port = "50051";
-    std::string server_address = parseArguments(argc, argv, default_port);
-    std::string db_path = "keyvaluestore.db";
     
-    RunServer(server_address, db_path, CACHE_SIZE);
-    return 0;
+    return grpc::Status::OK;
 }

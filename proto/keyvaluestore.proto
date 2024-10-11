@@ -21,6 +21,7 @@ message ServerResponse {
         GetResponse get_response = 2;
         PutResponse put_response = 3;
         ShutdownResponse shutdown_response = 4;
+        NotLeaderResponse not_leader_response = 5;  // Add this line for redirection
     }
 }
 
@@ -55,4 +56,8 @@ message ShutdownRequest {}
 
 message ShutdownResponse {
     bool success = 1;
+}
+
+message NotLeaderResponse {
+    string leader_address = 1;
 }
