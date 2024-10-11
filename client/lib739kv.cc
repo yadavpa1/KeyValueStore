@@ -164,7 +164,7 @@ bool HandleLeaderRedirection(int partition_id, const ClientRequest &client_reque
             return RetryWithNewLeader(partition_id, client_request, response);
         }
         return true;
-        
+
     } else {
         std::cerr << "Error: Failed to read response from leader for partition " << partition_id << ". Attempting to reconnect..." << std::endl;
         // Retry with another node in the partition, including potential new leader
@@ -212,12 +212,15 @@ int kv739_shutdown() {
         client_request.mutable_shutdown_request()->CopyFrom(shutdown_request);
 
         if (!streams_[i]->Write(client_request)) { // Send Shutdown request
-            return -1;
+            std::cerr << "Error: Failed to send shutdown request to partition " << i << std::endl;
+            continue;  // If this stream fails, move on to the next partition
         }
 
         ServerResponse response; //@TODO: what if leader fails during shutdown request and what if shutdown operation failed
         if (streams_[i]->Read(&response) && response.has_shutdown_response() && response.shutdown_response().success()) {
             std::cout << "Shutdown successful for Raft leader of partition " << i << std::endl;
+        } else {
+            std::cerr << "Error: Failed to receive shutdown response from partition " << i << std::endl;
         }
 
         // Finish the stream and clean up the context
