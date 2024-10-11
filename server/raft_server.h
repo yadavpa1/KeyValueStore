@@ -5,6 +5,7 @@
 #include <vector>
 #include <mutex>
 #include <atomic>
+#include <chrono>
 
 // GRPC stuff
 #include <grpc/grpc.h>
@@ -107,6 +108,7 @@ class RaftServer final : public raft_group::Raft::Service, public raft_group::Ke
 
         // Raft operations
         void StartElection();
+        void MonitorElectionTimeout();
         void BecomeLeader();
         void BecomeFollower(int leader_id);
         void ReplicateLogEntries();
@@ -143,6 +145,7 @@ class RaftServer final : public raft_group::Raft::Service, public raft_group::Ke
 
         // Election timeout and heartbeat
         int election_timeout;
+        std::chrono::time_point<std::chrono::steady_clock> last_heartbeat_received;
         static const int min_election_timeout;
         static const int max_election_timeout;
         static const int heartbeat_interval;

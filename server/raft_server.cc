@@ -1,13 +1,9 @@
 #include "raft_server.h"
 #include <iostream>
-#include <fstream>
 #include <thread>
 #include <atomic>
 #include <grpcpp/grpcpp.h>
 #include <chrono>
-#include <algorithm>
-#include <cctype>
-#include <locale>
 
 using grpc::Status;
 using grpc::ServerBuilder;
@@ -26,8 +22,12 @@ RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list,
       commit_index(0),
       last_applied(0),
       current_leader(-1),
+      last_heartbeat_received(std::chrono::steady_clock::now()),
       db_(db_path, cache_size)
-{}
+{
+    election_timeout = min_election_timeout + (rand() % (max_election_timeout - min_election_timeout));
+
+}
 
 void RaftServer::Run() {
     ServerBuilder builder;
@@ -49,8 +49,8 @@ void RaftServer::Run() {
     }
 
     ResetElectionTimeout();
-    std::thread(&RaftServer::SendHeartbeat, this).detach();
 
+    std::thread(&RaftServer::MonitorElectionTimeout, this).detach(); 
     if(server_id==0){
         std::thread(&RaftServer::StartElection, this).detach();
     }
@@ -115,7 +115,10 @@ Status RaftServer::AppendEntries(
         }
     }
 
-    // Step 6: Set success to true and return
+    // Step 6: Reset the election timeout
+    ResetElectionTimeout();
+
+    // Step 7: Set success to true and return
     response->set_success(true);
     return Status::OK;
 }
@@ -189,6 +192,23 @@ void RaftServer::BecomeFollower(int leader_id) {
     voted_for = -1;
 }
 
+void RaftServer::MonitorElectionTimeout() {
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));  // Check every 100 ms
+
+        std::lock_guard<std::mutex> lock(state_mutex);
+
+        auto now = std::chrono::steady_clock::now();
+        auto time_since_last_heartbeat = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_heartbeat_received).count();
+
+        if (state == RaftState::FOLLOWER && time_since_last_heartbeat >= election_timeout) {
+            std::cout << "Election timeout reached, starting election..." << std::endl;
+            StartElection();
+        }
+    }
+}
+
+
 void RaftServer::StartElection() {
     state = RaftState::CANDIDATE;
     current_term++;
@@ -219,6 +239,8 @@ void RaftServer::BecomeLeader() {
     ResetElectionTimeout();
     next_index.assign(host_list.size(), raft_log.size());
     match_index.assign(host_list.size(), -1);
+
+    std::cout << "Server " << server_id << " became the leader" << std::endl;
 
     SendHeartbeat();
 }
@@ -309,7 +331,7 @@ void RaftServer::InvokeRequestVote(int peer_id, std::atomic<int>* votes_gained) 
 
 
 void RaftServer::ResetElectionTimeout() {
-    election_timeout = min_election_timeout + (rand() % (max_election_timeout - min_election_timeout));
+    last_heartbeat_received = std::chrono::steady_clock::now();
 }
 
 Status RaftServer::Init(
@@ -328,6 +350,11 @@ Status RaftServer::Init(
     }
 
     response->set_success(true);
+    if(current_leader!=-1){
+        response->set_leader_server(host_list[current_leader]);
+    } else {
+        response->set_leader_server("");
+    }
     return Status::OK;
 }
 
@@ -356,7 +383,11 @@ Status RaftServer::Get(
         std::cout << "Key not found: " << request->key() << std::endl;
         response->set_key_found(false);
     }
-
+    if(current_leader!=-1){
+        response->set_leader_server(host_list[current_leader]);
+    } else {
+        response->set_leader_server("");
+    }
     return Status::OK;
 }
 
@@ -388,6 +419,11 @@ Status RaftServer::Put(
     } else {
         response->set_key_found(false);
     }
+    if(current_leader!=-1){
+        response->set_leader_server(host_list[current_leader]);
+    } else {
+        response->set_leader_server("");
+    }
     return Status::OK;
 }
 
@@ -402,91 +438,4 @@ Status RaftServer::Shutdown(
     }
     response->set_success(true);
     return Status::OK;
-}
-
-static inline std::string trim(const std::string &s) {
-    auto start = s.begin();
-    while (start != s.end() && std::isspace(*start)) {
-        start++;
-    }
-
-    auto end = s.end();
-    do {
-        end--;
-    } while (std::distance(start, end) > 0 && std::isspace(*end));
-
-    return std::string(start, end + 1);
-}
-
-std::vector<std::string> readConfigFile(const std::string &filepath) {
-    std::vector<std::string> host_list;
-    std::ifstream config_file(filepath);
-
-    // Check if the file is opened successfully
-    if (!config_file.is_open()) {
-        std::cerr << "Error: Could not open config file: " << filepath << std::endl;
-        return host_list; // return empty list to avoid undefined behavior
-    }
-
-    std::string line;
-    while (std::getline(config_file, line)) {
-        // Trim and skip empty lines (also remove any trailing or leading spaces)
-        line = trim(line);
-        if (!line.empty()) {
-            host_list.push_back(line);
-        }
-    }
-
-    // Check if hosts were loaded
-    if (host_list.empty()) {
-        std::cerr << "Error: No hosts found in the config file." << std::endl;
-    }
-
-    return host_list;
-}
-
-int main(int argc, char** argv) {
-    std::string config_file;
-    int server_id = -1;
-
-    // Parse command line arguments
-    for (int i = 1; i < argc; i++) {
-        if (std::string(argv[i]) == "-c") {
-            config_file = argv[i + 1];
-            i++;
-        } else if (std::string(argv[i]) == "-i") {
-            server_id = std::stoi(argv[i + 1]);
-            i++;
-        }
-    }
-
-    // Check if required arguments are provided
-    if (config_file.empty() || server_id == -1) {
-        std::cerr << "Usage: " << argv[0] << " -c <config_file> -i <server_id>" << std::endl;
-        return 1;
-    }
-
-    // Read host list from file
-    std::vector<std::string> host_list = readConfigFile(config_file);
-
-    // Check if host_list is valid
-    if (host_list.empty()) {
-        std::cerr << "Error: Host list is empty or file could not be read properly" << std::endl;
-        return 1;
-    }
-
-    // Validate server_id against the host list size
-    if (server_id < 0 || server_id >= host_list.size()) {
-        std::cerr << "Error: Invalid server_id. Must be between 0 and " << host_list.size() - 1 << std::endl;
-        return 1;
-    }
-
-    // Start the Raft server
-    std::string db_path = "raft_db";
-    size_t cache_size = 20 * 1024 * 1024; // 20MB cache
-
-    RaftServer raft_server(server_id, host_list, db_path, cache_size);
-    raft_server.Run();
-
-    return 0;
 }
