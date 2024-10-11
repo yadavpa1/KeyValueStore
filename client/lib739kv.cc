@@ -1,9 +1,9 @@
 #include "lib739kv.h"
 #include <iostream>
 #include <fstream>
+#include <map>
 #include <vector>
 #include <thread>
-#include <map>
 
 #include <grpcpp/grpcpp.h>
 #include "keyvaluestore.grpc.pb.h"
@@ -69,7 +69,7 @@ bool ConnectToLeader(int partition_id) {
     streams_[partition_id] = stubs_[partition_id]->ManageSession(contexts_[partition_id].get());
 
     InitRequest init_request;
-    init_request.set_server_name("RaftNode" + std::to_string(partition_id));
+    init_request.set_server_name(leader_address);
 
     ClientRequest client_request;
     client_request.mutable_init_request()->CopyFrom(init_request);
