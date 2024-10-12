@@ -263,8 +263,9 @@ int kv739_die(const std::string &server_name, int clean) {
         return -1;
     }
 
-    // Get the stub for the server
-    auto* server_stub = stubs_[server_id].get();  // Use .get() to get the raw pointer
+    // Create a new gRPC channel and stub for the specific server
+    auto channel = grpc::CreateChannel(server_name, grpc::InsecureChannelCredentials());
+    auto server_stub = KeyValueStore::NewStub(channel);  // Create a stub specifically for the server
 
     // Prepare the Die request
     ClientContext context;
@@ -274,7 +275,7 @@ int kv739_die(const std::string &server_name, int clean) {
 
     DieResponse die_response;
 
-    // Send the Die request to the server
+    // Send the Die request to the specific server
     Status status = server_stub->Die(&context, die_request, &die_response);
 
     // Check if the gRPC call was successful
@@ -286,11 +287,6 @@ int kv739_die(const std::string &server_name, int clean) {
     // Check if the server successfully initiated termination
     if (die_response.success()) {
         std::cout << "Server '" << server_name << "' successfully initiated termination." << std::endl;
-
-        // Remove the stub and channel associated with this server since it's terminated
-        stubs_.erase(server_id);  // Remove the stub for the terminated server
-        channels_.erase(server_id);  // Remove the channel for the terminated server
-        
         return 0;
     } else {
         std::cerr << "Error: Server failed to initiate termination." << std::endl;

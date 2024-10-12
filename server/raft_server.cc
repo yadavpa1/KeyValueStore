@@ -474,19 +474,21 @@ Status RaftServer::Die(ServerContext* context, const DieRequest* request, DieRes
 
     // Send the success response to the client before shutting down
     response->set_success(true);
-    Status status = Status::OK;  // Return OK status to the client
 
     // Spawn a new thread to handle the shutdown after the response is sent
-    std::thread([clean]() {
+    std::thread([this, clean]() {
         if (clean) {
-            std::cout << "Server performing clean shutdown." << std::endl;
-            // Perform clean exit (flush state, close resources, etc.)
-            exit(0);  // Clean exit
+            // Graceful shutdown without deadline
+            std::cout << "Server performing graceful shutdown." << std::endl;
+            server->Shutdown();  // Gracefully shutdown, wait for ongoing RPCs to complete
+            server->Wait();      // Wait for the server to complete all operations (optional)
+            std::exit(0);        // Normal exit after graceful shutdown
         } else {
-            std::cout << "Server performing immediate exit." << std::endl;
-            exit(1);  // Immediate exit without cleanup
+            // Forceful shutdown: immediately terminate the process
+            std::cout << "Server performing forceful kill." << std::endl;
+            std::exit(1);  // Immediate, abnormal exit
         }
-    }).detach();  // Detach the thread to allow it to run independently
+    }).detach();  // Detach the thread to allow shutdown in the background
 
-    return status;  // Return the status to the client immediately
+    return Status::OK;
 }
