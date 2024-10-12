@@ -46,9 +46,9 @@ void RaftServer::Run() {
     ServerBuilder builder;
     builder.AddListeningPort(host_list[server_id], grpc::InsecureServerCredentials());
 
-    builder.RegisterService(static_cast<raft_group::Raft::Service*>(this));
+    builder.RegisterService(static_cast<keyvaluestore::Raft::Service*>(this));
 
-    builder.RegisterService(static_cast<raft_group::KeyValueStore::Service*>(this));
+    builder.RegisterService(static_cast<keyvaluestore::KeyValueStore::Service*>(this));
 
     server = builder.BuildAndStart();
     std::cout << "Raft server listening on " << host_list[server_id] << std::endl;

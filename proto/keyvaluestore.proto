@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package raft_group;
+package keyvaluestore;
 
 service Raft {
     rpc RequestVote(RequestVoteRequest) returns (RequestVoteResponse);
@@ -14,24 +14,6 @@ service KeyValueStore {
     rpc Put(PutRequest) returns (PutResponse);
     rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
 }
-
-//message ClientRequest {
-//    oneof request {
-//        InitRequest init_request = 1;
-//        GetRequest get_request = 2;
-//        PutRequest put_request = 3;
-//        ShutdownRequest shutdown_request = 4;
-//    }
-//}
-
-//message ServerResponse {
-//    oneof response {
-//        InitResponse init_response = 1;
-//        GetResponse get_response = 2;
-//        PutResponse put_response = 3;
-//        ShutdownResponse shutdown_response = 4;
-//    }
-//}
 
 message InitRequest {
     string server_name = 1;

@@ -21,23 +21,23 @@
 using grpc::Status;
 using grpc::Server;
 using grpc::ServerContext;
-using raft_group::Raft;
-using raft_group::LogEntry;
-using raft_group::AppendEntriesRequest;
-using raft_group::AppendEntriesResponse;
-using raft_group::RequestVoteRequest;
-using raft_group::RequestVoteResponse;
-using raft_group::HeartbeatRequest;
-using raft_group::HeartbeatResponse;
+using keyvaluestore::Raft;
+using keyvaluestore::LogEntry;
+using keyvaluestore::AppendEntriesRequest;
+using keyvaluestore::AppendEntriesResponse;
+using keyvaluestore::RequestVoteRequest;
+using keyvaluestore::RequestVoteResponse;
+using keyvaluestore::HeartbeatRequest;
+using keyvaluestore::HeartbeatResponse;
 
-using raft_group::InitRequest;
-using raft_group::InitResponse;
-using raft_group::GetRequest;
-using raft_group::GetResponse;
-using raft_group::PutRequest;
-using raft_group::PutResponse;
-using raft_group::ShutdownRequest;
-using raft_group::ShutdownResponse;
+using keyvaluestore::InitRequest;
+using keyvaluestore::InitResponse;
+using keyvaluestore::GetRequest;
+using keyvaluestore::GetResponse;
+using keyvaluestore::PutRequest;
+using keyvaluestore::PutResponse;
+using keyvaluestore::ShutdownRequest;
+using keyvaluestore::ShutdownResponse;
 
 enum class RaftState { 
     FOLLOWER,
@@ -45,7 +45,7 @@ enum class RaftState {
     LEADER 
 };
 
-class RaftServer final : public raft_group::Raft::Service, public raft_group::KeyValueStore::Service {
+class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluestore::KeyValueStore::Service {
     public:
         RaftServer(
             int server_id, 
