@@ -38,6 +38,8 @@ using keyvaluestore::PutRequest;
 using keyvaluestore::PutResponse;
 using keyvaluestore::ShutdownRequest;
 using keyvaluestore::ShutdownResponse;
+using keyvaluestore::DieRequest;
+using keyvaluestore::DieResponse;
 
 enum class RaftState { 
     FOLLOWER,
@@ -83,6 +85,12 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
             ServerContext* context, 
             const ShutdownRequest* request, 
             ShutdownResponse* response
+        ) override;
+
+        Status Die(
+            ServerContext* context, 
+            const DieRequest* request, 
+            DieResponse* response
         ) override;
 
         // Raft RPCs

@@ -21,6 +21,8 @@ using keyvaluestore::PutRequest;
 using keyvaluestore::PutResponse;
 using keyvaluestore::ShutdownRequest;
 using keyvaluestore::ShutdownResponse;
+using keyvaluestore::DieRequest;
+using keyvaluestore::DieResponse;
 
 // Global variables to hold the gRPC objects
 std::map<int, std::shared_ptr<grpc::Channel>> channels_; // Channel for each Raft node
@@ -29,7 +31,7 @@ std::map<int, std::unique_ptr<KeyValueStore::Stub>> stubs_; // Stub for each Raf
 std::map<int, std::string> leader_addresses_;  // Maps partition IDs to current leader addresses
 std::map<int, std::vector<std::string>> partition_instances_;  // Maps partition IDs to list of nodes
 
-const int num_partitions = 20;  // Number of partitions (based on server configuration)
+const int num_partitions = 4;  // Number of partitions (based on server configuration)
 const int nodes_per_partition = 5;  // Number of nodes per partition
 
 std::vector<std::string> service_instances_;  // List of service instances (host:port)
@@ -244,4 +246,54 @@ int kv739_put(const std::string &key, const std::string &value, std::string &old
 
     std::cerr << "Error: Put operation failed for key: '" << key << "'." << std::endl;
     return -1;
+}
+
+int kv739_die(const std::string &server_name, int clean) {
+    // Find the server based on the server name (which is the server address)
+    int server_id = -1;
+    for (int i = 0; i < service_instances_.size(); i++) {
+        if (service_instances_[i] == server_name) {
+            server_id = i;
+            break;
+        }
+    }
+
+    if (server_id == -1) {
+        std::cerr << "Error: Could not find the server in service instances." << std::endl;
+        return -1;
+    }
+
+    // Get the stub for the server
+    auto* server_stub = stubs_[server_id].get();  // Use .get() to get the raw pointer
+
+    // Prepare the Die request
+    ClientContext context;
+    DieRequest die_request;
+    die_request.set_server_name(server_name);  // Server name is the same as the server address
+    die_request.set_clean(clean == 1);  // Set clean flag: true for clean shutdown, false for abrupt exit
+
+    DieResponse die_response;
+
+    // Send the Die request to the server
+    Status status = server_stub->Die(&context, die_request, &die_response);
+
+    // Check if the gRPC call was successful
+    if (!status.ok()) {
+        std::cerr << "gRPC Die failed: " << status.error_message() << std::endl;
+        return -1;
+    }
+
+    // Check if the server successfully initiated termination
+    if (die_response.success()) {
+        std::cout << "Server '" << server_name << "' successfully initiated termination." << std::endl;
+
+        // Remove the stub and channel associated with this server since it's terminated
+        stubs_.erase(server_id);  // Remove the stub for the terminated server
+        channels_.erase(server_id);  // Remove the channel for the terminated server
+        
+        return 0;
+    } else {
+        std::cerr << "Error: Server failed to initiate termination." << std::endl;
+        return -1;
+    }
 }

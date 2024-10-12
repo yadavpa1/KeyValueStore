@@ -12,4 +12,5 @@ int kv739_get(const std::string &key, std::string &value);
 
 int kv739_put(const std::string &key, const std::string &value, std::string &old_value);
 
+int kv739_die(const std::string &server_name, int clean);
 #endif

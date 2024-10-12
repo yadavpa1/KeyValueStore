@@ -13,6 +13,7 @@ service KeyValueStore {
     rpc Get(GetRequest) returns (GetResponse);
     rpc Put(PutRequest) returns (PutResponse);
     rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
+    rpc Die(DieRequest) returns (DieResponse);
 }
 
 message InitRequest {
@@ -50,6 +51,16 @@ message ShutdownRequest {}
 message ShutdownResponse {
     bool success = 1;
 }
+
+message DieRequest {
+    string server_name = 1;  // The server name in "host:port" format
+    bool clean = 2;          // 1 for clean shutdown, 0 for immediate exit
+}
+
+message DieResponse {
+    bool success = 1;        // True if the server successfully initiated termination
+}
+
 
 message RequestVoteRequest {
     int64 term = 1;                   // The candidate's current term

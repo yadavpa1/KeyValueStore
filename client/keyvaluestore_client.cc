@@ -22,6 +22,7 @@ void print_welcome()
     std::cout << "  \033[1;32mget <key>\033[0m              - Retrieve value by key (eg. get 1 )\n";
     std::cout << "  \033[1;32mput\033[0m                    - Store a key-value pair (you will be prompted for input)\n";
     std::cout << "  \033[1;32mshutdown\033[0m               - Shut down the server\n";
+    std::cout << "  \033[1;32mdie <server_name> <clean>\033[0m - Terminate a server (1 for clean shutdown, 0 for abrupt)\n";
     std::cout << "  \033[1;32mquit\033[0m                   - Exit the client\n";
 }
 
@@ -102,6 +103,26 @@ int main(int argc, char **argv)
             if (kv739_shutdown() != 0)
             {
                 std::cerr << "Failed to shut down the server." << std::endl;
+            }
+        }
+        else if (cmd == "die")
+        {
+            // Handle the "die" command to terminate a server
+            std::string server_name;
+            int clean;
+
+            // Extract the server_name and clean flag from the command
+            iss >> server_name >> clean;
+
+            if (server_name.empty() || (clean != 0 && clean != 1))
+            {
+                std::cerr << "Usage: die <server_name> <clean (1 for clean shutdown, 0 for abrupt)>" << std::endl;
+                continue;
+            }
+
+            if (kv739_die(server_name, clean) != 0)
+            {
+                std::cerr << "Failed to terminate the server: " << server_name << std::endl;
             }
         }
         else if (cmd == "quit")
