@@ -51,25 +51,28 @@ bool ReadServiceInstancesFromFile(const std::string &file_name) {
     }
 
     std::string instance;
-    int current_partition = 0;
     int instance_count = 0;
     while (std::getline(file, instance)) {
         if (!instance.empty()) {
             service_instances_.push_back(instance);
-            partition_instances_[current_partition].push_back(instance);
             instance_count++;
-
-            // Move to the next partition after nodes_per_partition nodes
-            if (instance_count % nodes_per_partition == 0) {
-                current_partition++;
-            }
         }
     }
 
     file.close();
+    // Randomly shuffle the service instances with a fixed seed of 42
+    std::srand(42);
+    std::random_shuffle(service_instances_.begin(), service_instances_.end());
     if (service_instances_.size() < num_partitions * nodes_per_partition) {
         std::cerr << "Error: Service instance file contains fewer instances than expected." << std::endl;
         return false;
+    }
+    // Construct partition groups
+    int partition_id = 0;
+    for (int i = 0; i < service_instances_.size(); i += nodes_per_partition) {
+        std::vector<std::string> partition(service_instances_.begin() + i, service_instances_.begin() + i + nodes_per_partition);
+        partition_instances_[partition_id] = partition;
+        partition_id++;
     }
     return !service_instances_.empty();
 }

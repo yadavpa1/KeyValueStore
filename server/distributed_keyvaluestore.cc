@@ -13,6 +13,8 @@
 #include "raft_server.h"
 #include "rocksdb_wrapper.h"
 
+const int nodes_per_partition = 5;
+
 // Utility function to trim strings
 static inline std::string trim(const std::string &s) {
     auto start = s.begin();
@@ -46,11 +48,30 @@ std::vector<std::string> readConfigFile(const std::string &filepath) {
         }
     }
 
+    // Close the file
+    config_file.close();
+
     if (host_list.empty()) {
         std::cerr << "Error: No hosts found in the config file." << std::endl;
     }
-
+    // Randomly shuffle the host list with a fixed seed of 42
+    std::srand(42);
+    std::random_shuffle(host_list.begin(), host_list.end());
     return host_list;
+}
+
+// Construct groups of 5 hosts each
+std::vector<std::vector<std::string>> constructGroups(const std::vector<std::string> &host_list) {
+    int num_groups = host_list.size() / nodes_per_partition;
+    std::vector<std::vector<std::string>> groups(num_groups);
+    
+    int partition_id = 0;
+    for (int i = 0; i < host_list.size(); i += nodes_per_partition) {
+        std::vector<std::string> partition(host_list.begin() + i, host_list.begin() + i + nodes_per_partition);
+        groups[partition_id] = partition;
+        partition_id++;
+    }
+    return groups;
 }
 
 int main(int argc, char** argv) {
@@ -82,17 +103,14 @@ int main(int argc, char** argv) {
     int group_size = 5;
     int num_groups = host_list.size() / group_size;
 
+    // Construct groups of 5 hosts each
+    std::vector<std::vector<std::string>> groups = constructGroups(host_list);
+
     for (int group_index = 0; group_index < num_groups; group_index++) {
-        std::vector<std::string> raft_group;
-
-        // Create the group of 5 hosts for Raft
-        int group_start = group_index * group_size;
-        int group_end = std::min(group_start + group_size, static_cast<int>(host_list.size()));
-
-        raft_group.insert(raft_group.end(), host_list.begin() + group_start, host_list.begin() + group_end);
+        std::vector<std::string> raft_group = groups[group_index];
 
         // Fork processes for each server in the group
-        for (int local_server_id = 0; local_server_id < group_size; local_server_id++) {
+        for (int local_server_id = 0; local_server_id < raft_group.size(); local_server_id++) {
             pid_t pid = fork();
 
             if (pid == 0) {
