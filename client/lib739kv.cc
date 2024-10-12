@@ -248,11 +248,28 @@ int kv739_put(const std::string &key, const std::string &value, std::string &old
     return -1;
 }
 
+// Function to trim leading and trailing whitespace in place
+void trim(std::string &str) {
+    // Remove leading whitespace
+    str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }));
+
+    // Remove trailing whitespace
+    str.erase(std::find_if(str.rbegin(), str.rend(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }).base(), str.end());
+}
+
+
 int kv739_die(const std::string &server_name, int clean) {
+    std::string server_addr = server_name;
+    trim(server_addr);
     // Find the server based on the server name (which is the server address)
     int server_id = -1;
     for (int i = 0; i < service_instances_.size(); i++) {
-        if (service_instances_[i] == server_name) {
+        trim(service_instances_[i]);
+        if (service_instances_[i] == server_addr) {
             server_id = i;
             break;
         }
@@ -264,13 +281,13 @@ int kv739_die(const std::string &server_name, int clean) {
     }
 
     // Create a new gRPC channel and stub for the specific server
-    auto channel = grpc::CreateChannel(server_name, grpc::InsecureChannelCredentials());
+    auto channel = grpc::CreateChannel(server_addr, grpc::InsecureChannelCredentials());
     auto server_stub = KeyValueStore::NewStub(channel);  // Create a stub specifically for the server
 
     // Prepare the Die request
     ClientContext context;
     DieRequest die_request;
-    die_request.set_server_name(server_name);  // Server name is the same as the server address
+    die_request.set_server_name(server_addr);  // Server name is the same as the server address
     die_request.set_clean(clean == 1);  // Set clean flag: true for clean shutdown, false for abrupt exit
 
     DieResponse die_response;
@@ -286,7 +303,7 @@ int kv739_die(const std::string &server_name, int clean) {
 
     // Check if the server successfully initiated termination
     if (die_response.success()) {
-        std::cout << "Server '" << server_name << "' successfully initiated termination." << std::endl;
+        std::cout << "Server '" << server_addr << "' successfully initiated termination." << std::endl;
         return 0;
     } else {
         std::cerr << "Error: Server failed to initiate termination." << std::endl;
