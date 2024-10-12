@@ -103,19 +103,21 @@ class RaftServer final : public raft_group::Raft::Service, public raft_group::Ke
             const HeartbeatRequest* request,
             HeartbeatResponse* response
         ) override;
-
-    private:
-
         // Raft operations
         void StartElection();
-        void MonitorElectionTimeout();
         void BecomeLeader();
         void BecomeFollower(int leader_id);
         void ReplicateLogEntries();
         void InvokeRequestVote(int peer_id, std::atomic<int>* votes_gained);
         void InvokeAppendEntries(int peer_id);
         void SendHeartbeat();
+
+        void HandleAlarm();
+        void SetElectionAlarm(int timeout_ms);
         void ResetElectionTimeout();
+
+    private:
+
 
         int server_id;
         std::mutex state_mutex;
@@ -145,7 +147,6 @@ class RaftServer final : public raft_group::Raft::Service, public raft_group::Ke
 
         // Election timeout and heartbeat
         int election_timeout;
-        std::chrono::time_point<std::chrono::steady_clock> last_heartbeat_received;
         static const int min_election_timeout;
         static const int max_election_timeout;
         static const int heartbeat_interval;

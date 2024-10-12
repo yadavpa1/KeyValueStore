@@ -4,6 +4,9 @@
 #include <atomic>
 #include <grpcpp/grpcpp.h>
 #include <chrono>
+#include <csignal>
+#include <sys/time.h>
+#include <cerrno>
 
 using grpc::Status;
 using grpc::ServerBuilder;
@@ -12,6 +15,14 @@ using grpc::ServerContext;
 const int RaftServer::min_election_timeout = 800;
 const int RaftServer::max_election_timeout = 1600;
 const int RaftServer::heartbeat_interval = 50;
+
+RaftServer* alarm_handler_server;
+
+void SignalHandler(int signum) {
+    if (alarm_handler_server) {
+        alarm_handler_server->HandleAlarm();
+    }
+}
 
 RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list, const std::string &db_path, size_t cache_size)
     : server_id(server_id),
@@ -22,7 +33,6 @@ RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list,
       commit_index(0),
       last_applied(0),
       current_leader(-1),
-      last_heartbeat_received(std::chrono::steady_clock::now()),
       db_(db_path, cache_size)
 {
     election_timeout = min_election_timeout + (rand() % (max_election_timeout - min_election_timeout));
@@ -30,6 +40,9 @@ RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list,
 }
 
 void RaftServer::Run() {
+    signal(SIGALRM, &SignalHandler);
+    alarm_handler_server = this;
+
     ServerBuilder builder;
     builder.AddListeningPort(host_list[server_id], grpc::InsecureServerCredentials());
 
@@ -49,12 +62,11 @@ void RaftServer::Run() {
     }
 
     ResetElectionTimeout();
-
-    std::thread(&RaftServer::MonitorElectionTimeout, this).detach(); 
+ 
     if(server_id==0){
         std::thread(&RaftServer::StartElection, this).detach();
     }
-
+    SetElectionAlarm(election_timeout);
     server->Wait();
 }
 
@@ -79,10 +91,12 @@ Status RaftServer::AppendEntries(
     }
 
     // Step 2: Update the current term if the request has a higher term
-    if (request->term() > current_term) {
+    if (request->term() >= current_term) {
         current_term = request->term();
         BecomeFollower(request->leader_id());
     }
+
+    SetElectionAlarm(election_timeout);
 
     // Step 3: Check if the previous log index is out of bounds or the log is empty
     if (raft_log.empty()) {
@@ -142,6 +156,7 @@ Status RaftServer::RequestVote(
         BecomeFollower(-1);
     }
 
+    SetElectionAlarm(election_timeout);
     bool log_ok = false;
     if (raft_log.empty()) {
         log_ok = true;
@@ -192,29 +207,15 @@ void RaftServer::BecomeFollower(int leader_id) {
     voted_for = -1;
 }
 
-void RaftServer::MonitorElectionTimeout() {
-    while (true) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));  // Check every 100 ms
-
-        std::lock_guard<std::mutex> lock(state_mutex);
-
-        auto now = std::chrono::steady_clock::now();
-        auto time_since_last_heartbeat = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_heartbeat_received).count();
-
-        if (state == RaftState::FOLLOWER && time_since_last_heartbeat >= election_timeout) {
-            std::cout << "Election timeout reached, starting election..." << std::endl;
-            StartElection();
-        }
-    }
-}
-
-
 void RaftServer::StartElection() {
     state = RaftState::CANDIDATE;
     current_term++;
     voted_for = server_id;
 
     std::atomic<int> votes_gained(1);
+
+    ResetElectionTimeout();
+    SetElectionAlarm(election_timeout);
 
     for (int i = 0; i < host_list.size(); ++i) {
         if (i != server_id) {
@@ -224,7 +225,7 @@ void RaftServer::StartElection() {
 
     // Wait for majority of votes
     while (votes_gained <= host_list.size() / 2) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(40));
     }
 
     if (votes_gained > host_list.size() / 2) {
@@ -241,7 +242,7 @@ void RaftServer::BecomeLeader() {
     match_index.assign(host_list.size(), -1);
 
     std::cout << "Server " << host_list[server_id] << " became the leader" << std::endl;
-
+    SetElectionAlarm(heartbeat_interval);
     SendHeartbeat();
 }
 
@@ -257,6 +258,8 @@ void RaftServer::SendHeartbeat() {
 }
 
 void RaftServer::ReplicateLogEntries() {
+    SetElectionAlarm(election_timeout);
+
     for (int i = 0; i < host_list.size(); ++i) {
         if (i != server_id) {
             std::thread(&RaftServer::InvokeAppendEntries, this, i).detach();
@@ -331,7 +334,29 @@ void RaftServer::InvokeRequestVote(int peer_id, std::atomic<int>* votes_gained) 
 
 
 void RaftServer::ResetElectionTimeout() {
-    last_heartbeat_received = std::chrono::steady_clock::now();
+    election_timeout = min_election_timeout + (rand() % (max_election_timeout - min_election_timeout));
+}
+
+void RaftServer::SetElectionAlarm(int timeout_ms) {
+    struct itimerval timer;
+
+    timer.it_value.tv_sec = timeout_ms / 1000;
+    timer.it_value.tv_usec = (timeout_ms % 1000) * 1000;
+
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec = 0;
+
+    if (setitimer(ITIMER_REAL, &timer, nullptr) == -1) {
+        perror("Error setting timer");
+    }
+}
+
+void RaftServer::HandleAlarm() {
+    if (state == RaftState::LEADER) {
+        ReplicateLogEntries();
+    } else {
+        StartElection();
+    }
 }
 
 Status RaftServer::Init(
