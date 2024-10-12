@@ -30,8 +30,8 @@ RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list,
       state(RaftState::FOLLOWER),
       current_term(0),
       voted_for(-1),
-      commit_index(0),
-      last_applied(0),
+      commit_index(-1),
+      last_applied(-1),
       current_leader(-1),
       db_(db_path, cache_size)
 {
@@ -125,6 +125,8 @@ Status RaftServer::AppendEntries(
         while (last_applied < commit_index) {
             last_applied++;
             std::string old_value;
+            // Apply the log entry to the state machine
+            std::cout << "Applying log entry: " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
             db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
         }
     }
@@ -433,6 +435,7 @@ Status RaftServer::Put(
     entry.set_value(request->value());
 
     raft_log.push_back(entry);
+    commit_index = raft_log.size() - 1;
     ReplicateLogEntries();
 
     std::string old_value;
