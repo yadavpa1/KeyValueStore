@@ -184,8 +184,8 @@ Status RaftServer::AppendEntries(
     }
 
     // Persist current term and log size in the same batch
-    batch.Put("current_term_{current_term}", std::to_string(current_term));
-    batch.Put("log_size_{current_term}", std::to_string(raft_log.size()));
+    batch.Put("current_term", std::to_string(current_term));
+    batch.Put("log_size", std::to_string(raft_log.size()));
 
     // Write the batch to RocksDB
     rocksdb::Status status = raft_log_db_.Write(rocksdb::WriteOptions(), &batch);
@@ -553,23 +553,19 @@ Status RaftServer::Put(
     // If yes, then we can simply apply our commit and increment last applied because the majority of follower have committed their part of the log
     std::string old_value;
     int result = -1;
-    while(true){
-        int count = 0;
-        for(int i = 0; i < host_list.size(); i++){
-            if(match_index[i] >= commit_index){
-                count++;
-            }
+    int count = 0;
+    for(int i = 0; i < host_list.size(); i++){
+        if(match_index[i] >= commit_index){
+            count++;
         }
+    }
 
-        std::cout << "count for put is " << count << std::endl;
-        if(count > host_list.size() / 2){
-            commit_index++;
-            while(last_applied < commit_index){
-                last_applied++;
-                result = db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
-            }
-        } else {
-            break;
+    std::cout << "count for put is " << count << std::endl;
+    if(count > host_list.size() / 2){
+        commit_index++;
+        while(last_applied < commit_index){
+            last_applied++;
+            result = db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
         }
     }
 
