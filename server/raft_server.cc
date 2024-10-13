@@ -24,7 +24,18 @@ void SignalHandler(int signum) {
     }
 }
 
-RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list, const std::string &db_path, size_t cache_size)
+// Utility functions for serialization and deserialization of log entries
+std::string serializeLogEntry(const LogEntry& entry) {
+    return entry.SerializeAsString();
+}
+
+LogEntry deserializeLogEntry(const std::string& data) {
+    LogEntry entry;
+    entry.ParseFromString(data);
+    return entry;
+}
+
+RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list, const std::string &db_path, const std::string &raft_log_db_path, size_t cache_size)
     : server_id(server_id),
       host_list(host_list),
       state(RaftState::FOLLOWER),
@@ -33,10 +44,63 @@ RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list,
       commit_index(-1),
       last_applied(-1),
       current_leader(-1),
-      db_(db_path, cache_size)
+      db_(db_path, cache_size),
+      raft_log_db_(raft_log_db_path, cache_size)
 {
+    // Load persisted Raft state from the Raft log database
+    LoadRaftState();
+    
+    // Set a random election timeout between min and max election timeouts
     election_timeout = min_election_timeout + (rand() % (max_election_timeout - min_election_timeout));
 
+}
+
+void RaftServer::LoadRaftState() {
+    std::string term_str, voted_for_str, log_size_str;
+
+    // Load current term
+    if (raft_log_db_.Get("current_term", term_str)) {
+        current_term = std::stoi(term_str);
+    }
+
+    // Load voted_for
+    if (raft_log_db_.Get("voted_for", voted_for_str)) {
+        voted_for = std::stoi(voted_for_str);
+    }
+
+    // Load Raft log entries
+    if (raft_log_db_.Get("log_size", log_size_str)) {
+        int log_size = std::stoi(log_size_str);
+        for (int i = 0; i < log_size; i++) {
+            std::string log_entry_str;
+            if (raft_log_db_.Get("log_" + std::to_string(i), log_entry_str)) {
+                raft_log.push_back(deserializeLogEntry(log_entry_str));
+            }
+        }
+    }
+
+    std::cout << "Loaded Raft state: term=" << current_term << ", voted_for=" << voted_for 
+              << ", log_size=" << raft_log.size() << std::endl;
+}
+
+void RaftServer::PersistRaftState() {
+    rocksdb::WriteBatch batch;
+
+    // Persist current term and voted_for in the same batch
+    batch.Put("current_term", std::to_string(current_term));
+    batch.Put("voted_for", std::to_string(voted_for));
+
+    // Persist log entries
+    batch.Put("log_size", std::to_string(raft_log.size()));
+    for (size_t i = 0; i < raft_log.size(); ++i) {
+        batch.Put("log_" + std::to_string(i), serializeLogEntry(raft_log[i]));
+    }
+
+    // Write all changes atomically
+    rocksdb::Status status = raft_log_db_.Write(rocksdb::WriteOptions(), &batch);
+    if (!status.ok()) {
+        std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
+    }
 }
 
 void RaftServer::Run() {
@@ -46,13 +110,14 @@ void RaftServer::Run() {
     ServerBuilder builder;
     builder.AddListeningPort(host_list[server_id], grpc::InsecureServerCredentials());
 
+    // Register Raft and KeyValueStore services
     builder.RegisterService(static_cast<keyvaluestore::Raft::Service*>(this));
-
     builder.RegisterService(static_cast<keyvaluestore::KeyValueStore::Service*>(this));
 
     server = builder.BuildAndStart();
     std::cout << "Raft server listening on " << host_list[server_id] << std::endl;
 
+     // Initialize gRPC stubs for peer nodes
     for (int i = 0; i < host_list.size(); i++) {
         if (i != server_id) {
             peer_stubs.push_back(Raft::NewStub(grpc::CreateChannel(host_list[i], grpc::InsecureChannelCredentials())));
@@ -63,7 +128,7 @@ void RaftServer::Run() {
 
     ResetElectionTimeout();
  
-    if(server_id==0){
+    if(server_id == 0){
         std::thread(&RaftServer::StartElection, this).detach();
     }
     SetElectionAlarm(election_timeout);
@@ -112,12 +177,27 @@ Status RaftServer::AppendEntries(
         }
     }
 
-    // Step 4: Append new entries from the leader to the log
+    // Use WriteBatch to append new entries and update Raft state atomically
+    rocksdb::WriteBatch batch;
+
+    // Step 4: Append new log entries from the leader
     for (const auto& entry : request->entries()) {
         raft_log.push_back(entry);
+        batch.Put("log_" + std::to_string(raft_log.size() - 1), serializeLogEntry(entry));
     }
 
-    // Step 5: Update the commit index if necessary
+    // Persist current term and log size in the same batch
+    batch.Put("current_term", std::to_string(current_term));
+    batch.Put("log_size", std::to_string(raft_log.size()));
+
+    // Write the batch to RocksDB
+    rocksdb::Status status = raft_log_db_.Write(rocksdb::WriteOptions(), &batch);
+    if (!status.ok()) {
+        std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
+        return Status::CANCELLED;
+    }
+
+    // Step 5: Update commit index and apply to the state machine
     if (request->leader_commit() > commit_index) {
         commit_index = std::min(request->leader_commit(), static_cast<int64_t>(raft_log.size() - 1));
 
@@ -149,16 +229,24 @@ Status RaftServer::RequestVote(
     response->set_term(current_term);
     response->set_vote_granted(false);
 
+    // If the term in the request is older, reject the vote request
     if (request->term() < current_term) {
         return Status::OK;
     }
 
+    // If the term is newer, update the current term and become a follower
     if (request->term() > current_term) {
         current_term = request->term();
         BecomeFollower(-1);
+
+        // Persist the updated term and follower state
+        PersistRaftState();
     }
 
+    // Reset the election timeout since we're considering a vote
     SetElectionAlarm(election_timeout);
+    
+    // Check if the candidate's log is at least as up-to-date as ours
     bool log_ok = false;
     if (raft_log.empty()) {
         log_ok = true;
@@ -170,9 +258,13 @@ Status RaftServer::RequestVote(
         }
     }
 
+    // Grant vote if we haven't already voted and the candidate's log is up-to-date
     if ((voted_for == -1 || voted_for == request->candidate_id()) && log_ok) {
         voted_for = request->candidate_id();
         response->set_vote_granted(true);
+
+        // Persist the fact that we voted for this candidate
+        PersistRaftState();
     }
 
     return Status::OK;
@@ -187,16 +279,21 @@ Status RaftServer::Heartbeat(
     response->set_term(current_term);
     response->set_success(false);
 
+    // If the heartbeat's term is less than ours, reject it
     if (request->term() < current_term) {
         return Status::OK;
     }
 
+    // If the heartbeat's term is higher, update our term and become a follower
     if (request->term() > current_term) {
         current_term = request->term();
         BecomeFollower(request->leader_id());
+
+        // Persist the updated term and follower state
+        PersistRaftState();
     }
 
-    // Reset the election timeout when heartbeats are received
+    // Reset the election timeout when we receive a valid heartbeat
     ResetElectionTimeout();
     response->set_success(true);
 
@@ -207,6 +304,9 @@ void RaftServer::BecomeFollower(int leader_id) {
     current_leader = leader_id;
     state = RaftState::FOLLOWER;
     voted_for = -1;
+
+    // Persist the new follower state and reset the voted_for field
+    PersistRaftState();
 }
 
 void RaftServer::StartElection() {
@@ -216,16 +316,20 @@ void RaftServer::StartElection() {
 
     std::atomic<int> votes_gained(1);
 
+    // Persist current term and voted_for
+    PersistRaftState();
+
     ResetElectionTimeout();
     SetElectionAlarm(election_timeout);
 
+    // Send RequestVote RPCs to all peers
     for (int i = 0; i < host_list.size(); ++i) {
         if (i != server_id) {
             std::thread(&RaftServer::InvokeRequestVote, this, i, &votes_gained).detach();
         }
     }
 
-    // Wait for majority of votes
+    // Wait for a majority of votes
     while (votes_gained <= host_list.size() / 2) {
         std::this_thread::sleep_for(std::chrono::milliseconds(40));
     }
@@ -366,9 +470,9 @@ Status RaftServer::Init(
     const InitRequest* request,
     InitResponse* response
 ){
-    if(state!=RaftState::LEADER){
+    if(state != RaftState::LEADER){
         response->set_success(false);
-        if(current_leader!=-1){
+        if(current_leader != -1){
             response->set_leader_server(host_list[current_leader]);
         } else {
             response->set_leader_server("");
@@ -377,7 +481,7 @@ Status RaftServer::Init(
     }
 
     response->set_success(true);
-    if(current_leader!=-1){
+    if(current_leader != -1){
         response->set_leader_server(host_list[current_leader]);
     } else {
         response->set_leader_server("");
@@ -390,10 +494,10 @@ Status RaftServer::Get(
     const GetRequest* request,
     GetResponse* response
 ) {
-    if(state!=RaftState::LEADER){
+    if(state != RaftState::LEADER){
         response->set_key_found(false);
         response->set_value("");
-        if(current_leader!=-1){
+        if(current_leader != -1){
             response->set_leader_server(host_list[current_leader]);
         } else {
             response->set_leader_server("");
@@ -410,7 +514,7 @@ Status RaftServer::Get(
         std::cout << "Key not found: " << request->key() << std::endl;
         response->set_key_found(false);
     }
-    if(current_leader!=-1){
+    if(current_leader != -1){
         response->set_leader_server(host_list[current_leader]);
     } else {
         response->set_leader_server("");
@@ -434,9 +538,13 @@ Status RaftServer::Put(
     entry.set_key(request->key());
     entry.set_value(request->value());
 
+    // Add to log
     raft_log.push_back(entry);
     commit_index = raft_log.size() - 1;
     ReplicateLogEntries();
+
+    // Persist the log and Raft state
+    PersistRaftState();
 
     std::string old_value;
     int result = db_.Put(request->key(), request->value(), old_value);
@@ -447,7 +555,7 @@ Status RaftServer::Put(
     } else {
         response->set_key_found(false);
     }
-    if(current_leader!=-1){
+    if(current_leader != -1){
         response->set_leader_server(host_list[current_leader]);
     } else {
         response->set_leader_server("");
@@ -460,7 +568,7 @@ Status RaftServer::Shutdown(
     const ShutdownRequest* request, 
     ShutdownResponse* response
 ) {
-    if(state!=RaftState::LEADER){
+    if(state != RaftState::LEADER){
         response->set_success(false);
         return Status::OK;
     }

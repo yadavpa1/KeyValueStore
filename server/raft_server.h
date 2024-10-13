@@ -53,6 +53,7 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
             int server_id, 
             const std::vector<std::string>& host_list, 
             const std::string &db_path,
+            const std::string &raft_log_db_path,
             size_t cache_size    
         );
         
@@ -124,6 +125,9 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
         void SetElectionAlarm(int timeout_ms);
         void ResetElectionTimeout();
 
+        void LoadRaftState();
+        void PersistRaftState();
+
     private:
 
 
@@ -131,7 +135,7 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
         std::mutex state_mutex;
         RaftState state;
 
-        // Persistent state-make this persistent!
+        // Persistent state
         int current_term;
         int voted_for;
         std::vector<LogEntry> raft_log;
@@ -151,7 +155,8 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
         std::unique_ptr<Server> server;
         const std::vector<std::string> host_list;
 
-        RocksDBWrapper db_;
+        RocksDBWrapper db_;          // For key-value store operations
+        RocksDBWrapper raft_log_db_; // For Raft log and state persistence
 
         // Election timeout and heartbeat
         int election_timeout;

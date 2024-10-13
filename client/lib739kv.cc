@@ -102,6 +102,7 @@ Status RetryRequest(int partition_id, const RequestType& request, ResponseType* 
                 std::cerr << "Redirected to new leader at " << current_leader << " for partition " << partition_id << std::endl;
                 continue;  // Retry with the new leader
             }
+            std::cerr << "Request succeeded for partition " << partition_id << " with leader " << current_leader << std::endl;
             return status;  // Request succeeded
         } else {
             std::cerr << "Failed to connect to " << current_leader << " for partition " << partition_id << std::endl;

@@ -94,6 +94,10 @@ int RocksDBWrapper::Put(const std::string &key, const std::string &value, std::s
     return key_found ? 0 : 1;
 }
 
+rocksdb::Status RocksDBWrapper::Write(const rocksdb::WriteOptions &options, rocksdb::WriteBatch *batch) {
+    return db_->Write(options, batch);  // Perform the batch write
+}
+
 const rocksdb::Snapshot *RocksDBWrapper::GetSnapshot() const
 {
     return db_->GetSnapshot();
