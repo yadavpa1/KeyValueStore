@@ -184,8 +184,8 @@ Status RaftServer::AppendEntries(
     }
 
     // Persist current term and log size in the same batch
-    batch.Put("current_term", std::to_string(current_term));
-    batch.Put("log_size", std::to_string(raft_log.size()));
+    batch.Put("current_term_{current_term}", std::to_string(current_term));
+    batch.Put("log_size_{current_term}", std::to_string(raft_log.size()));
 
     // Write the batch to RocksDB
     rocksdb::Status status = raft_log_db_.Write(rocksdb::WriteOptions(), &batch);
@@ -372,6 +372,7 @@ void RaftServer::ReplicateLogEntries() {
 
 void RaftServer::InvokeAppendEntries(int peer_id) {
     grpc::ClientContext context;
+    context.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(heartbeat_interval));
     AppendEntriesRequest request;
     AppendEntriesResponse response;
 
@@ -398,7 +399,10 @@ void RaftServer::InvokeAppendEntries(int peer_id) {
     request.set_leader_commit(commit_index);
 
     // Send the AppendEntries RPC to the peer
-    peer_stubs[peer_id]->AppendEntries(&context, request, &response);
+    auto status = peer_stubs[peer_id]->AppendEntries(&context, request, &response);
+    if(!status.ok()){
+        return;
+    }
 
     // Update the next_index and match_index based on the response
     if (response.success()) {
@@ -537,14 +541,37 @@ Status RaftServer::Put(
 
     // Add to log
     raft_log.push_back(entry);
-    commit_index = raft_log.size() - 1;
+
+    // replicate goes to every follower and updates their state
+    // We also updated our understanding of the state of the followers
     ReplicateLogEntries();
 
     // Persist the log and Raft state
     PersistRaftState();
 
+    // We do a single check of whether in replicate log entries we were able to successfully update a majority of followers
+    // If yes, then we can simply apply our commit and increment last applied because the majority of follower have committed their part of the log
     std::string old_value;
-    int result = db_.Put(request->key(), request->value(), old_value);
+    int result = -1;
+    while(true){
+        int count = 0;
+        for(int i = 0; i < host_list.size(); i++){
+            if(match_index[i] >= commit_index){
+                count++;
+            }
+        }
+
+        std::cout << "count for put is " << count << std::endl;
+        if(count > host_list.size() / 2){
+            commit_index++;
+            while(last_applied < commit_index){
+                last_applied++;
+                result = db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
+            }
+        } else {
+            break;
+        }
+    }
 
     if (result == 0) {
         response->set_old_value(old_value);
