@@ -10,6 +10,7 @@
 #include <csignal>
 #include <unistd.h> // For `kill()`
 #include <chrono>
+#include <fstream>
 
 #include <sys/wait.h>
 
@@ -869,6 +870,93 @@ void run_latency_hk_read(int num_processes){
     return;
 }
 
+void run_throughput_key_value_sizes(){
+    std::vector<int> key_sizes = {1, 2, 4, 8, 16, 32, 64, 128};
+    std::vector<int> value_sizes = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048};
+
+    // initialize kv store
+    if(kv739_init(CONFIG_FILE)!=0){
+        std::cerr << "Failed to initialize kv store" << std::endl;
+        return;
+    }
+
+    // open file for writing throughput
+    std::ofstream throughput_file("throughput_results.txt", std::ios::app);
+    if(!throughput_file.is_open()){
+        std::cerr << "Failed to open file for writing throughput results" << std::endl;
+        return;
+    }
+
+    throughput_file << "Key Size, Value Size, Throughput" << std::endl;
+
+    std::string key = "a";
+    for(int key_size: key_sizes){
+        std::string value = "a";
+        std::string old_value;
+        for(int value_size: value_sizes){
+            // measure throughput
+            std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+            for(int i = 0;i<TOTAL_CYCLES/100;++i){
+                if(kv739_put(key, value, old_value)==-1){
+                    std::cerr << "Failed to put key-value pair: " << key << " -> " << value << std::endl;
+                    return;
+                }
+            }
+            std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed_time = end_time - start_time;
+            double throughput = (double)TOTAL_CYCLES/(100*elapsed_time.count());
+            // append throughput in a file with key and value sizes
+            throughput_file << key_size << ", " << value_size << ", " << throughput << std::endl;
+
+            value += "a";
+        }
+        key += "a";
+    }
+    throughput_file.close();
+    return;
+}
+
+void run_latency_key_value_sizes(){
+    std::vector<int> key_sizes = {1, 2, 4, 8, 16, 32, 64, 128};
+    std::vector<int> value_sizes = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048};
+    if(kv739_init(CONFIG_FILE)!=0){
+        std::cerr << "Failed to initialize kv store" << std::endl;
+        return;
+    }
+
+    // open file for writing latency
+    std::ofstream latency_file("latency_results.txt", std::ios::app);
+    if(!latency_file.is_open()){
+        std::cerr << "Failed to open file for writing latency results" << std::endl;
+        return;
+    }
+
+    latency_file << "Key Size, Value Size, Latency" << std::endl;
+    std::string key = "a";
+    for(int key_size: key_sizes){
+        std::string value = "a";
+        std::string old_value;
+        for(int value_size: value_sizes){
+            // measure latency
+            std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+            for(int i = 0;i<TOTAL_CYCLES/100;++i){
+                if(kv739_put(key, value, old_value)==-1){
+                    std::cerr << "Failed to put key-value pair: " << key << " -> " << value << std::endl;
+                    return;
+                }
+            }
+            std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed_time = end_time - start_time;
+            double latency = elapsed_time.count();
+            // append latency in a file with key and value sizes
+            latency_file << key_size << ", " << value_size << ", " << (latency*100)/(double)TOTAL_CYCLES << std::endl;
+            value += "a";
+        }
+        key += "a";
+    }
+    return;
+}
+
 /*
 TESTS END HERE
 */
@@ -905,12 +993,14 @@ int main(int argc, char* argv[]){
 
         // run_throughput_norm_write(num_processes);
         // run_latency_norm_write(num_processes);
-        run_throughput_norm_read(num_processes);
+        // run_throughput_norm_read(num_processes);
         // run_latency_norm_read(num_processes);
         // run_throughput_hk_write(num_processes);
         // run_latency_hk_write(num_processes);
         // run_throughput_hk_read(num_processes);
         // run_latency_hk_read(num_processes);
+        run_throughput_key_value_sizes();
+        // run_latency_key_value_sizes();
 
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
