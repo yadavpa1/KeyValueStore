@@ -99,6 +99,7 @@ set(TEST_EXECUTABLES
   #performance
   #reliability
   performance_v2
+  availability
 )
 
 # Loop to add test executables
