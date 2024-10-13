@@ -23,6 +23,8 @@ public:
 
     rocksdb::Status Write(const rocksdb::WriteOptions &options, rocksdb::WriteBatch *batch);
 
+    bool LoadLogEntries(const std::string &prefix, std::vector<std::string> &entries) const;
+
     // Create a snapshot for isolation.
     const rocksdb::Snapshot *GetSnapshot() const;
 

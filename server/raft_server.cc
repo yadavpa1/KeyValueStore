@@ -69,13 +69,10 @@ void RaftServer::LoadRaftState() {
     }
 
     // Load Raft log entries
-    if (raft_log_db_.Get("log_size", log_size_str)) {
-        int log_size = std::stoi(log_size_str);
-        for (int i = 0; i < log_size; i++) {
-            std::string log_entry_str;
-            if (raft_log_db_.Get("log_" + std::to_string(i), log_entry_str)) {
-                raft_log.push_back(deserializeLogEntry(log_entry_str));
-            }
+    std::vector<std::string> log_entries;
+    if (raft_log_db_.LoadLogEntries("log_", log_entries)) {
+        for (const auto& entry_str : log_entries) {
+            raft_log.push_back(deserializeLogEntry(entry_str));
         }
     }
 
