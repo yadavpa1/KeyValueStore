@@ -6,6 +6,7 @@
 #include <rocksdb/utilities/transaction.h>
 #include <rocksdb/utilities/transaction_db.h>
 #include <rocksdb/table.h>
+#include <rocksdb/write_batch.h>
 
 class RocksDBWrapper
 {
@@ -19,6 +20,10 @@ public:
     bool Get(const std::string &key, std::string &value) const;
 
     int Put(const std::string &key, const std::string &value, std::string &old_value);
+
+    rocksdb::Status Write(const rocksdb::WriteOptions &options, rocksdb::WriteBatch *batch);
+
+    bool LoadLogEntries(const std::string &prefix, std::vector<std::string> &entries) const;
 
     // Create a snapshot for isolation.
     const rocksdb::Snapshot *GetSnapshot() const;

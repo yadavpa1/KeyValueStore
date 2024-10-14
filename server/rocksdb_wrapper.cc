@@ -94,6 +94,35 @@ int RocksDBWrapper::Put(const std::string &key, const std::string &value, std::s
     return key_found ? 0 : 1;
 }
 
+rocksdb::Status RocksDBWrapper::Write(const rocksdb::WriteOptions &options, rocksdb::WriteBatch *batch) {
+    return db_->Write(options, batch);  // Perform the batch write
+}
+
+bool RocksDBWrapper::LoadLogEntries(const std::string &prefix, std::vector<std::string> &entries) const
+{
+    if (!db_)
+    {
+        std::cerr << "Error: DB not initialized." << std::endl;
+        return false;
+    }
+
+    // Create an iterator to traverse log entries.
+    rocksdb::ReadOptions read_options;
+    std::unique_ptr<rocksdb::Iterator> it(db_->NewIterator(read_options));
+
+    // Seek to the first key that matches the prefix.
+    for (it->Seek(prefix); it->Valid() && it->key().starts_with(prefix); it->Next()) {
+        entries.push_back(it->value().ToString());
+    }
+
+    if (!it->status().ok()) {
+        std::cerr << "Error loading log entries: " << it->status().ToString() << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
 const rocksdb::Snapshot *RocksDBWrapper::GetSnapshot() const
 {
     return db_->GetSnapshot();

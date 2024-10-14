@@ -61,26 +61,30 @@ target_link_libraries(rocksdb_wrapper
 # Set compiler flags for position-independent code (PIC) for building shared libraries
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
-# Create shared library lib739kv.so from lib739kv.cc and lib739kv.h
+# Create shared library lib739kv.so from lib739kv.cc and #lib739kv.h
 add_library(739kv SHARED
-  client/lib739kv.cc)
+ client/lib739kv.cc)
 target_link_libraries(739kv
-  kvs_grpc_proto
-  absl::flags_parse
-  absl::log_initialize
-  absl::log_globals
-  -static-libstdc++ -static-libgcc)
+ kvs_grpc_proto
+ absl::flags_parse
+ absl::log_initialize
+ absl::log_globals
+ -static-libstdc++ -static-libgcc)
 
 # Targets keyvaluestore_client
 add_executable(keyvaluestore_client
-  client/keyvaluestore_client.cc)
+ client/keyvaluestore_client.cc)
 target_link_libraries(keyvaluestore_client
-  739kv)
+ 739kv)
 
 # Targets keyvaluestore_server
-add_executable(keyvaluestore_server
-  server/keyvaluestore_server.cc)
-target_link_libraries(keyvaluestore_server
+# add_executable(raft_server
+#   server/raft_server.cc)
+add_executable(distributed_keyvaluestore
+  server/distributed_keyvaluestore.cc  # New file where main() resides
+  server/raft_server.cc                # Raft server functionality
+)
+target_link_libraries(distributed_keyvaluestore
   kvs_grpc_proto
   rocksdb_wrapper
   absl::flags_parse
@@ -91,9 +95,12 @@ target_link_libraries(keyvaluestore_server
 # Targets Tests [correctenss, performance, reliability]
 # List of test executables
 set(TEST_EXECUTABLES
-  correctness
-  performance
-  reliability
+  #correctness
+  #performance
+  # reliability
+  reliability_v2
+  performance_v2
+  availability
 )
 
 # Loop to add test executables
