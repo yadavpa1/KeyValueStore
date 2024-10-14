@@ -7,6 +7,8 @@
 #include <csignal>
 #include <sys/time.h>
 #include <cerrno>
+#include <fstream>
+
 
 using grpc::Status;
 using grpc::ServerBuilder;
@@ -153,7 +155,7 @@ Status RaftServer::AppendEntries(
     }
 
     // Step 2: Update the current term if the request has a higher term
-    if (request->term() >= current_term) {
+    if (request->term() > current_term) {
         current_term = request->term();
         BecomeFollower(request->leader_id());
     }
@@ -174,7 +176,16 @@ Status RaftServer::AppendEntries(
         }
     }
 
+    // Step 4: Remove conflicting entries in the follower's log, if necessary
+
+    if (request->prev_log_index() != -1 && request->prev_log_index() < raft_log.size() - 1) {
+
+        raft_log.resize(request->prev_log_index() + 1);
+
+    }
+
     // Use WriteBatch to append new entries and update Raft state atomically
+    rocksdb::WriteOptions write_options; write_options.sync = true;
     rocksdb::WriteBatch batch;
 
     // Step 4: Append new log entries from the leader
@@ -188,7 +199,7 @@ Status RaftServer::AppendEntries(
     batch.Put("log_size", std::to_string(raft_log.size()));
 
     // Write the batch to RocksDB
-    rocksdb::Status status = raft_log_db_.Write(rocksdb::WriteOptions(), &batch);
+    rocksdb::Status status = raft_log_db_.Write(write_options, &batch);
     if (!status.ok()) {
         std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
         return Status::CANCELLED;
@@ -198,14 +209,24 @@ Status RaftServer::AppendEntries(
     if (request->leader_commit() > commit_index) {
         commit_index = std::min(request->leader_commit(), static_cast<int64_t>(raft_log.size() - 1));
 
+    // Open file with host_list[server_id] as the filename remove the : and replace with _
+        std::string filename = host_list[server_id];
+        std::replace(filename.begin(), filename.end(), ':', '_');
+        // Open file in append mode
+        std::ofstream file(filename, std::ios_base::app);
+
         // Apply the committed log entries to the state machine
         while (last_applied < commit_index) {
             last_applied++;
             std::string old_value;
             // Apply the log entry to the state machine
             std::cout << "Applying log entry: " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
+            file << std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) << " -> " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
             db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
         }
+        
+        // Close the file
+        file.close();
     }
 
     // Step 6: Reset the election timeout
@@ -309,6 +330,7 @@ void RaftServer::BecomeFollower(int leader_id) {
 void RaftServer::StartElection() {
     state = RaftState::CANDIDATE;
     current_term++;
+    int initial_term = current_term;
     voted_for = server_id;
 
     std::atomic<int> votes_gained(1);
@@ -327,8 +349,7 @@ void RaftServer::StartElection() {
     }
 
     // Wait for a majority of votes
-    while (votes_gained <= host_list.size() / 2) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(40));
+    while (votes_gained <= host_list.size() / 2 && state == RaftState::CANDIDATE && current_term == initial_term) {
     }
 
     if (votes_gained > host_list.size() / 2) {
@@ -345,8 +366,8 @@ void RaftServer::BecomeLeader() {
     match_index.assign(host_list.size(), -1);
 
     std::cout << "Server " << host_list[server_id] << " became the leader" << std::endl;
-    SetElectionAlarm(heartbeat_interval);
     SendHeartbeat();
+    SetElectionAlarm(heartbeat_interval);
 }
 
 void RaftServer::SendHeartbeat() {
@@ -470,7 +491,15 @@ Status RaftServer::Init(
     ServerContext* context,
     const InitRequest* request,
     InitResponse* response
-){
+){  
+
+    // print current leader
+    if(current_leader != -1){
+        std::cout << "Current leader at server side: " << host_list[current_leader] << std::endl;
+    } else {
+        std::cout << "Current leader: None" << std::endl;
+    }
+
     if(state != RaftState::LEADER){
         response->set_success(false);
         if(current_leader != -1){
@@ -504,10 +533,6 @@ Status RaftServer::Get(
             response->set_leader_server("");
         }
         return Status::OK;
-    }
-
-    while (last_applied < commit_index) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     std::string value;

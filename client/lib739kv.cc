@@ -35,7 +35,7 @@ const int num_partitions = 4;  // Number of partitions (based on server configur
 const int nodes_per_partition = 5;  // Number of nodes per partition
 
 std::vector<std::string> service_instances_;  // List of service instances (host:port)
-const int max_retries = 3;
+const int max_retries = 5;
 
 // Hash function to map keys to Raft partitions
 int HashKey(const std::string &key) {
@@ -88,9 +88,13 @@ Status RetryRequest(int partition_id, const RequestType& request, ResponseType* 
         ClientContext context;
         Status status = (stubs_[partition_id].get()->*rpc_func)(&context, request, response);
 
-        if (status.ok()) {
+        
+        if (status.ok() && !response->leader_server().empty()) {
+            // Print the enitre response object for debugging
+            std::cout << "Response: Client side leader: " << response->leader_server() << std::endl;
+            // std::cout << "Response: Success: " << response->success() << std::endl;
             // Check if we were redirected to a new leader
-            if (!response->leader_server().empty() && response->leader_server() != current_leader) {
+            if (response->leader_server() != current_leader) {
                 // Update the leader to the new one
                 current_leader = response->leader_server();
                 leader_addresses_[partition_id] = current_leader;
