@@ -506,6 +506,10 @@ Status RaftServer::Get(
         return Status::OK;
     }
 
+    while (last_applied < commit_index) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
     std::string value;
     bool key_found = db_.Get(request->key(), value);
     if (key_found) {
@@ -539,35 +543,52 @@ Status RaftServer::Put(
     entry.set_key(request->key());
     entry.set_value(request->value());
 
-    // Add to log
+    // 1. Append the new entry to the leader's own log
     raft_log.push_back(entry);
 
-    // replicate goes to every follower and updates their state
-    // We also updated our understanding of the state of the followers
+    // 2. Replicate the log entry to all followers
     ReplicateLogEntries();
 
-    // Persist the log and Raft state
-    PersistRaftState();
+    // 3. Wait until a majority of followers replicate the entry
+    // Track how many followers have replicated the entry
+    int majority_count = host_list.size() / 2 + 1;
+    int replicated_count = 1; // Leader has already replicated
+    const int poll_interval_ms = 50;  // Poll every 50 milliseconds
 
-    // We do a single check of whether in replicate log entries we were able to successfully update a majority of followers
-    // If yes, then we can simply apply our commit and increment last applied because the majority of follower have committed their part of the log
+    while (true) {
+        replicated_count = 1;
+
+        for (int i = 0; i < host_list.size(); i++) {
+            if (match_index[i] >= raft_log.size() - 1) {
+                replicated_count++;
+            }
+        }
+
+        // If a majority of followers have replicated, break the loop
+        if (replicated_count >= majority_count) {
+            break;
+        }
+
+        // Sleep for the polling interval before checking again
+        std::this_thread::sleep_for(std::chrono::milliseconds(poll_interval_ms));
+    }
+
     std::string old_value;
     int result = -1;
-    int count = 0;
-    for(int i = 0; i < host_list.size(); i++){
-        if(match_index[i] >= commit_index){
-            count++;
-        }
-    }
 
-    if(count > host_list.size() / 2){
-        commit_index++;
-        while(last_applied < commit_index){
-            last_applied++;
-            result = db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
-        }
-    }
+    // 4. If a majority of followers have replicated, commit the entry
+    commit_index = raft_log.size() - 1;
 
+    PersistRaftState();
+
+    // Apply the committed log entry to the state machine (key-value store)
+    while (last_applied < commit_index) {
+        last_applied++;
+        result = db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
+    }
+    last_applied = commit_index;
+
+    // 5. Prepare the response based on the result of applying the log
     if (result == 0) {
         response->set_old_value(old_value);
         response->set_key_found(true);
@@ -579,6 +600,7 @@ Status RaftServer::Put(
     } else {
         response->set_leader_server("");
     }
+
     return Status::OK;
 }
 
