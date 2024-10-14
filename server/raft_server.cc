@@ -554,6 +554,8 @@ Status RaftServer::Put(
     int majority_count = host_list.size() / 2 + 1;
     int replicated_count = 1; // Leader has already replicated
     const int poll_interval_ms = 50;  // Poll every 50 milliseconds
+    const int timeout_ms = 5000;      // Timeout after 5 seconds
+    auto start_time = std::chrono::steady_clock::now();
 
     while (true) {
         replicated_count = 1;
@@ -567,6 +569,14 @@ Status RaftServer::Put(
         // If a majority of followers have replicated, break the loop
         if (replicated_count >= majority_count) {
             break;
+        }
+
+        // Check if the polling has timed out
+        auto elapsed_time = std::chrono::steady_clock::now() - start_time;
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() > timeout_ms) {
+            std::cerr << "Put operation timed out while waiting for majority replication." << std::endl;
+            response->set_key_found(false);
+            return Status::CANCELLED;
         }
 
         // Sleep for the polling interval before checking again
