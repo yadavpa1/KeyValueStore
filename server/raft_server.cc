@@ -220,7 +220,7 @@ Status RaftServer::AppendEntries(
             last_applied++;
             std::string old_value;
             // Apply the log entry to the state machine
-            std::cout << "Applying log entry: " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
+            // std::cout << "Applying log entry: " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
             file << std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) << " -> " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
             db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
         }
@@ -581,10 +581,10 @@ Status RaftServer::Put(
     int majority_count = host_list.size() / 2 + 1;
     int replicated_count = 1; // Leader has already replicated
     const int poll_interval_ms = 50;  // Poll every 50 milliseconds
-    const int timeout_ms = 5000;      // Timeout after 5 seconds
-    auto start_time = std::chrono::steady_clock::now();
+    // const int timeout_ms = 5000;      // Timeout after 5 seconds
+    // auto start_time = std::chrono::steady_clock::now();
 
-    while (true) {
+    while (state == RaftState::LEADER) {
         replicated_count = 1;
 
         for (int i = 0; i < host_list.size(); i++) {
@@ -599,15 +599,21 @@ Status RaftServer::Put(
         }
 
         // Check if the polling has timed out
-        auto elapsed_time = std::chrono::steady_clock::now() - start_time;
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() > timeout_ms) {
-            std::cerr << "Put operation timed out while waiting for majority replication." << std::endl;
-            response->set_key_found(false);
-            return Status::CANCELLED;
-        }
+        // auto elapsed_time = std::chrono::steady_clock::now() - start_time;
+        // if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() > timeout_ms) {
+        //     std::cerr << "Put operation timed out while waiting for majority replication." << std::endl;
+        //     response->set_key_found(false);
+        //     return Status::CANCELLED;
+        // }
 
         // Sleep for the polling interval before checking again
         std::this_thread::sleep_for(std::chrono::milliseconds(poll_interval_ms));
+    }
+
+    if(state != RaftState::LEADER){
+        response->set_key_found(false);
+        response->set_leader_server(host_list[current_leader]);
+        return Status::OK;
     }
 
     std::string old_value;

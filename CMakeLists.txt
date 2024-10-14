@@ -97,7 +97,8 @@ target_link_libraries(distributed_keyvaluestore
 set(TEST_EXECUTABLES
   #correctness
   #performance
-  #reliability
+  # reliability
+  reliability_v2
   performance_v2
   availability
 )

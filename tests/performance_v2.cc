@@ -991,7 +991,7 @@ int main(int argc, char* argv[]){
             key_set.push_back("k"+std::to_string(i));
         }
 
-        // run_throughput_norm_write(num_processes);
+        run_throughput_norm_write(num_processes);
         // run_latency_norm_write(num_processes);
         // run_throughput_norm_read(num_processes);
         // run_latency_norm_read(num_processes);
@@ -999,7 +999,7 @@ int main(int argc, char* argv[]){
         // run_latency_hk_write(num_processes);
         // run_throughput_hk_read(num_processes);
         // run_latency_hk_read(num_processes);
-        run_throughput_key_value_sizes();
+        // run_throughput_key_value_sizes();
         // run_latency_key_value_sizes();
 
     } catch (const std::exception& e) {
