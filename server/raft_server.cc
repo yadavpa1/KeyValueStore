@@ -560,7 +560,6 @@ Status RaftServer::Put(
         }
     }
 
-    std::cout << "count for put is " << count << std::endl;
     if(count > host_list.size() / 2){
         commit_index++;
         while(last_applied < commit_index){
