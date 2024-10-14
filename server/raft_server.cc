@@ -58,7 +58,7 @@ RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list,
 }
 
 void RaftServer::LoadRaftState() {
-    std::string term_str, voted_for_str, log_size_str;
+    std::string term_str, voted_for_str, log_size_str, commit_index_str;
 
     // Load current term
     if (raft_log_db_.Get("current_term", term_str)) {
@@ -70,6 +70,13 @@ void RaftServer::LoadRaftState() {
         voted_for = std::stoi(voted_for_str);
     }
 
+    // Load commit_index
+    if (raft_log_db_.Get("commit_index", commit_index_str)) {
+        commit_index = std::stoi(commit_index_str);
+    } else {
+        commit_index = -1; // Default if not found
+    }
+
     // Load Raft log entries
     std::vector<std::string> log_entries;
     if (raft_log_db_.LoadLogEntries("log_", log_entries)) {
@@ -78,8 +85,8 @@ void RaftServer::LoadRaftState() {
         }
     }
 
-    std::cout << "Loaded Raft state: term=" << current_term << ", voted_for=" << voted_for 
-              << ", log_size=" << raft_log.size() << std::endl;
+    // std::cout << "Loaded Raft state: term=" << current_term << ", voted_for=" << voted_for 
+    //           << ", log_size=" << raft_log.size() << std::endl;
 }
 
 void RaftServer::PersistRaftState() {
@@ -88,6 +95,9 @@ void RaftServer::PersistRaftState() {
     // Persist current term and voted_for in the same batch
     batch.Put("current_term", std::to_string(current_term));
     batch.Put("voted_for", std::to_string(voted_for));
+
+    // Persist commit_index
+    batch.Put("commit_index", std::to_string(commit_index));
 
     // Persist log entries
     batch.Put("log_size", std::to_string(raft_log.size()));
@@ -114,7 +124,7 @@ void RaftServer::Run() {
     builder.RegisterService(static_cast<keyvaluestore::KeyValueStore::Service*>(this));
 
     server = builder.BuildAndStart();
-    std::cout << "Raft server listening on " << host_list[server_id] << std::endl;
+    // std::cout << "Raft server listening on " << host_list[server_id] << std::endl;
 
      // Initialize gRPC stubs for peer nodes
     for (int i = 0; i < host_list.size(); i++) {
@@ -158,6 +168,7 @@ Status RaftServer::AppendEntries(
     if (request->term() > current_term) {
         current_term = request->term();
         BecomeFollower(request->leader_id());
+        PersistRaftState();  // Persist the updated term and follower state
     }
 
     SetElectionAlarm(election_timeout);
@@ -177,15 +188,13 @@ Status RaftServer::AppendEntries(
     }
 
     // Step 4: Remove conflicting entries in the follower's log, if necessary
-
     if (request->prev_log_index() != -1 && request->prev_log_index() < raft_log.size() - 1) {
-
         raft_log.resize(request->prev_log_index() + 1);
-
     }
 
     // Use WriteBatch to append new entries and update Raft state atomically
-    rocksdb::WriteOptions write_options; write_options.sync = true;
+    rocksdb::WriteOptions write_options;
+    write_options.sync = true;
     rocksdb::WriteBatch batch;
 
     // Step 4: Append new log entries from the leader
@@ -194,20 +203,21 @@ Status RaftServer::AppendEntries(
         batch.Put("log_" + std::to_string(raft_log.size() - 1), serializeLogEntry(entry));
     }
 
-    // Persist current term and log size in the same batch
+    // Persist current term, log size, and updated commit_index in the same batch
     batch.Put("current_term", std::to_string(current_term));
     batch.Put("log_size", std::to_string(raft_log.size()));
-
-    // Write the batch to RocksDB
-    rocksdb::Status status = raft_log_db_.Write(write_options, &batch);
-    if (!status.ok()) {
-        std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
-        return Status::CANCELLED;
-    }
 
     // Step 5: Update commit index and apply to the state machine
     if (request->leader_commit() > commit_index) {
         commit_index = std::min(request->leader_commit(), static_cast<int64_t>(raft_log.size() - 1));
+        batch.Put("commit_index", std::to_string(commit_index));
+
+        // Write the batch to RocksDB
+        rocksdb::Status status = raft_log_db_.Write(write_options, &batch);
+        if (!status.ok()) {
+            std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
+            return Status::CANCELLED;
+        }
 
     // Open file with host_list[server_id] as the filename remove the : and replace with _
         std::string filename = host_list[server_id];
@@ -227,6 +237,13 @@ Status RaftServer::AppendEntries(
         
         // Close the file
         file.close();
+    } else {
+        // Write the batch to RocksDB
+        rocksdb::Status status = raft_log_db_.Write(write_options, &batch);
+        if (!status.ok()) {
+            std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
+            return Status::CANCELLED;
+        }
     }
 
     current_leader = request->leader_id();
@@ -496,11 +513,11 @@ Status RaftServer::Init(
 ){  
 
     // print current leader
-    if(current_leader != -1){
-        std::cout << "Current leader at server side: " << host_list[current_leader] << std::endl;
-    } else {
-        std::cout << "Current leader: None" << std::endl;
-    }
+    // if(current_leader != -1){
+    //     std::cout << "Current leader at server side: " << host_list[current_leader] << std::endl;
+    // } else {
+    //     std::cout << "Current leader: None" << std::endl;
+    // }
 
     if(state != RaftState::LEADER){
         response->set_success(false);
@@ -543,7 +560,7 @@ Status RaftServer::Get(
         response->set_value(value);
         response->set_key_found(true);
     } else {
-        std::cout << "Key not found: " << request->key() << std::endl;
+        // std::cout << "Key not found: " << request->key() << std::endl;
         response->set_key_found(false);
     }
     if(current_leader != -1){
@@ -620,7 +637,10 @@ Status RaftServer::Put(
     int result = -1;
 
     // 4. If a majority of followers have replicated, commit the entry
-    commit_index = raft_log.size() - 1;
+    {
+        std::lock_guard<std::mutex> lock(state_mutex);
+        commit_index = raft_log.size() - 1;
+    }
 
     PersistRaftState();
 

@@ -8,7 +8,8 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/common.cmake")
 find_package(absl CONFIG REQUIRED)
 
 # Find RocksDB
-find_library(ROCKSDB_LIB rocksdb REQUIRED)
+# find_library(ROCKSDB_LIB rocksdb REQUIRED)
+set(ROCKSDB_LIB "/home/catchashu10/rocksdb/build/librocksdb.a") # Hack to run in Ashu's machine for static rocksDB linking
 
 # Proto file
 get_filename_component(kvs_proto "./proto/keyvaluestore.proto" ABSOLUTE)

@@ -24,7 +24,7 @@ RocksDBWrapper::RocksDBWrapper(const std::string &db_path, const size_t cache_si
                   << status.ToString() << std::endl;
         db_ = nullptr;
     }
-    std::cout << "DB initialized at path: " << db_path << std::endl;
+    // std::cout << "DB initialized at path: " << db_path << std::endl;
 }
 
 bool RocksDBWrapper::Get(const std::string &key, std::string &value) const

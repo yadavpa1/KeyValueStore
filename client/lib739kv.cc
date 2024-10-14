@@ -31,7 +31,7 @@ std::map<int, std::unique_ptr<KeyValueStore::Stub>> stubs_; // Stub for each Raf
 std::map<int, std::string> leader_addresses_;  // Maps partition IDs to current leader addresses
 std::map<int, std::vector<std::string>> partition_instances_;  // Maps partition IDs to list of nodes
 
-const int num_partitions = 4;  // Number of partitions (based on server configuration)
+const int num_partitions = 20;  // Number of partitions (based on server configuration)
 const int nodes_per_partition = 5;  // Number of nodes per partition
 
 std::vector<std::string> service_instances_;  // List of service instances (host:port)
@@ -91,7 +91,7 @@ Status RetryRequest(int partition_id, const RequestType& request, ResponseType* 
         
         if (status.ok() && !response->leader_server().empty()) {
             // Print the enitre response object for debugging
-            std::cout << "Response: Client side leader: " << response->leader_server() << std::endl;
+            // std::cout << "Response: Client side leader: " << response->leader_server() << std::endl;
             // std::cout << "Response: Success: " << response->success() << std::endl;
             // Check if we were redirected to a new leader
             if (response->leader_server() != current_leader) {
@@ -103,13 +103,13 @@ Status RetryRequest(int partition_id, const RequestType& request, ResponseType* 
                 channels_[partition_id] = grpc::CreateChannel(current_leader, grpc::InsecureChannelCredentials());
                 stubs_[partition_id] = KeyValueStore::NewStub(channels_[partition_id]);
 
-                std::cerr << "Redirected to new leader at " << current_leader << " for partition " << partition_id << std::endl;
+                // std::cerr << "Redirected to new leader at " << current_leader << " for partition " << partition_id << std::endl;
                 continue;  // Retry with the new leader
             }
-            std::cerr << "Request succeeded for partition " << partition_id << " with leader " << current_leader << std::endl;
+            // std::cerr << "Request succeeded for partition " << partition_id << " with leader " << current_leader << std::endl;
             return status;  // Request succeeded
         } else {
-            std::cerr << "Failed to connect to " << current_leader << " for partition " << partition_id << std::endl;
+            // std::cerr << "Failed to connect to " << current_leader << " for partition " << partition_id << std::endl;
         }
 
         // Find the next available node that has not yet been tried
@@ -124,7 +124,7 @@ Status RetryRequest(int partition_id, const RequestType& request, ResponseType* 
             leader_addresses_[partition_id] = current_leader;
             channels_[partition_id] = grpc::CreateChannel(current_leader, grpc::InsecureChannelCredentials());
             stubs_[partition_id] = KeyValueStore::NewStub(channels_[partition_id]);
-            std::cerr << "Retrying with new node at " << current_leader << " for partition " << partition_id << std::endl;
+            // std::cerr << "Retrying with new node at " << current_leader << " for partition " << partition_id << std::endl;
         } else {
             // No more nodes to try, fail the request
             std::cerr << "All nodes in partition " << partition_id << " have been tried. Request failed." << std::endl;
@@ -211,15 +211,15 @@ int kv739_get(const std::string &key, std::string &value) {
     if (status.ok()) {
         if (get_response.key_found()) {
             value = get_response.value();
-            std::cout << "Get operation successful. Key: '" << key << "', Value: '" << value << "'." << std::endl;
+            // std::cout << "Get operation successful. Key: '" << key << "', Value: '" << value << "'." << std::endl;
             return 0;
         } else {
-            std::cout << "Key '" << key << "' not found." << std::endl;
+            // std::cout << "Key '" << key << "' not found." << std::endl;
             return 1;  // Key not found
         } 
     }
 
-    std::cerr << "Error: Get operation failed for key: '" << key << "'." << std::endl;
+    // std::cerr << "Error: Get operation failed for key: '" << key << "'." << std::endl;
     return -1;
 }
 
