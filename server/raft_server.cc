@@ -85,8 +85,8 @@ void RaftServer::LoadRaftState() {
         }
     }
 
-    std::cout << "Loaded Raft state: term=" << current_term << ", voted_for=" << voted_for 
-              << ", log_size=" << raft_log.size() << std::endl;
+    // std::cout << "Loaded Raft state: term=" << current_term << ", voted_for=" << voted_for 
+    //           << ", log_size=" << raft_log.size() << std::endl;
 }
 
 void RaftServer::PersistRaftState() {
@@ -124,7 +124,7 @@ void RaftServer::Run() {
     builder.RegisterService(static_cast<keyvaluestore::KeyValueStore::Service*>(this));
 
     server = builder.BuildAndStart();
-    std::cout << "Raft server listening on " << host_list[server_id] << std::endl;
+    // std::cout << "Raft server listening on " << host_list[server_id] << std::endl;
 
      // Initialize gRPC stubs for peer nodes
     for (int i = 0; i < host_list.size(); i++) {
@@ -513,11 +513,11 @@ Status RaftServer::Init(
 ){  
 
     // print current leader
-    if(current_leader != -1){
-        std::cout << "Current leader at server side: " << host_list[current_leader] << std::endl;
-    } else {
-        std::cout << "Current leader: None" << std::endl;
-    }
+    // if(current_leader != -1){
+    //     std::cout << "Current leader at server side: " << host_list[current_leader] << std::endl;
+    // } else {
+    //     std::cout << "Current leader: None" << std::endl;
+    // }
 
     if(state != RaftState::LEADER){
         response->set_success(false);
@@ -560,7 +560,7 @@ Status RaftServer::Get(
         response->set_value(value);
         response->set_key_found(true);
     } else {
-        std::cout << "Key not found: " << request->key() << std::endl;
+        // std::cout << "Key not found: " << request->key() << std::endl;
         response->set_key_found(false);
     }
     if(current_leader != -1){
