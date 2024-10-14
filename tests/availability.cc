@@ -84,8 +84,8 @@ void test_availability(const std::string& config_file) {
         server_list.erase(server_list.begin() + server_to_kill);
 
         // Wait for 3 seconds after killing the server
-        std::cout << "Waiting for 10 seconds after killing the server..." << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+        std::cout << "Waiting for 6 seconds after killing the server..." << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(6));
 
         // Step 6: Perform `get` operations to check system availability
         bool system_available = true;

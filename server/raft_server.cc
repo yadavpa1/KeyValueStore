@@ -12,9 +12,9 @@ using grpc::Status;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 
-const int RaftServer::min_election_timeout = 800;
-const int RaftServer::max_election_timeout = 1600;
-const int RaftServer::heartbeat_interval = 50;
+const int RaftServer::min_election_timeout = 150;
+const int RaftServer::max_election_timeout = 300;
+const int RaftServer::heartbeat_interval = 20;
 
 RaftServer* alarm_handler_server;
 
@@ -76,8 +76,6 @@ void RaftServer::LoadRaftState() {
         }
     }
 
-    std::cout << "Loaded Raft state: term=" << current_term << ", voted_for=" << voted_for 
-              << ", log_size=" << raft_log.size() << std::endl;
 }
 
 void RaftServer::PersistRaftState() {
@@ -124,16 +122,151 @@ void RaftServer::Run() {
     }
 
     ResetElectionTimeout();
- 
-    if(server_id == 0){
-        std::thread(&RaftServer::StartElection, this).detach();
-    }
+
     SetElectionAlarm(election_timeout);
     server->Wait();
 }
 
 void RaftServer::Wait() {
     server->Wait();
+}
+
+void RaftServer::BecomeFollower(int leader_id) {
+    current_leader = leader_id;
+    state = RaftState::FOLLOWER;
+    voted_for = leader_id;
+
+    PersistRaftState();
+}
+
+void RaftServer::StartElection() {
+    state = RaftState::CANDIDATE;
+    current_term++;
+    voted_for = server_id;
+    int initial_term = current_term;
+
+    std::atomic<int> votes_gained(1);
+
+    // Persist current term and voted_for
+    PersistRaftState();
+
+    ResetElectionTimeout();
+    SetElectionAlarm(election_timeout);
+
+    // Send RequestVote RPCs to all peers
+    for (int i = 0; i < host_list.size(); ++i) {
+        if (i != server_id) {
+            std::thread(&RaftServer::InvokeRequestVote, this, i, &votes_gained).detach();
+        }
+    }
+
+    // Wait for a majority of votes
+    while (votes_gained <= host_list.size() / 2 && state == RaftState::CANDIDATE && current_term == initial_term) {
+    }
+
+    if (votes_gained > host_list.size() / 2 && state == RaftState::CANDIDATE) {
+        BecomeLeader();
+    }
+}
+
+void RaftServer::InvokeRequestVote(int peer_id, std::atomic<int>* votes_gained) {
+    grpc::ClientContext context;
+    RequestVoteRequest request;
+    RequestVoteResponse response;
+
+    request.set_term(current_term);
+    request.set_candidate_id(server_id);
+
+    if (raft_log.empty()) {
+        request.set_last_log_index(-1);
+        request.set_last_log_term(-1);
+    } else {
+        request.set_last_log_index(raft_log.size() - 1);
+        request.set_last_log_term(raft_log.back().term());
+    }
+
+    // Send the RequestVote RPC
+    // std::cerr << "Sending RequestVote to " << host_list[peer_id] << std::endl;
+    auto status = peer_stubs[peer_id]->RequestVote(&context, request, &response);
+
+    if(!status.ok()){
+        std::cerr << "Vote request failed: " << status.error_message() << std::endl;
+        return;
+    }
+
+    if(response.term() > current_term){
+        current_term = response.term();
+        BecomeFollower(-1);
+        PersistRaftState();
+        return;
+    }
+
+    // Increment the votes_gained if the vote was granted
+    if (response.vote_granted()) {
+        (*votes_gained)++;
+    }
+}
+
+void RaftServer::InvokeAppendEntries(int peer_id) {
+    grpc::ClientContext context;
+    context.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(heartbeat_interval));
+
+    AppendEntriesRequest request;
+    AppendEntriesResponse response;
+
+    // Set the current term and leader ID
+    request.set_term(current_term);
+    request.set_leader_id(server_id);
+
+    // Handle the case where the log is empty
+    if (raft_log.empty()) {
+        request.set_prev_log_index(-1);
+        request.set_prev_log_term(-1);
+    } else {
+        // Set the previous log index and term
+        request.set_prev_log_index(next_index[peer_id] - 1);
+        request.set_prev_log_term((next_index[peer_id] - 1 == -1) ? -1 : raft_log[next_index[peer_id] - 1].term());
+
+        // Add log entries to the request starting from the next index for this peer
+        for (int i = next_index[peer_id]; i < raft_log.size(); ++i) {
+            *request.add_entries() = raft_log[i];
+        }
+    }
+
+    // Set the leader's commit index
+    request.set_leader_commit(commit_index);
+
+    // Send the AppendEntries RPC to the peer
+    auto status = peer_stubs[peer_id]->AppendEntries(&context, request, &response);
+    if(!status.ok()){
+        return;
+    }
+
+    if(response.term() > current_term){
+        current_term = response.term();
+        BecomeFollower(-1);
+        PersistRaftState();
+        return;
+    }
+
+    // Update the next_index and match_index based on the response
+    if (response.success()) {
+        next_index[peer_id] = raft_log.size();
+        match_index[peer_id] = raft_log.size() - 1;
+    } else {
+        // Decrement the next_index to retry with the previous entry
+        next_index[peer_id] = std::max(0, next_index[peer_id] - 1);
+    }
+}
+
+void RaftServer::ReplicateLogEntries() {
+    SetElectionAlarm(election_timeout);
+
+    for (int i = 0; i < host_list.size(); ++i) {
+        if (i != server_id) {
+            std::thread(&RaftServer::InvokeAppendEntries, this, i).detach();
+        }
+    }
 }
 
 Status RaftServer::AppendEntries(
@@ -161,58 +294,65 @@ Status RaftServer::AppendEntries(
     SetElectionAlarm(election_timeout);
 
     // Step 3: Check if the previous log index is out of bounds or the log is empty
-    if (raft_log.empty()) {
-        // If the log is empty, ensure that prev_log_index is -1 (indicating no prior logs)
-        if (request->prev_log_index() != -1) {
-            return Status::OK;  // Mismatch: follower's log is empty, but prev_log_index isn't -1
-        }
-    } else {
-        // If the log is not empty, ensure the prev_log_index is valid
-        if (request->prev_log_index() >= raft_log.size() || 
-            (request->prev_log_index() != -1 && raft_log[request->prev_log_index()].term() != request->prev_log_term())) {
-            return Status::OK;  // Mismatch between the log's term and the request's prev_log_term
-        }
+    // If the log is not empty, ensure the prev_log_index is valid
+    if (request->prev_log_index() >= raft_log.size() || 
+        (request->prev_log_index() != -1 && raft_log[request->prev_log_index()].term() != request->prev_log_term())) {
+        return Status::OK;  // Mismatch between the log's term and the request's prev_log_term
     }
 
-    // Use WriteBatch to append new entries and update Raft state atomically
-    rocksdb::WriteBatch batch;
+    uint curr_log_index = request->prev_log_index() + 1;
+    bool must_recreate_log = false;
+    int start_index = curr_log_index;
 
-    // Step 4: Append new log entries from the leader
     for (const auto& entry : request->entries()) {
-        raft_log.push_back(entry);
-        batch.Put("log_" + std::to_string(raft_log.size() - 1), serializeLogEntry(entry));
+        if (curr_log_index < raft_log.size()) {
+            // Check if the existing log term matches the leader's entry
+            if (raft_log[curr_log_index].term() == entry.term()) {
+                start_index++;
+            } else {
+                // If terms don't match, we truncate and recreate the log from this point
+                raft_log.resize(curr_log_index);
+                must_recreate_log = true;
+                start_index = 0;
+            }
+        }
+        if (curr_log_index >= raft_log.size()) {
+            // Append new entries if log index exceeds current size
+            raft_log.push_back(entry);
+        }
+        curr_log_index++;
     }
 
-    // Persist current term and log size in the same batch
+    rocksdb::WriteBatch batch;
+    for (int i = start_index; i < raft_log.size(); ++i) {
+        batch.Put("log_" + std::to_string(i), serializeLogEntry(raft_log[i]));
+    }
     batch.Put("current_term", std::to_string(current_term));
     batch.Put("log_size", std::to_string(raft_log.size()));
 
-    // Write the batch to RocksDB
-    rocksdb::Status status = raft_log_db_.Write(rocksdb::WriteOptions(), &batch);
-    if (!status.ok()) {
-        std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
+    rocksdb::Status db_status = raft_log_db_.Write(rocksdb::WriteOptions(), &batch);
+    if (!db_status.ok()) {
+        std::cerr << "Failed to persist Raft state: " << db_status.ToString() << std::endl;
         return Status::CANCELLED;
     }
 
-    // Step 5: Update commit index and apply to the state machine
-    if (request->leader_commit() > commit_index) {
+    if(request->leader_commit() > commit_index){
         commit_index = std::min(request->leader_commit(), static_cast<int64_t>(raft_log.size() - 1));
-
-        // Apply the committed log entries to the state machine
         while (last_applied < commit_index) {
             last_applied++;
-            std::string old_value;
-            // Apply the log entry to the state machine
-            std::cout << "Applying log entry: " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
-            db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
+            std::string old_string;
+            db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_string);
         }
     }
 
     // Step 6: Reset the election timeout
+    current_leader = request->leader_id();
     ResetElectionTimeout();
 
     // Step 7: Set success to true and return
     response->set_success(true);
+    response->set_term(current_term);
+
     return Status::OK;
 }
 
@@ -297,45 +437,6 @@ Status RaftServer::Heartbeat(
     return Status::OK;
 }
 
-void RaftServer::BecomeFollower(int leader_id) {
-    current_leader = leader_id;
-    state = RaftState::FOLLOWER;
-    voted_for = -1;
-
-    // Persist the new follower state and reset the voted_for field
-    PersistRaftState();
-}
-
-void RaftServer::StartElection() {
-    state = RaftState::CANDIDATE;
-    current_term++;
-    voted_for = server_id;
-
-    std::atomic<int> votes_gained(1);
-
-    // Persist current term and voted_for
-    PersistRaftState();
-
-    ResetElectionTimeout();
-    SetElectionAlarm(election_timeout);
-
-    // Send RequestVote RPCs to all peers
-    for (int i = 0; i < host_list.size(); ++i) {
-        if (i != server_id) {
-            std::thread(&RaftServer::InvokeRequestVote, this, i, &votes_gained).detach();
-        }
-    }
-
-    // Wait for a majority of votes
-    while (votes_gained <= host_list.size() / 2) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(40));
-    }
-
-    if (votes_gained > host_list.size() / 2) {
-        BecomeLeader();
-    }
-}
-
 void RaftServer::BecomeLeader() {
     state = RaftState::LEADER;
     current_leader = server_id;
@@ -359,86 +460,6 @@ void RaftServer::SendHeartbeat() {
         std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
     }
 }
-
-void RaftServer::ReplicateLogEntries() {
-    SetElectionAlarm(election_timeout);
-
-    for (int i = 0; i < host_list.size(); ++i) {
-        if (i != server_id) {
-            std::thread(&RaftServer::InvokeAppendEntries, this, i).detach();
-        }
-    }
-}
-
-void RaftServer::InvokeAppendEntries(int peer_id) {
-    grpc::ClientContext context;
-    context.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(heartbeat_interval));
-    AppendEntriesRequest request;
-    AppendEntriesResponse response;
-
-    // Set the current term and leader ID
-    request.set_term(current_term);
-    request.set_leader_id(server_id);
-
-    // Handle the case where the log is empty
-    if (raft_log.empty()) {
-        request.set_prev_log_index(-1);
-        request.set_prev_log_term(-1);
-    } else {
-        // Set the previous log index and term
-        request.set_prev_log_index(next_index[peer_id] - 1);
-        request.set_prev_log_term((next_index[peer_id] - 1 == -1) ? -1 : raft_log[next_index[peer_id] - 1].term());
-
-        // Add log entries to the request starting from the next index for this peer
-        for (int i = next_index[peer_id]; i < raft_log.size(); ++i) {
-            *request.add_entries() = raft_log[i];
-        }
-    }
-
-    // Set the leader's commit index
-    request.set_leader_commit(commit_index);
-
-    // Send the AppendEntries RPC to the peer
-    auto status = peer_stubs[peer_id]->AppendEntries(&context, request, &response);
-    if(!status.ok()){
-        return;
-    }
-
-    // Update the next_index and match_index based on the response
-    if (response.success()) {
-        next_index[peer_id] = raft_log.size();
-        match_index[peer_id] = raft_log.size() - 1;
-    } else {
-        // Decrement the next_index to retry with the previous entry
-        next_index[peer_id] = std::max(0, next_index[peer_id] - 1);
-    }
-}
-
-void RaftServer::InvokeRequestVote(int peer_id, std::atomic<int>* votes_gained) {
-    grpc::ClientContext context;
-    RequestVoteRequest request;
-    RequestVoteResponse response;
-
-    request.set_term(current_term);
-    request.set_candidate_id(server_id);
-
-    if (raft_log.empty()) {
-        request.set_last_log_index(-1);
-        request.set_last_log_term(-1);
-    } else {
-        request.set_last_log_index(raft_log.size() - 1);
-        request.set_last_log_term(raft_log.back().term());
-    }
-
-    // Send the RequestVote RPC
-    peer_stubs[peer_id]->RequestVote(&context, request, &response);
-
-    // Increment the votes_gained if the vote was granted
-    if (response.vote_granted()) {
-        (*votes_gained)++;
-    }
-}
-
 
 void RaftServer::ResetElectionTimeout() {
     election_timeout = min_election_timeout + (rand() % (max_election_timeout - min_election_timeout));
@@ -539,34 +560,40 @@ Status RaftServer::Put(
     entry.set_key(request->key());
     entry.set_value(request->value());
 
-    // Add to log
+    // 1. Append the new entry to the leader's own log
     raft_log.push_back(entry);
 
-    // replicate goes to every follower and updates their state
-    // We also updated our understanding of the state of the followers
+    // 2. Replicate the log entry to all followers
     ReplicateLogEntries();
 
-    // Persist the log and Raft state
-    PersistRaftState();
+    // 3. Wait until a majority of followers replicate the entry
+    // Track how many followers have replicated the entry
+    int majority_count = host_list.size() / 2 + 1;
+    int replicated_count = 1; // Leader has already replicated
 
-    // We do a single check of whether in replicate log entries we were able to successfully update a majority of followers
-    // If yes, then we can simply apply our commit and increment last applied because the majority of follower have committed their part of the log
-    std::string old_value;
-    int result = -1;
-    int count = 0;
-    for(int i = 0; i < host_list.size(); i++){
-        if(match_index[i] >= commit_index){
-            count++;
+    for (int i = 0; i < host_list.size(); i++) {
+        if (match_index[i] >= raft_log.size() - 1) {
+            replicated_count++;
         }
     }
 
-    if(count > host_list.size() / 2){
-        commit_index++;
-        while(last_applied < commit_index){
+    std::string old_value;
+    int result = -1;
+
+    // 4. If a majority of followers have replicated, commit the entry
+    if (replicated_count >= majority_count) {
+        commit_index = raft_log.size() - 1;
+
+        // Apply the committed log entry to the state machine (key-value store)
+        while (last_applied < commit_index) {
             last_applied++;
             result = db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
         }
+        last_applied = commit_index;
     }
+
+    // 5. Persist Raft state (log and other metadata)
+    PersistRaftState();
 
     if (result == 0) {
         response->set_old_value(old_value);
@@ -579,6 +606,7 @@ Status RaftServer::Put(
     } else {
         response->set_leader_server("");
     }
+
     return Status::OK;
 }
 
