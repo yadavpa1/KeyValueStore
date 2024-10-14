@@ -229,6 +229,8 @@ Status RaftServer::AppendEntries(
         file.close();
     }
 
+    current_leader = request->leader_id();
+
     // Step 6: Reset the election timeout
     ResetElectionTimeout();
 

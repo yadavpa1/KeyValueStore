@@ -35,7 +35,7 @@ const int num_partitions = 4;  // Number of partitions (based on server configur
 const int nodes_per_partition = 5;  // Number of nodes per partition
 
 std::vector<std::string> service_instances_;  // List of service instances (host:port)
-const int max_retries = 5;
+const int max_retries = 3;
 
 // Hash function to map keys to Raft partitions
 int HashKey(const std::string &key) {
