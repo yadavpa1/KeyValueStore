@@ -14,9 +14,48 @@ using grpc::Status;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 
-const int RaftServer::min_election_timeout = 800;
-const int RaftServer::max_election_timeout = 1600;
-const int RaftServer::heartbeat_interval = 50;
+const int RaftServer::min_election_timeout = 1000;
+const int RaftServer::max_election_timeout = 2000;
+const int RaftServer::heartbeat_interval = 100;
+
+ThreadPool::ThreadPool(size_t num_threads) : stop(false) {
+    for (size_t i = 0; i < num_threads; ++i) {
+        workers.emplace_back([this]() { this->worker_thread(); });
+    }
+}
+
+ThreadPool::~ThreadPool() {
+    {
+        std::lock_guard<std::mutex> lock(queue_mutex);
+        stop = true;
+    }
+    condition.notify_all();
+    for (std::thread& worker : workers) {
+        worker.join();
+    }
+}
+
+void ThreadPool::enqueue(std::function<void()> task) {
+    {
+        std::lock_guard<std::mutex> lock(queue_mutex);
+        tasks.push(task);
+    }
+    condition.notify_one();
+}
+
+void ThreadPool::worker_thread() {
+    while (true) {
+        std::function<void()> task;
+        {
+            std::unique_lock<std::mutex> lock(this->queue_mutex);
+            this->condition.wait(lock, [this]() { return this->stop || !this->tasks.empty(); });
+            if (this->stop && this->tasks.empty()) return;
+            task = std::move(this->tasks.front());
+            this->tasks.pop();
+        }
+        task();
+    }
+}
 
 RaftServer* alarm_handler_server;
 
@@ -46,15 +85,60 @@ RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list,
       commit_index(-1),
       last_applied(-1),
       current_leader(-1),
+      thread_pool(4),
       db_(db_path, cache_size),
       raft_log_db_(raft_log_db_path, cache_size)
 {
     // Load persisted Raft state from the Raft log database
     LoadRaftState();
+
+    StartPersistenceThread();
     
     // Set a random election timeout between min and max election timeouts
     election_timeout = min_election_timeout + (rand() % (max_election_timeout - min_election_timeout));
+}
 
+RaftServer::~RaftServer() {
+    stop_persistence_thread = true;
+    persistence_condition.notify_one();  // Notify the persistence thread to stop
+
+    if (persistence_thread.joinable()) {
+        persistence_thread.join();
+    }
+}
+
+void RaftServer::StartPersistenceThread() {
+    persistence_thread = std::thread(&RaftServer::HandlePersistenceTasks, this);
+}
+
+void RaftServer::EnqueuePersistenceTask(const std::function<void()>& task) {
+    {
+        std::lock_guard<std::mutex> lock(persistence_mutex);
+        persistence_queue.push(task);
+    }
+    persistence_condition.notify_one();  // Notify the persistence thread
+}
+
+void RaftServer::HandlePersistenceTasks() {
+    while (!stop_persistence_thread) {
+        std::function<void()> task;
+
+        {
+            std::unique_lock<std::mutex> lock(persistence_mutex);
+            persistence_condition.wait(lock, [this]() { return !persistence_queue.empty() || stop_persistence_thread; });
+
+            if (stop_persistence_thread && persistence_queue.empty()) {
+                break;
+            }
+
+            // Get the next task from the queue
+            task = persistence_queue.front();
+            persistence_queue.pop();
+        }
+
+        // Execute the persistence task
+        task();
+    }
 }
 
 void RaftServer::LoadRaftState() {
@@ -90,26 +174,58 @@ void RaftServer::LoadRaftState() {
 }
 
 void RaftServer::PersistRaftState() {
-    rocksdb::WriteBatch batch;
+    // Enqueue the persistence task
+    EnqueuePersistenceTask([this]() {
+        rocksdb::WriteBatch batch;
 
-    // Persist current term and voted_for in the same batch
-    batch.Put("current_term", std::to_string(current_term));
-    batch.Put("voted_for", std::to_string(voted_for));
+        // Persist current term and voted_for in the same batch
+        batch.Put("current_term", std::to_string(current_term));
+        batch.Put("voted_for", std::to_string(voted_for));
 
-    // Persist commit_index
-    batch.Put("commit_index", std::to_string(commit_index));
+        // Persist commit_index
+        batch.Put("commit_index", std::to_string(commit_index));
 
-    // Persist log entries
-    batch.Put("log_size", std::to_string(raft_log.size()));
-    for (size_t i = 0; i < raft_log.size(); ++i) {
-        batch.Put("log_" + std::to_string(i), serializeLogEntry(raft_log[i]));
-    }
+        // Persist log entries
+        batch.Put("log_size", std::to_string(raft_log.size()));
+        for (size_t i = 0; i < raft_log.size(); ++i) {
+            batch.Put("log_" + std::to_string(i), serializeLogEntry(raft_log[i]));
+        }
 
-    // Write all changes atomically
-    rocksdb::Status status = raft_log_db_.Write(rocksdb::WriteOptions(), &batch);
-    if (!status.ok()) {
-        std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
-    }
+        // Write all changes atomically
+        rocksdb::Status status = raft_log_db_.Write(rocksdb::WriteOptions(), &batch);
+        if (!status.ok()) {
+            std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
+        }
+    });
+}
+
+void RaftServer::PersistRaftStateInBackground(const AppendEntriesRequest* request) {
+    // Enqueue the persistence task for RocksDB (raft_log_db_)
+    EnqueuePersistenceTask([this, request]() {
+        rocksdb::WriteOptions write_options;
+        write_options.sync = true;
+        rocksdb::WriteBatch batch;
+
+        // Persist current term and log size in the same batch
+        batch.Put("current_term", std::to_string(current_term));
+        batch.Put("log_size", std::to_string(raft_log.size()));
+
+        // If the commit index is updated, persist it too
+        if (request->leader_commit() > commit_index) {
+            batch.Put("commit_index", std::to_string(commit_index));
+        }
+
+        // Persist new log entries to RocksDB
+        for (size_t i = 0; i < raft_log.size(); ++i) {
+            batch.Put("log_" + std::to_string(i), serializeLogEntry(raft_log[i]));
+        }
+
+        // Write the batch to RocksDB asynchronously
+        rocksdb::Status status = raft_log_db_.Write(write_options, &batch);
+        if (!status.ok()) {
+            std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
+        }
+    });
 }
 
 void RaftServer::Run() {
@@ -168,7 +284,9 @@ Status RaftServer::AppendEntries(
     if (request->term() > current_term) {
         current_term = request->term();
         BecomeFollower(request->leader_id());
-        PersistRaftState();  // Persist the updated term and follower state
+
+        // Persist the updated term and follower state
+        PersistRaftState();
     }
 
     SetElectionAlarm(election_timeout);
@@ -192,38 +310,15 @@ Status RaftServer::AppendEntries(
         raft_log.resize(request->prev_log_index() + 1);
     }
 
-    // Use WriteBatch to append new entries and update Raft state atomically
-    rocksdb::WriteOptions write_options;
-    write_options.sync = true;
-    rocksdb::WriteBatch batch;
-
     // Step 5: Append new log entries from the leader
     for (const auto& entry : request->entries()) {
         raft_log.push_back(entry);
-        batch.Put("log_" + std::to_string(raft_log.size() - 1), serializeLogEntry(entry));
     }
-
-    // Persist current term, log size, and updated commit_index in the same batch
-    batch.Put("current_term", std::to_string(current_term));
-    batch.Put("log_size", std::to_string(raft_log.size()));
 
     // Step 6: Update commit index and apply to the state machine
     if (request->leader_commit() > commit_index) {
         commit_index = std::min(request->leader_commit(), static_cast<int64_t>(raft_log.size() - 1));
-        batch.Put("commit_index", std::to_string(commit_index));
-
-        // Write the batch to RocksDB
-        rocksdb::Status status = raft_log_db_.Write(write_options, &batch);
-        if (!status.ok()) {
-            std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
-            return Status::CANCELLED;
-        }
-
-    // Open file with host_list[server_id] as the filename remove the : and replace with _
-        std::string filename = host_list[server_id];
-        std::replace(filename.begin(), filename.end(), ':', '_');
-        // Open file in append mode
-        std::ofstream file(filename, std::ios_base::app);
+        PersistRaftStateInBackground(request);
 
         // Apply the committed log entries to the state machine
         while (last_applied < commit_index) {
@@ -231,19 +326,12 @@ Status RaftServer::AppendEntries(
             std::string old_value;
             // Apply the log entry to the state machine
             // std::cout << "Applying log entry: " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
-            file << std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) << " -> " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
             db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
         }
-        
-        file.close();
 
     } else {
         // Write the batch to RocksDB
-        rocksdb::Status status = raft_log_db_.Write(write_options, &batch);
-        if (!status.ok()) {
-            std::cerr << "Failed to persist Raft state: " << status.ToString() << std::endl;
-            return Status::CANCELLED;
-        }
+        PersistRaftStateInBackground(request);
     }
 
     current_leader = request->leader_id();
@@ -411,72 +499,76 @@ void RaftServer::ReplicateLogEntries() {
 }
 
 void RaftServer::InvokeAppendEntries(int peer_id) {
-    grpc::ClientContext context;
-    context.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(heartbeat_interval));
-    AppendEntriesRequest request;
-    AppendEntriesResponse response;
+    thread_pool.enqueue([this, peer_id] { 
+        grpc::ClientContext context;
+        context.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(heartbeat_interval));
+        AppendEntriesRequest request;
+        AppendEntriesResponse response;
 
-    // Set the current term and leader ID
-    request.set_term(current_term);
-    request.set_leader_id(server_id);
+        // Set the current term and leader ID
+        request.set_term(current_term);
+        request.set_leader_id(server_id);
 
-    // Handle the case where the log is empty
-    if (raft_log.empty()) {
-        request.set_prev_log_index(-1);
-        request.set_prev_log_term(-1);
-    } else {
-        // Set the previous log index and term
-        request.set_prev_log_index(next_index[peer_id] - 1);
-        request.set_prev_log_term((next_index[peer_id] - 1 == -1) ? -1 : raft_log[next_index[peer_id] - 1].term());
+        // Handle the case where the log is empty
+        if (raft_log.empty()) {
+            request.set_prev_log_index(-1);
+            request.set_prev_log_term(-1);
+        } else {
+            // Set the previous log index and term
+            request.set_prev_log_index(next_index[peer_id] - 1);
+            request.set_prev_log_term((next_index[peer_id] - 1 == -1) ? -1 : raft_log[next_index[peer_id] - 1].term());
 
-        // Add log entries to the request starting from the next index for this peer
-        for (int i = next_index[peer_id]; i < raft_log.size(); ++i) {
-            *request.add_entries() = raft_log[i];
+            // Add log entries to the request starting from the next index for this peer
+            for (int i = next_index[peer_id]; i < raft_log.size(); ++i) {
+                *request.add_entries() = raft_log[i];
+            }
         }
-    }
 
-    // Set the leader's commit index
-    request.set_leader_commit(commit_index);
+        // Set the leader's commit index
+        request.set_leader_commit(commit_index);
 
-    // Send the AppendEntries RPC to the peer
-    auto status = peer_stubs[peer_id]->AppendEntries(&context, request, &response);
-    if(!status.ok()){
-        return;
-    }
+        // Send the AppendEntries RPC to the peer
+        auto status = peer_stubs[peer_id]->AppendEntries(&context, request, &response);
+        if(!status.ok()){
+            return;
+        }
 
-    // Update the next_index and match_index based on the response
-    if (response.success()) {
-        next_index[peer_id] = raft_log.size();
-        match_index[peer_id] = raft_log.size() - 1;
-    } else {
-        // Decrement the next_index to retry with the previous entry
-        next_index[peer_id] = std::max(0, next_index[peer_id] - 1);
-    }
+        // Update the next_index and match_index based on the response
+        if (response.success()) {
+            next_index[peer_id] = raft_log.size();
+            match_index[peer_id] = raft_log.size() - 1;
+        } else {
+            // Decrement the next_index to retry with the previous entry
+            next_index[peer_id] = std::max(0, next_index[peer_id] - 1);
+        }
+    });
 }
 
 void RaftServer::InvokeRequestVote(int peer_id, std::atomic<int>* votes_gained) {
-    grpc::ClientContext context;
-    RequestVoteRequest request;
-    RequestVoteResponse response;
+    thread_pool.enqueue([this, peer_id, votes_gained] {
+        grpc::ClientContext context;
+        RequestVoteRequest request;
+        RequestVoteResponse response;
 
-    request.set_term(current_term);
-    request.set_candidate_id(server_id);
+        request.set_term(current_term);
+        request.set_candidate_id(server_id);
 
-    if (raft_log.empty()) {
-        request.set_last_log_index(-1);
-        request.set_last_log_term(-1);
-    } else {
-        request.set_last_log_index(raft_log.size() - 1);
-        request.set_last_log_term(raft_log.back().term());
-    }
+        if (raft_log.empty()) {
+            request.set_last_log_index(-1);
+            request.set_last_log_term(-1);
+        } else {
+            request.set_last_log_index(raft_log.size() - 1);
+            request.set_last_log_term(raft_log.back().term());
+        }
 
-    // Send the RequestVote RPC
-    peer_stubs[peer_id]->RequestVote(&context, request, &response);
+        // Send the RequestVote RPC
+        peer_stubs[peer_id]->RequestVote(&context, request, &response);
 
-    // Increment the votes_gained if the vote was granted
-    if (response.vote_granted()) {
-        (*votes_gained)++;
-    }
+        // Increment the votes_gained if the vote was granted
+        if (response.vote_granted()) {
+            (*votes_gained)++;
+        }
+    });
 }
 
 

@@ -6,6 +6,10 @@
 #include <mutex>
 #include <atomic>
 #include <chrono>
+#include <queue>
+#include <thread>
+#include <condition_variable>
+#include <functional>
 
 // GRPC stuff
 #include <grpc/grpc.h>
@@ -41,6 +45,26 @@ using keyvaluestore::ShutdownResponse;
 using keyvaluestore::DieRequest;
 using keyvaluestore::DieResponse;
 
+// Simple ThreadPool class
+class ThreadPool {
+public:
+    ThreadPool(size_t num_threads);
+    ~ThreadPool();
+
+    // Add a task to the queue
+    void enqueue(std::function<void()> task);
+
+private:
+    std::vector<std::thread> workers;
+    std::queue<std::function<void()>> tasks;
+
+    std::mutex queue_mutex;
+    std::condition_variable condition;
+    bool stop;
+
+    void worker_thread();
+};
+
 enum class RaftState { 
     FOLLOWER,
     CANDIDATE,
@@ -56,6 +80,12 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
             const std::string &raft_log_db_path,
             size_t cache_size    
         );
+
+        virtual ~RaftServer();
+
+        void StartPersistenceThread();
+        void EnqueuePersistenceTask(const std::function<void()> &task);
+        void PersistRaftStateInBackground(const AppendEntriesRequest* request);
         
         // Run raft server
         void Run();
@@ -129,8 +159,6 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
         void PersistRaftState();
 
     private:
-
-
         int server_id;
         std::mutex state_mutex;
         RaftState state;
@@ -143,6 +171,17 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
         // Volatile state on all servers
         int64_t commit_index;
         int last_applied;
+
+        ThreadPool thread_pool;
+
+        std::queue<std::function<void()>> persistence_queue;
+        std::mutex persistence_mutex;
+        std::condition_variable persistence_condition;
+
+        std::thread persistence_thread;
+        bool stop_persistence_thread = false;
+
+        void HandlePersistenceTasks();
 
         // Volatile state on leader
         std::vector<int> next_index;
