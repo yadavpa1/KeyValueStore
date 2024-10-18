@@ -215,6 +215,9 @@ void test_availability_with_failures(const std::string& config_file, int keys_to
     int num_groups = total_servers / 5;  // Assuming 5 servers per group
     std::vector<int> active_servers_per_group(num_groups, 5);  // Initially, all groups have 5 active servers
 
+    // This will store the number of active servers in the group at the time of each failure
+    std::vector<int> active_servers_at_failure;
+
     // Create an array to track which servers are active
     std::vector<bool> active_status(total_servers, true);  // All servers start as active
 
@@ -237,7 +240,9 @@ void test_availability_with_failures(const std::string& config_file, int keys_to
         kv739_die(server, 1);
 
         // Track active servers in the group of the killed server
-        update_active_servers_count(active_servers_per_group, server_to_kill);
+        int group_id = server_to_kill / 5;
+        update_active_servers_count(active_servers_per_group, server_to_kill);  // Update the count for future failures
+        active_servers_at_failure.push_back(active_servers_per_group[group_id]);  // Store the active server count after failure
 
         // Remove the killed server from the list so it doesn't get killed again
         // server_list.erase(server_list.begin() + server_to_kill);
@@ -276,11 +281,11 @@ void test_availability_with_failures(const std::string& config_file, int keys_to
         std::cout << "\nAvailability Test Results\n";
         std::cout << "-------------------------\n";
         std::cout << std::setw(15) << "Servers Failed" << std::setw(20) << "GET Failures" << std::setw(20) << "Failed Server" << std::setw(25) << "Active Servers in Group\n";
-        std::cout << "-------------------------------------------------------------\n";
+        std::cout << "------------------------------------------------------------------------------------------------------------------------------------------------------\n";
         for (size_t i = 0; i < failed_get_counts.size(); ++i) {
             int failed_server_port = extract_port_from_server(failed_servers[i]);
             int group = (failed_server_port - 50051) / 5;
-            std::cout << std::setw(15) << (i + 1) << std::setw(20) << failed_get_counts[i] << std::setw(20) << failed_servers[i] << std::setw(25) << active_servers_per_group[group] << "\n";
+            std::cout << std::setw(15) << (i + 1) << std::setw(20) << failed_get_counts[i] << std::setw(20) << failed_servers[i] << std::setw(25) << active_servers_at_failure[i] << "\n";
         }
     }
 
