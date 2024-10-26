@@ -11,7 +11,7 @@
 #include <condition_variable>
 #include <functional>
 
-// GRPC stuff
+// GRPC includes
 #include <grpc/grpc.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
@@ -45,7 +45,7 @@ using keyvaluestore::ShutdownResponse;
 using keyvaluestore::DieRequest;
 using keyvaluestore::DieResponse;
 
-// Simple ThreadPool class
+// Simple ThreadPool class for asynchronous tasks
 class ThreadPool {
 public:
     ThreadPool(size_t num_threads);
@@ -65,6 +65,7 @@ private:
     void worker_thread();
 };
 
+// Enum representing the state of a Raft node
 enum class RaftState { 
     FOLLOWER,
     CANDIDATE,
@@ -158,6 +159,11 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
         void LoadRaftState();
         void PersistRaftState();
 
+        // Snapshot-related operations
+        void CreateSnapshot();
+        void RestoreSnapshot();
+        void TruncateLog();
+
     private:
         int server_id;
         std::mutex state_mutex;
@@ -202,6 +208,12 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
         static const int min_election_timeout;
         static const int max_election_timeout;
         static const int heartbeat_interval;
+
+        // Snapshot-related variables
+        int last_snapshot_index = -1; // Index of the last log entry included in the snapshot
+        int last_snapshot_term = 0;   // Term of the last log entry in the snapshot
+        std::string snapshot_path;    // Path for storing snapshot files
+        std::mutex snapshot_mutex;    // Mutex for snapshot access control
 };
 
 #endif

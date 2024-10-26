@@ -1,5 +1,6 @@
 #include "rocksdb_wrapper.h"
 #include<rocksdb/table.h>
+#include <rocksdb/iterator.h>
 #include <iostream>
 #include <thread> // For std::this_thread::sleep_for
 #include <chrono> // For delay between retries
@@ -117,6 +118,75 @@ bool RocksDBWrapper::LoadLogEntries(const std::string &prefix, std::vector<std::
 
     if (!it->status().ok()) {
         std::cerr << "Error loading log entries: " << it->status().ToString() << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+std::string RocksDBWrapper::SerializeStateUpTo(int64_t commit_index) const
+{
+    std::string serialized_state;
+    if (!db_)
+    {
+        std::cerr << "Error: DB not initialized." << std::endl;
+        return serialized_state;
+    }
+
+    rocksdb::ReadOptions read_options;
+    std::unique_ptr<rocksdb::Iterator> it(db_->NewIterator(read_options));
+
+    int64_t current_index = 0;
+    for (it->SeekToFirst(); it->Valid() && current_index <= commit_index; it->Next())
+    {
+        serialized_state += it->key().ToString() + "=" + it->value().ToString() + "\n";
+        current_index++;
+    }
+
+    if (!it->status().ok())
+    {
+        std::cerr << "Error during serialization: " << it->status().ToString() << std::endl;
+    }
+
+    return serialized_state;
+}
+
+bool RocksDBWrapper::DeserializeState(const std::string &snapshot_data)
+{
+    if (!db_)
+    {
+        std::cerr << "Error: DB not initialized." << std::endl;
+        return false;
+    }
+
+    // Clear the existing database.
+    rocksdb::WriteBatch batch;
+    batch.Clear();
+
+    // Copy snapshot_data to a mutable string
+    std::string mutable_data = snapshot_data;
+
+    // Split the snapshot data by lines, then by key-value pairs.
+    size_t pos = 0;
+    std::string line;
+    while ((pos = mutable_data.find('\n')) != std::string::npos)
+    {
+        line = mutable_data.substr(0, pos);
+        size_t delim_pos = line.find('=');
+        if (delim_pos != std::string::npos)
+        {
+            std::string key = line.substr(0, delim_pos);
+            std::string value = line.substr(delim_pos + 1);
+            batch.Put(key, value);
+        }
+        mutable_data.erase(0, pos + 1);
+    }
+
+    rocksdb::WriteOptions write_options;
+    rocksdb::Status status = db_->Write(write_options, &batch);
+    if (!status.ok())
+    {
+        std::cerr << "Error during deserialization: " << status.ToString() << std::endl;
         return false;
     }
 

@@ -87,6 +87,10 @@ message AppendEntriesRequest {
 message AppendEntriesResponse {
     int64 term = 1;                   // The current term of the server that responded
     bool success = 2;                 // True if follower contained entry matching prev_log_index and prev_log_term
+    bool is_snapshot = 3;             // True if the response includes a snapshot
+    int64 snapshot_index = 4;         // The index of the last entry in the snapshot
+    int64 snapshot_term = 5;          // The term of the last entry in the snapshot
+    bytes snapshot_data = 6;          // Serialized snapshot data for restoring state
 }
 
 // Heartbeat messages for Raft leader to maintain control
