@@ -5,7 +5,6 @@ package keyvaluestore;
 service Raft {
     rpc RequestVote(RequestVoteRequest) returns (RequestVoteResponse);
     rpc AppendEntries(AppendEntriesRequest) returns (AppendEntriesResponse);
-    rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
 }
 
 service KeyValueStore {
@@ -91,17 +90,6 @@ message AppendEntriesResponse {
     int64 snapshot_index = 4;         // The index of the last entry in the snapshot
     int64 snapshot_term = 5;          // The term of the last entry in the snapshot
     bytes snapshot_data = 6;          // Serialized snapshot data for restoring state
-}
-
-// Heartbeat messages for Raft leader to maintain control
-message HeartbeatRequest {
-    int64 term = 1;                   // The leader's current term
-    int64 leader_id = 2;              // The leader's ID
-}
-
-message HeartbeatResponse {
-    int64 term = 1;                   // The current term of the follower
-    bool success = 2;                 // True if the heartbeat was accepted
 }
 
 // Log entries for Raft log replication

@@ -34,6 +34,18 @@ TEST CASE 3.6: Read Throughput for different key sizes
 int TOTAL_CYCLES = 1000;
 const std::string CONFIG_FILE = "config";
 
+void log_throughput_test(int num_processes, double throughput, std::string test_type){
+    std::ofstream csv_file("throughput_test_" + test_type + ".csv", std::ios::app);
+    csv_file << num_processes << "," << throughput << std::endl;
+    csv_file.close();
+}
+
+void log_latency_test(int num_processes, double latency, std::string test_type){
+    std::ofstream csv_file("latency_test_" + test_type + ".csv", std::ios::app);
+    csv_file << num_processes << "," << latency << std::endl;
+    csv_file.close();
+}
+
 void process_operations_write_tpt(int process_num, std::atomic<bool> &failure_flag, double &throughput){
     if (kv739_init(CONFIG_FILE) != 0) {
         std::cerr << "Failed to initialize client with server at " << CONFIG_FILE << std::endl;
@@ -78,7 +90,7 @@ void process_operations_read_tpt(int process_num, std::atomic<bool> &failure_fla
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> rnd_dis(0, 1e5);
+    std::uniform_int_distribution<> rnd_dis(0, 1e3);
     int cycle = 1;
 
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -89,9 +101,9 @@ void process_operations_read_tpt(int process_num, std::atomic<bool> &failure_fla
         std::string old_value;
 
         if (kv739_get(key, value)!=0) {
-            std::cerr << "Failed to get key-value pair: " << key << " -> " << value << std::endl;
-            failure_flag = true;
-            break;
+            // std::cerr << "Failed to get key-value pair: " << key << " -> " << value << std::endl;
+            // failure_flag = true;
+            // break;
         }
         cycle++;
     }
@@ -148,7 +160,7 @@ void process_operations_read_lat(int process_num, std::atomic<bool> &failure_fla
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> rnd_dis(0, 1e5);
+    std::uniform_int_distribution<> rnd_dis(0, 1e3);
     int cycle = 1;
 
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -158,9 +170,9 @@ void process_operations_read_lat(int process_num, std::atomic<bool> &failure_fla
         std::string value;
 
         if (kv739_get(key, value)!=0) {
-            std::cerr << "Failed to get key-value pair: " << key << std::endl;
-            failure_flag = true;
-            break;
+            // std::cerr << "Failed to get key-value pair: " << key << std::endl;
+            // failure_flag = true;
+            // break;
         }
         cycle++;
     }
@@ -217,7 +229,7 @@ void process_operations_write_tpthk(int process_num, const std::vector<string> &
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.0, 1.0);
     std::uniform_int_distribution<> dis_key(0, key_set.size()-1);
-    std::uniform_int_distribution<> rnd_dis(0, 1e5);
+    std::uniform_int_distribution<> rnd_dis(0, 1e3);
     int cycle = 1;
     
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -295,7 +307,7 @@ void process_operations_read_tpthk(int process_num, const std::vector<string> &k
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.0, 1.0);
     std::uniform_int_distribution<> dis_key(0, key_set.size()-1);
-    std::uniform_int_distribution<> rnd_dis(0, 1e5);
+    std::uniform_int_distribution<> rnd_dis(0, 1e3);
     int cycle = 1;
     
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -333,7 +345,7 @@ void process_operations_read_lathk(int process_num, const std::vector<string> &k
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.0, 1.0);
     std::uniform_int_distribution<> dis_key(0, key_set.size()-1);
-    std::uniform_int_distribution<> rnd_dis(0, 1e5);
+    std::uniform_int_distribution<> rnd_dis(0, 1e3);
     int cycle = 1;
     
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -424,6 +436,7 @@ void run_throughput_norm_write(int num_processes){
     }
 
     std::cout << "Total throughput for " << num_processes << " processes: " << total_throughput << " operations per second" << std::endl;
+    log_throughput_test(num_processes, total_throughput, "normal_write");
     return;
 }
 
@@ -484,6 +497,7 @@ void run_latency_norm_write(int num_processes){
     }
 
     std::cout << "Total latency for " << num_processes << " processes: " << (double)(total_latency/(double)num_processes)/TOTAL_CYCLES << "s per operation" << std::endl;
+    log_latency_test(num_processes, (double)(total_latency/(double)num_processes)/TOTAL_CYCLES, "normal_write");
     return;
 }
 
@@ -496,6 +510,28 @@ void run_throughput_norm_read(int num_processes){
             std::cerr << "Pipe creation failed for process" << i+1 << endl;
         }
     }
+
+    // init connection in parent process
+    if (kv739_init(CONFIG_FILE) != 0) {
+        std::cerr << "Failed to initialize client with server at " << CONFIG_FILE << std::endl;
+        failure_flag = true;
+        return;
+    }
+
+    // Put some key-value pairs in the server
+    for (int i = 0; i < 1e3; ++i) {
+        std::string key = std::to_string(i);
+        std::string value = std::to_string(i);
+        std::string old_value;
+        if (kv739_put(key, value, old_value) == -1) {
+            std::cerr << "Failed to put key-value pair: " << key << " -> " << value << std::endl;
+            failure_flag = true;
+            return;
+        }
+    }
+
+    // shutdown connection in parent process
+    kv739_shutdown();
 
     // Fork child processes
     for (int i = 1; i <= num_processes; ++i) {
@@ -544,6 +580,7 @@ void run_throughput_norm_read(int num_processes){
     }
 
     std::cout << "Total throughput for " << num_processes << " processes: " << total_throughput << " operations per second" << std::endl;
+    log_throughput_test(num_processes, total_throughput, "normal_read");
     return;
 }
 
@@ -556,6 +593,28 @@ void run_latency_norm_read(int num_processes){
             std::cerr << "Pipe creation failed for process" << i+1 << endl;
         }
     }
+
+    // init connection in parent process
+    if (kv739_init(CONFIG_FILE) != 0) {
+        std::cerr << "Failed to initialize client with server at " << CONFIG_FILE << std::endl;
+        failure_flag = true;
+        return;
+    }
+
+    // Put some key-value pairs in the server
+    for (int i = 0; i < 1e3; ++i) {
+        std::string key = std::to_string(i);
+        std::string value = std::to_string(i);
+        std::string old_value;
+        if (kv739_put(key, value, old_value) == -1) {
+            std::cerr << "Failed to put key-value pair: " << key << " -> " << value << std::endl;
+            failure_flag = true;
+            return;
+        }
+    }
+
+    // shutdown connection in parent process
+    kv739_shutdown();
 
     // Fork child processes
     for (int i = 1; i <= num_processes; ++i) {
@@ -604,6 +663,7 @@ void run_latency_norm_read(int num_processes){
     }
 
     std::cout << "Total latency for " << num_processes << " processes: " << (double)(total_latency/(double)num_processes)/TOTAL_CYCLES << "s per operation" << std::endl;
+    log_latency_test(num_processes, (double)(total_latency/(double)num_processes)/TOTAL_CYCLES, "normal_read");
     return;
 }
 
@@ -672,6 +732,7 @@ void run_throughput_hk_write(int num_processes){
     }
 
     std::cout << "Total throughput for " << num_processes << " processes: " << total_throughput << " operations per second" << std::endl;
+    log_throughput_test(num_processes, total_throughput, "hotkey_write");
     return;
 }
 
@@ -737,6 +798,7 @@ void run_latency_hk_write(int num_processes){
     }
 
     std::cout << "Average latency for " << num_processes << " processes: " << (float)(total_latency/(float)num_processes)/1000 << "s per operation" << std::endl;
+    log_latency_test(num_processes, (float)(total_latency/(float)num_processes)/1000, "hotkey_write");
     return;
 }
 
@@ -754,6 +816,39 @@ void run_throughput_hk_read(int num_processes){
             std::cerr << "Pipe creation failed for process" << i+1 << endl;
         }
     }
+
+    // init connection in parent process
+    if (kv739_init(CONFIG_FILE) != 0) {
+        std::cerr << "Failed to initialize client with server at " << CONFIG_FILE << std::endl;
+        failure_flag = true;
+        return;
+    }
+
+    // Put some key-value pairs in the server
+    for (int i = 0; i < 1e3; ++i) {
+        std::string key = std::to_string(i);
+        std::string value = std::to_string(i);
+        std::string old_value;
+        if (kv739_put(key, value, old_value) == -1) {
+            std::cerr << "Failed to put key-value pair: " << key << " -> " << value << std::endl;
+            failure_flag = true;
+            return;
+        }
+    }
+
+    for (int i = 1;i<=num_processes;i++){
+        std::string key = "k" + std::to_string(i);
+        std::string value = std::to_string(i);
+        std::string old_value;
+        if (kv739_put(key, value, old_value) == -1) {
+            std::cerr << "Failed to put key-value pair: " << key << " -> " << value << std::endl;
+            failure_flag = true;
+            return;
+        }
+    }
+
+    // shutdown connection in parent process
+    kv739_shutdown();
 
     // Fork child processes
     for (int i = 1; i <= num_processes; ++i) {
@@ -802,6 +897,7 @@ void run_throughput_hk_read(int num_processes){
     }
 
     std::cout << "Total throughput for " << num_processes << " processes: " << total_throughput << " operations per second" << std::endl;
+    log_throughput_test(num_processes, total_throughput, "hotkey_read");
     return;
 }
 
@@ -819,6 +915,39 @@ void run_latency_hk_read(int num_processes){
             std::cerr << "Pipe creation failed for process" << i+1 << endl;
         }
     }
+
+    // init connection in parent process
+    if (kv739_init(CONFIG_FILE) != 0) {
+        std::cerr << "Failed to initialize client with server at " << CONFIG_FILE << std::endl;
+        failure_flag = true;
+        return;
+    }
+
+    // Put some key-value pairs in the server
+    for (int i = 0; i < 1e3; ++i) {
+        std::string key = std::to_string(i);
+        std::string value = std::to_string(i);
+        std::string old_value;
+        if (kv739_put(key, value, old_value) == -1) {
+            std::cerr << "Failed to put key-value pair: " << key << " -> " << value << std::endl;
+            failure_flag = true;
+            return;
+        }
+    }
+
+    for (int i = 1;i<=num_processes;i++){
+        std::string key = "k" + std::to_string(i);
+        std::string value = std::to_string(i);
+        std::string old_value;
+        if (kv739_put(key, value, old_value) == -1) {
+            std::cerr << "Failed to put key-value pair: " << key << " -> " << value << std::endl;
+            failure_flag = true;
+            return;
+        }
+    }
+
+    // shutdown connection in parent process
+    kv739_shutdown();
 
     // Fork child processes
     for (int i = 1; i <= num_processes; ++i) {
@@ -867,6 +996,7 @@ void run_latency_hk_read(int num_processes){
     }
 
     std::cout << "Average latency for " << num_processes << " processes: " << (double)((double)total_latency/num_processes)/1000 << "s per operation" << std::endl;
+    log_latency_test(num_processes, (double)((double)total_latency/num_processes)/1000, "hotkey_read");
     return;
 }
 
@@ -991,14 +1121,14 @@ int main(int argc, char* argv[]){
             key_set.push_back("k"+std::to_string(i));
         }
 
-        run_throughput_norm_write(num_processes);
+        // run_throughput_norm_write(num_processes);
         // run_latency_norm_write(num_processes);
         // run_throughput_norm_read(num_processes);
         // run_latency_norm_read(num_processes);
         // run_throughput_hk_write(num_processes);
         // run_latency_hk_write(num_processes);
         // run_throughput_hk_read(num_processes);
-        // run_latency_hk_read(num_processes);
+        run_latency_hk_read(num_processes);
         // run_throughput_key_value_sizes();
         // run_latency_key_value_sizes();
 

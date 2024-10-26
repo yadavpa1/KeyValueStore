@@ -82,6 +82,9 @@ int main(int argc, char** argv) {
     int group_size = 5;
     int num_groups = host_list.size() / group_size;
 
+    std::cout << "WELCOME TO CLUSTER CREW STORAGE SERVICES" << std::endl;
+    std::cout << "Please wait while we initialize the server clusters..." << std::endl;
+
     for (int group_index = 0; group_index < num_groups; group_index++) {
         std::vector<std::string> raft_group;
 
@@ -113,6 +116,11 @@ int main(int argc, char** argv) {
             std::cout << "Server " << raft_group[local_server_id] << " started with pid: " << pid << std::endl;
         }
     }
+
+    // Add a delay to allow the servers to start
+    std::this_thread::sleep_for(std::chrono::seconds(10));
+    std::cout << "Initialization complete. Thank you for waiting🤗" << std::endl;
+    std::cout << "All our servers are up and running!" << std::endl;
 
     // Parent process waits for all child processes to finish
     while (wait(nullptr) > 0);

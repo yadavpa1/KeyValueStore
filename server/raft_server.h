@@ -6,10 +6,14 @@
 #include <mutex>
 #include <atomic>
 #include <chrono>
-#include <queue>
+#include <iostream>
 #include <thread>
-#include <condition_variable>
-#include <functional>
+#include <grpcpp/grpcpp.h>
+#include <chrono>
+#include <csignal>
+#include <sys/time.h>
+#include <cerrno>
+#include <fstream>
 
 // GRPC includes
 #include <grpc/grpc.h>
@@ -21,6 +25,7 @@
 
 // RocksDB wrapper
 #include "rocksdb_wrapper.h"
+#include "thread_pool.h"
 
 using grpc::Status;
 using grpc::Server;
@@ -31,8 +36,9 @@ using keyvaluestore::AppendEntriesRequest;
 using keyvaluestore::AppendEntriesResponse;
 using keyvaluestore::RequestVoteRequest;
 using keyvaluestore::RequestVoteResponse;
-using keyvaluestore::HeartbeatRequest;
-using keyvaluestore::HeartbeatResponse;
+using grpc::Status;
+using grpc::ServerBuilder;
+using grpc::ServerContext;
 
 using keyvaluestore::InitRequest;
 using keyvaluestore::InitResponse;
@@ -44,26 +50,6 @@ using keyvaluestore::ShutdownRequest;
 using keyvaluestore::ShutdownResponse;
 using keyvaluestore::DieRequest;
 using keyvaluestore::DieResponse;
-
-// Simple ThreadPool class for asynchronous tasks
-class ThreadPool {
-public:
-    ThreadPool(size_t num_threads);
-    ~ThreadPool();
-
-    // Add a task to the queue
-    void enqueue(std::function<void()> task);
-
-private:
-    std::vector<std::thread> workers;
-    std::queue<std::function<void()>> tasks;
-
-    std::mutex queue_mutex;
-    std::condition_variable condition;
-    bool stop;
-
-    void worker_thread();
-};
 
 // Enum representing the state of a Raft node
 enum class RaftState { 
@@ -138,11 +124,6 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
             RequestVoteResponse* response
         ) override;
 
-        Status Heartbeat(
-            ServerContext* context,
-            const HeartbeatRequest* request,
-            HeartbeatResponse* response
-        ) override;
         // Raft operations
         void StartElection();
         void BecomeLeader();

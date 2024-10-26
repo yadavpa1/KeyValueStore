@@ -143,6 +143,7 @@ int kv739_init(const std::string &file_name) {
     }
 
     // Initialize connection by selecting the first node of each partition
+    int successful_init = 0;
     for (int partition_id = 0; partition_id < num_partitions; partition_id++) {
         leader_addresses_[partition_id] = partition_instances_[partition_id][0];  // Assume first node in partition group is the leader
         std::string leader_address = leader_addresses_[partition_id];
@@ -161,18 +162,22 @@ int kv739_init(const std::string &file_name) {
         Status status = RetryRequest(partition_id, init_request, &init_response, &KeyValueStore::Stub::Init);
         if (status.ok()) {
             if (init_response.success()) {
-                std::cout << "Successfully initialized connection to leader at " << leader_addresses_[partition_id] << " for partition " << partition_id << std::endl;
+                successful_init++;
             } else {
-                std::cerr << "Failed to initialize connection to leader at " << leader_addresses_[partition_id] << " for partition " << partition_id << std::endl;
                 return -1;
             }
         }
     }
 
-    return 0;
+    if (successful_init == num_partitions) {
+        return 0;
+    }
+
+    return -1;
 }
 
 int kv739_shutdown() {
+    int shutdown_success = 0;
     for (int partition_id = 0; partition_id < num_partitions; partition_id++) {
         ClientContext context;
         ShutdownRequest request;
@@ -180,9 +185,9 @@ int kv739_shutdown() {
 
         Status status = stubs_[partition_id]->Shutdown(&context, request, &response);
         if (status.ok() && response.success()) {
-            std::cout << "Shutdown successful for Raft leader of partition " << partition_id << std::endl;
+            shutdown_success++;
         } else {
-            std::cerr << "Error: Failed to receive shutdown response from partition " << partition_id << std::endl;
+            std::cerr << "Error: Failed to receive shutdown response from server " << std::endl;
         }
 
         // Clean up connection
@@ -191,7 +196,10 @@ int kv739_shutdown() {
             channels_.erase(partition_id);
         }
     }
-    return 0;
+    if (shutdown_success == num_partitions) {
+        return 0;
+    }
+    return -1;
 }
 
 int kv739_get(const std::string &key, std::string &value) {
@@ -232,6 +240,7 @@ int kv739_put(const std::string &key, const std::string &value, std::string &old
     }
 
     ClientContext context;
+    context.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(10000));
     PutRequest put_request;
     put_request.set_key(key);
     put_request.set_value(value);
@@ -241,10 +250,10 @@ int kv739_put(const std::string &key, const std::string &value, std::string &old
     if (status.ok()) {
         if (put_response.key_found()) {
             old_value = put_response.old_value();
-            std::cout << "Put operation successful. Old value for key: '" << key << "' was: '" << old_value << "'." << std::endl;
+            // std::cout << "Put operation successful. Old value for key: '" << key << "' was: '" << old_value << "'." << std::endl;
             return 0;
         } else {
-            std::cout << "Put operation successful. No old value existed for key: '" << key << "'." << std::endl;
+            // std::cout << "Put operation successful. No old value existed for key: '" << key << "'." << std::endl;
             return 1;
         }
     }
@@ -308,10 +317,10 @@ int kv739_die(const std::string &server_name, int clean) {
 
     // Check if the server successfully initiated termination
     if (die_response.success()) {
-        std::cout << "Server '" << server_addr << "' successfully initiated termination." << std::endl;
+        // std::cout << "Server '" << server_addr << "' successfully initiated termination." << std::endl;
         return 0;
     } else {
-        std::cerr << "Error: Server failed to initiate termination." << std::endl;
+        // std::cerr << "Error: Server failed to initiate termination." << std::endl;
         return -1;
     }
 }

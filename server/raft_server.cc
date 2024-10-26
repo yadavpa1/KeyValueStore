@@ -1,61 +1,8 @@
 #include "raft_server.h"
-#include <iostream>
-#include <thread>
-#include <atomic>
-#include <grpcpp/grpcpp.h>
-#include <chrono>
-#include <csignal>
-#include <sys/time.h>
-#include <cerrno>
-#include <fstream>
-
-
-using grpc::Status;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
 
 const int RaftServer::min_election_timeout = 1000;
 const int RaftServer::max_election_timeout = 2000;
 const int RaftServer::heartbeat_interval = 100;
-
-ThreadPool::ThreadPool(size_t num_threads) : stop(false) {
-    for (size_t i = 0; i < num_threads; ++i) {
-        workers.emplace_back([this]() { this->worker_thread(); });
-    }
-}
-
-ThreadPool::~ThreadPool() {
-    {
-        std::lock_guard<std::mutex> lock(queue_mutex);
-        stop = true;
-    }
-    condition.notify_all();
-    for (std::thread& worker : workers) {
-        worker.join();
-    }
-}
-
-void ThreadPool::enqueue(std::function<void()> task) {
-    {
-        std::lock_guard<std::mutex> lock(queue_mutex);
-        tasks.push(task);
-    }
-    condition.notify_one();
-}
-
-void ThreadPool::worker_thread() {
-    while (true) {
-        std::function<void()> task;
-        {
-            std::unique_lock<std::mutex> lock(this->queue_mutex);
-            this->condition.wait(lock, [this]() { return this->stop || !this->tasks.empty(); });
-            if (this->stop && this->tasks.empty()) return;
-            task = std::move(this->tasks.front());
-            this->tasks.pop();
-        }
-        task();
-    }
-}
 
 RaftServer* alarm_handler_server;
 
@@ -488,36 +435,6 @@ Status RaftServer::RequestVote(
     return Status::OK;
 }
 
-Status RaftServer::Heartbeat(
-    ServerContext* context,
-    const HeartbeatRequest* request,
-    HeartbeatResponse* response
-) {
-    std::lock_guard<std::mutex> lock(state_mutex);
-    response->set_term(current_term);
-    response->set_success(false);
-
-    // If the heartbeat's term is less than ours, reject it
-    if (request->term() < current_term) {
-        return Status::OK;
-    }
-
-    // If the heartbeat's term is higher, update our term and become a follower
-    if (request->term() > current_term) {
-        current_term = request->term();
-        BecomeFollower(request->leader_id());
-
-        // Persist the updated term and follower state
-        PersistRaftState();
-    }
-
-    // Reset the election timeout when we receive a valid heartbeat
-    ResetElectionTimeout();
-    response->set_success(true);
-
-    return Status::OK;
-}
-
 void RaftServer::BecomeFollower(int leader_id) {
     current_leader = leader_id;
     state = RaftState::FOLLOWER;
@@ -570,7 +487,7 @@ void RaftServer::BecomeLeader() {
     next_index.assign(host_list.size(), raft_log.size());
     match_index.assign(host_list.size(), -1);
 
-    std::cout << "Server " << host_list[server_id] << " became the leader" << std::endl;
+    // std::cout << "Server " << host_list[server_id] << " became the leader" << std::endl;
     SendHeartbeat();
     SetElectionAlarm(heartbeat_interval);
 }

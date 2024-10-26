@@ -3,3 +3,5 @@ cmake
 build
 grpc
 vcpkg
+ClusteredCrew_presents_CrewDB
+data
