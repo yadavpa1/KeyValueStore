@@ -8,8 +8,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/common.cmake")
 find_package(absl CONFIG REQUIRED)
 
 # Find RocksDB
-find_package(RocksDB CONFIG REQUIRED)
-message(STATUS "RocksDB found at: ${ROCKSDB_LIB}")
+find_library(ROCKSDB_LIB rocksdb REQUIRED)
 
 # Proto file
 get_filename_component(kvs_proto "./proto/keyvaluestore.proto" ABSOLUTE)
@@ -57,8 +56,7 @@ target_link_libraries(kvs_grpc_proto
 add_library(rocksdb_wrapper
   server/rocksdb_wrapper.cc)
 target_link_libraries(rocksdb_wrapper
-  RocksDB::rocksdb 
-  -static-libstdc++ -static-libgcc)
+  ${ROCKSDB_LIB} -static-libstdc++ -static-libgcc)
 
 # Set compiler flags for position-independent code (PIC) for building shared libraries
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")

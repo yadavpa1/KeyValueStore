@@ -87,12 +87,10 @@ RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list,
       current_leader(-1),
       thread_pool(4),
       db_(db_path, cache_size),
-      raft_log_db_(raft_log_db_path, cache_size),
-      snapshot_path(db_path + "_snapshot")
+      raft_log_db_(raft_log_db_path, cache_size)
 {
-    // Load persisted Raft state from the Raft log database and snapshot file
+    // Load persisted Raft state from the Raft log database
     LoadRaftState();
-    RestoreSnapshot();
 
     StartPersistenceThread();
     
@@ -144,7 +142,7 @@ void RaftServer::HandlePersistenceTasks() {
 }
 
 void RaftServer::LoadRaftState() {
-    std::string term_str, voted_for_str, commit_index_str;
+    std::string term_str, voted_for_str, log_size_str, commit_index_str;
 
     // Load current term
     if (raft_log_db_.Get("current_term", term_str)) {
@@ -230,70 +228,6 @@ void RaftServer::PersistRaftStateInBackground(const AppendEntriesRequest* reques
     });
 }
 
-void RaftServer::CreateSnapshot() {
-    std::lock_guard<std::mutex> lock(snapshot_mutex);
-
-    std::ofstream snapshot_file(snapshot_path, std::ios::binary);
-    if (!snapshot_file.is_open()) {
-        std::cerr << "Failed to create snapshot file" << std::endl;
-        return;
-    }
-
-    // Write snapshot metadata (index and term of last log entry included in snapshot)
-    snapshot_file.write(reinterpret_cast<const char*>(&last_snapshot_index), sizeof(last_snapshot_index));
-    snapshot_file.write(reinterpret_cast<const char*>(&last_snapshot_term), sizeof(last_snapshot_term));
-
-    // Serialize the database state up to the commit index
-    std::string serialized_state = db_.SerializeStateUpTo(commit_index);
-    snapshot_file.write(serialized_state.data(), serialized_state.size());
-
-    // Update snapshot metadata post-creation for consistency
-    last_snapshot_index = commit_index;
-    last_snapshot_term = current_term;
-
-    snapshot_file.close();
-    TruncateLog();
-}
-
-
-void RaftServer::RestoreSnapshot() {
-    std::ifstream snapshot_file(snapshot_path, std::ios::binary);
-    if (!snapshot_file.is_open()) {
-        return; // No snapshot exists
-    }
-
-    // Read snapshot metadata (last index and term)
-    snapshot_file.read(reinterpret_cast<char*>(&last_snapshot_index), sizeof(last_snapshot_index));
-    snapshot_file.read(reinterpret_cast<char*>(&last_snapshot_term), sizeof(last_snapshot_term));
-
-    // Restore state from snapshot
-    std::string snapshot_data((std::istreambuf_iterator<char>(snapshot_file)), std::istreambuf_iterator<char>());
-    db_.DeserializeState(snapshot_data);
-
-    snapshot_file.close();
-}
-
-
-void RaftServer::TruncateLog() {
-    std::lock_guard<std::mutex> lock(state_mutex);
-    if (last_snapshot_index >= 0) {
-        raft_log.erase(raft_log.begin(), raft_log.begin() + last_snapshot_index + 1);
-    }
-
-    EnqueuePersistenceTask([this]() {
-        rocksdb::WriteBatch batch;
-        for (size_t i = 0; i < raft_log.size(); ++i) {
-            batch.Put("log_" + std::to_string(i), serializeLogEntry(raft_log[i]));
-        }
-
-        // Persist truncated log entries
-        rocksdb::Status status = raft_log_db_.Write(rocksdb::WriteOptions(), &batch);
-        if (!status.ok()) {
-            std::cerr << "Failed to persist truncated log: " << status.ToString() << std::endl;
-        }
-    });
-}
-
 void RaftServer::Run() {
     signal(SIGALRM, &SignalHandler);
     alarm_handler_server = this;
@@ -319,21 +253,10 @@ void RaftServer::Run() {
 
     ResetElectionTimeout();
  
-    if(server_id == 0) {
+    if(server_id == 0){
         std::thread(&RaftServer::StartElection, this).detach();
     }
     SetElectionAlarm(election_timeout);
-
-    // Start a thread for periodic snapshot creation
-    std::thread([this]() {
-        while (true) {
-            std::this_thread::sleep_for(std::chrono::minutes(5)); // Adjust the frequency as needed
-            if (commit_index - last_snapshot_index >= 100) { // Snapshot every 100 log entries or so
-                CreateSnapshot();
-            }
-        }
-    }).detach();
-
     server->Wait();
 }
 
@@ -366,46 +289,33 @@ Status RaftServer::AppendEntries(
         PersistRaftState();
     }
 
-    // Reset the election timeout whenever a valid AppendEntries RPC is received
     SetElectionAlarm(election_timeout);
 
-    // Step 3: Check if the follower’s log is too far behind (snapshot required)
-    if (request->prev_log_index() < last_snapshot_index) {
-        std::lock_guard<std::mutex> snapshot_lock(snapshot_mutex);
-        response->set_is_snapshot(true);
-        response->set_snapshot_index(last_snapshot_index);
-        response->set_snapshot_term(last_snapshot_term);
-
-        // Read the snapshot file and set snapshot data in the response
-        std::ifstream snapshot_file(snapshot_path, std::ios::binary);
-        if (!snapshot_file.is_open()) {
-            return Status::CANCELLED;
+    // Step 3: Check if the previous log index is out of bounds or the log is empty
+    if (raft_log.empty()) {
+        // If the log is empty, ensure that prev_log_index is -1 (indicating no prior logs)
+        if (request->prev_log_index() != -1) {
+            return Status::OK;  // Mismatch: follower's log is empty, but prev_log_index isn't -1
         }
-
-        std::string snapshot_data((std::istreambuf_iterator<char>(snapshot_file)), std::istreambuf_iterator<char>());
-        response->set_snapshot_data(snapshot_data);
-
-        return Status::OK;
+    } else {
+        // If the log is not empty, ensure the prev_log_index is valid
+        if (request->prev_log_index() >= raft_log.size() || 
+            (request->prev_log_index() != -1 && raft_log[request->prev_log_index()].term() != request->prev_log_term())) {
+            return Status::OK;  // Mismatch between the log's term and the request's prev_log_term
+        }
     }
 
-    // Step 4: Check log consistency for entries after last_snapshot_index
-    if (request->prev_log_index() >= last_snapshot_index && 
-        (request->prev_log_index() >= raft_log.size() || 
-        (request->prev_log_index() != -1 && raft_log[request->prev_log_index()].term() != request->prev_log_term()))) {
-        return Status::OK;
-    }
-
-    // Step 5: Remove conflicting entries after snapshot if any
+    // Step 4: Remove conflicting entries in the follower's log, if necessary
     if (request->prev_log_index() != -1 && request->prev_log_index() < raft_log.size() - 1) {
         raft_log.resize(request->prev_log_index() + 1);
     }
 
-    // Step 6: Append new log entries from the leader
+    // Step 5: Append new log entries from the leader
     for (const auto& entry : request->entries()) {
         raft_log.push_back(entry);
     }
 
-    // Step 7: Update commit index and apply to the state machine
+    // Step 6: Update commit index and apply to the state machine
     if (request->leader_commit() > commit_index) {
         commit_index = std::min(request->leader_commit(), static_cast<int64_t>(raft_log.size() - 1));
         PersistRaftStateInBackground(request);
@@ -414,21 +324,22 @@ Status RaftServer::AppendEntries(
         while (last_applied < commit_index) {
             last_applied++;
             std::string old_value;
-            // Apply the committed log entries to the state machine
+            // Apply the log entry to the state machine
             // std::cout << "Applying log entry: " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
             db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
         }
 
     } else {
-        // Persist state if no commit index update
+        // Write the batch to RocksDB
         PersistRaftStateInBackground(request);
     }
 
-    // Step 8: Update the current leader and reset the election timeout
     current_leader = request->leader_id();
+
+    // Step 7: Reset the election timeout
     ResetElectionTimeout();
 
-    // Step 9: Set success to true and return
+    // Step 8: Set success to true and return
     response->set_success(true);
     return Status::OK;
 }
@@ -462,17 +373,13 @@ Status RaftServer::RequestVote(
     
     // Check if the candidate's log is at least as up-to-date as ours
     bool log_ok = false;
-    if (request->last_log_index() >= last_snapshot_index) {
-       // Check if the candidate's log index is at least as recent as the last snapshot
-        if (raft_log.empty()) {
+    if (raft_log.empty()) {
+        log_ok = true;
+    } else {
+        if (request->last_log_term() > raft_log.back().term()) {
             log_ok = true;
-        } else {
-            // If the candidate's last log term is greater, their log is up-to-date
-            if (request->last_log_term() > raft_log.back().term()) {
-                log_ok = true;
-            } else if (request->last_log_term() == raft_log.back().term() && request->last_log_index() >= raft_log.size() - 1) {
-                log_ok = true;
-            }
+        } else if (request->last_log_term() == raft_log.back().term() && request->last_log_index() >= raft_log.size() - 1) {
+            log_ok = true;
         }
     }
 
@@ -522,11 +429,6 @@ void RaftServer::BecomeFollower(int leader_id) {
     current_leader = leader_id;
     state = RaftState::FOLLOWER;
     voted_for = -1;
-
-    // Reset last_applied to the snapshot index if needed
-    if (last_applied < last_snapshot_index) {
-        last_applied = last_snapshot_index;
-    }
 
     // Persist the new follower state and reset the voted_for field
     PersistRaftState();

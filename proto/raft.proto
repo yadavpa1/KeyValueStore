@@ -1,67 +1,16 @@
 syntax = "proto3";
 
-package keyvaluestore;
+package raft;
 
-service Raft {
+// Raft service for internal node communication
+service RaftService {
+    // Raft RPCs for leader election, log replication, and heartbeats
     rpc RequestVote(RequestVoteRequest) returns (RequestVoteResponse);
     rpc AppendEntries(AppendEntriesRequest) returns (AppendEntriesResponse);
     rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
 }
 
-service KeyValueStore {
-    rpc Init(InitRequest) returns (InitResponse);
-    rpc Get(GetRequest) returns (GetResponse);
-    rpc Put(PutRequest) returns (PutResponse);
-    rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
-    rpc Die(DieRequest) returns (DieResponse);
-}
-
-message InitRequest {
-    string server_name = 1;
-}
-
-message InitResponse {
-    bool success = 1;
-    string leader_server = 2;
-}
-
-message GetRequest {
-    string key = 1;
-}
-
-message GetResponse {
-    string value = 1;
-    bool key_found = 2;
-    string leader_server = 3;
-}
-
-message PutRequest {
-    string key = 1;
-    string value = 2;
-}
-
-message PutResponse {
-    string old_value = 1;
-    bool key_found = 2;
-    string leader_server = 3;
-}
-
-message ShutdownRequest {}
-
-message ShutdownResponse {
-    bool success = 1;
-}
-
-message DieRequest {
-    string server_name = 1;  // The server name in "host:port" format
-    bool clean = 2;          // 1 for clean shutdown, 0 for immediate exit
-}
-
-message DieResponse {
-    bool success = 1;        // True if the server successfully initiated termination
-}
-
-
+// Raft RPC messages for leader election
 message RequestVoteRequest {
     int64 term = 1;                   // The candidate's current term
     int64 candidate_id = 2;           // The candidate's ID
@@ -97,7 +46,6 @@ message HeartbeatRequest {
 
 message HeartbeatResponse {
     int64 term = 1;                   // The current term of the follower
-    bool success = 2;                 // True if the heartbeat was accepted
 }
 
 // Log entries for Raft log replication

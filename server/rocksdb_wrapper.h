@@ -2,8 +2,6 @@
 #define ROCKSDB_WRAPPER_H
 
 #include <string>
-#include <vector>
-#include <memory>
 #include <rocksdb/db.h>
 #include <rocksdb/utilities/transaction.h>
 #include <rocksdb/utilities/transaction_db.h>
@@ -26,12 +24,6 @@ public:
     rocksdb::Status Write(const rocksdb::WriteOptions &options, rocksdb::WriteBatch *batch);
 
     bool LoadLogEntries(const std::string &prefix, std::vector<std::string> &entries) const;
-
-    // Serialize the database state up to a given commit index for snapshot creation.
-    std::string SerializeStateUpTo(int64_t commit_index) const;
-
-    // Deserialize a snapshot back into the database.
-    bool DeserializeState(const std::string &snapshot_data);
 
     // Create a snapshot for isolation.
     const rocksdb::Snapshot *GetSnapshot() const;
