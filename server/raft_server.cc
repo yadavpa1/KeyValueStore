@@ -117,9 +117,6 @@ void RaftServer::LoadRaftState() {
             raft_log.push_back(deserializeLogEntry(entry_str));
         }
     }
-
-    // std::cout << "Loaded Raft state: term=" << current_term << ", voted_for=" << voted_for 
-    //           << ", log_size=" << raft_log.size() << std::endl;
 }
 
 void RaftServer::PersistRaftState() {
@@ -617,15 +614,7 @@ Status RaftServer::Init(
     ServerContext* context,
     const InitRequest* request,
     InitResponse* response
-){  
-
-    // print current leader
-    // if(current_leader != -1){
-    //     std::cout << "Current leader at server side: " << host_list[current_leader] << std::endl;
-    // } else {
-    //     std::cout << "Current leader: None" << std::endl;
-    // }
-
+){
     if(state != RaftState::LEADER){
         response->set_success(false);
         if(current_leader != -1){
@@ -721,14 +710,6 @@ Status RaftServer::Put(
         if (replicated_count >= majority_count) {
             break;
         }
-
-        // Check if the polling has timed out
-        // auto elapsed_time = std::chrono::steady_clock::now() - start_time;
-        // if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() > timeout_ms) {
-        //     std::cerr << "Put operation timed out while waiting for majority replication." << std::endl;
-        //     response->set_key_found(false);
-        //     return Status::CANCELLED;
-        // }
 
         // Sleep for the polling interval before checking again
         std::this_thread::sleep_for(std::chrono::milliseconds(poll_interval_ms));
