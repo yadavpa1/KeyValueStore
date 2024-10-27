@@ -94,6 +94,17 @@ target_link_libraries(distributed_keyvaluestore
   absl::log_globals
 )
 
+add_executable(restart_server
+server/restart_server.cc
+server/raft_server.cc)
+target_link_libraries(restart_server
+  kvs_grpc_proto
+  rocksdb_wrapper
+  absl::flags_parse
+  absl::log_initialize
+  absl::log_globals
+)
+
 # Targets Tests [correctenss, performance, reliability]
 # List of test executables
 set(TEST_EXECUTABLES
