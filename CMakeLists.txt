@@ -65,7 +65,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 # Create shared library lib739kv.so from lib739kv.cc and #lib739kv.h
 add_library(739kv SHARED
- client/lib739kv.cc)
+ client/lib739kv.cc
+ client/consistent_hashing.cc
+)
 target_link_libraries(739kv
  kvs_grpc_proto
  absl::flags_parse
