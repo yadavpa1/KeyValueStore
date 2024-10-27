@@ -87,6 +87,7 @@ target_link_libraries(keyvaluestore_client
 add_executable(distributed_keyvaluestore
   server/distributed_keyvaluestore.cc  # New file where main() resides
   server/raft_server.cc                # Raft server functionality
+  server/thread_pool.cc                # Thread pool for handling requests
 )
 target_link_libraries(distributed_keyvaluestore
   kvs_grpc_proto
@@ -97,8 +98,10 @@ target_link_libraries(distributed_keyvaluestore
 )
 
 add_executable(restart_server
-server/restart_server.cc
-server/raft_server.cc)
+  server/restart_server.cc
+  server/raft_server.cc
+  server/thread_pool.cc
+)
 target_link_libraries(restart_server
   kvs_grpc_proto
   rocksdb_wrapper
