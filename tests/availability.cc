@@ -310,13 +310,14 @@ int main(int argc, char* argv[]) {
         std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
         return 1;
     }
-    num_partitions = 20;
-    int keys_to_test = 1000;
+    num_partitions = 4;
+    int keys_to_test = 100;
     // srand(time(0));
     // Run availability test with server list from the provided config file
     // test_availability_with_failures_of_leaders(argv[1]);
 
     srand(time(0));
+    //test_availability_with_failures_of_leaders(argv[1], keys_to_test);
     test_availability_with_failures(argv[1], keys_to_test);
 
     return 0;

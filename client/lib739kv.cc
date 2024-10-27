@@ -31,7 +31,7 @@ std::map<int, std::unique_ptr<KeyValueStore::Stub>> stubs_; // Stub for each Raf
 std::map<int, std::string> leader_addresses_;  // Maps partition IDs to current leader addresses
 std::map<int, std::vector<std::string>> partition_instances_;  // Maps partition IDs to list of nodes
 
-const int num_partitions = 20;  // Number of partitions (based on server configuration)
+const int num_partitions = 4;  // Number of partitions (based on server configuration)
 const int nodes_per_partition = 5;  // Number of nodes per partition
 
 std::vector<std::string> service_instances_;  // List of service instances (host:port)
