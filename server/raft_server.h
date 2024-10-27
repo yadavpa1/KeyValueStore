@@ -31,8 +31,6 @@ using keyvaluestore::AppendEntriesRequest;
 using keyvaluestore::AppendEntriesResponse;
 using keyvaluestore::RequestVoteRequest;
 using keyvaluestore::RequestVoteResponse;
-using keyvaluestore::HeartbeatRequest;
-using keyvaluestore::HeartbeatResponse;
 
 using keyvaluestore::InitRequest;
 using keyvaluestore::InitResponse;
@@ -137,11 +135,6 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
             RequestVoteResponse* response
         ) override;
 
-        Status Heartbeat(
-            ServerContext* context,
-            const HeartbeatRequest* request,
-            HeartbeatResponse* response
-        ) override;
         // Raft operations
         void StartElection();
         void BecomeLeader();

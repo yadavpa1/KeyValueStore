@@ -14,9 +14,9 @@ using grpc::Status;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 
-const int RaftServer::min_election_timeout = 1000;
+const int RaftServer::min_election_timeout = 500;
 const int RaftServer::max_election_timeout = 2000;
-const int RaftServer::heartbeat_interval = 100;
+const int RaftServer::heartbeat_interval = 80;
 
 ThreadPool::ThreadPool(size_t num_threads) : stop(false) {
     for (size_t i = 0; i < num_threads; ++i) {
@@ -168,6 +168,9 @@ void RaftServer::LoadRaftState() {
             raft_log.push_back(deserializeLogEntry(entry_str));
         }
     }
+
+    // sleep for 1 second to allow the persistence thread to load the state
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     // std::cout << "Loaded Raft state: term=" << current_term << ", voted_for=" << voted_for 
     //           << ", log_size=" << raft_log.size() << std::endl;
@@ -391,36 +394,6 @@ Status RaftServer::RequestVote(
         // Persist the fact that we voted for this candidate
         PersistRaftState();
     }
-
-    return Status::OK;
-}
-
-Status RaftServer::Heartbeat(
-    ServerContext* context,
-    const HeartbeatRequest* request,
-    HeartbeatResponse* response
-) {
-    std::lock_guard<std::mutex> lock(state_mutex);
-    response->set_term(current_term);
-    response->set_success(false);
-
-    // If the heartbeat's term is less than ours, reject it
-    if (request->term() < current_term) {
-        return Status::OK;
-    }
-
-    // If the heartbeat's term is higher, update our term and become a follower
-    if (request->term() > current_term) {
-        current_term = request->term();
-        BecomeFollower(request->leader_id());
-
-        // Persist the updated term and follower state
-        PersistRaftState();
-    }
-
-    // Reset the election timeout when we receive a valid heartbeat
-    ResetElectionTimeout();
-    response->set_success(true);
 
     return Status::OK;
 }
