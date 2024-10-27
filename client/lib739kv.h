@@ -3,6 +3,10 @@
 
 #include <string>
 #include <vector>
+#include "consistent_hashing.h"
+
+// Consistent hashing object
+extern ConsistentHashing* ch;
 
 int kv739_init(const std::string &config_file);
 

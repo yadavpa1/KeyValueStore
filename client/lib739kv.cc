@@ -31,8 +31,10 @@ std::map<int, std::unique_ptr<KeyValueStore::Stub>> stubs_; // Stub for each Raf
 std::map<int, std::string> leader_addresses_;  // Maps partition IDs to current leader addresses
 std::map<int, std::vector<std::string>> partition_instances_;  // Maps partition IDs to list of nodes
 
-const int num_partitions = 20;  // Number of partitions (based on server configuration)
-const int nodes_per_partition = 5;  // Number of nodes per partition
+int nodes_per_partition = 5;
+int num_partitions;
+
+ConsistentHashing* ch;
 
 std::vector<std::string> service_instances_;  // List of service instances (host:port)
 const int max_retries = 3;
@@ -142,7 +144,14 @@ int kv739_init(const std::string &file_name) {
         return -1;
     }
 
-    // Initialize connection by selecting the first node of each partition
+    // initialize the num_partitions and the consistent hashing object
+    num_partitions = partition_instances_.size();
+    // initialize service instances to be the number of unique keys in the partition_instances_
+    std::vector<std::string> keys(num_partitions);
+    for (int i = 0; i < num_partitions; i++) {
+        keys[i] = std::to_string(i);
+    }
+    ch = new ConsistentHashing(num_partitions, keys);
     int successful_init = 0;
     for (int partition_id = 0; partition_id < num_partitions; partition_id++) {
         leader_addresses_[partition_id] = partition_instances_[partition_id][0];  // Assume first node in partition group is the leader
@@ -203,7 +212,9 @@ int kv739_shutdown() {
 }
 
 int kv739_get(const std::string &key, std::string &value) {
-    int partition_id = HashKey(key);  // Determine partition
+    // Determine partition based on consistent hashing
+    // it will return string so we need to convert it to int
+    int partition_id = std::stoi(ch->GetPartition(key));
 
     if (stubs_.find(partition_id) == stubs_.end()) {
         std::cerr << "Error: Client not initialized. Call kv739_init() first." << std::endl;
@@ -232,7 +243,8 @@ int kv739_get(const std::string &key, std::string &value) {
 }
 
 int kv739_put(const std::string &key, const std::string &value, std::string &old_value) {
-    int partition_id = HashKey(key);  // Determine partition
+    // Determine partition based on consistent hashing
+    int partition_id = std::stoi(ch->GetPartition(key));
 
     if (stubs_.find(partition_id) == stubs_.end()) {
         std::cerr << "Error: Client not initialized. Call kv739_init() first." << std::endl;
