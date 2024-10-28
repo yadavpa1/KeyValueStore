@@ -49,6 +49,9 @@ const int max_retries = 3;
 std::string config_file = "";
 std::string last_modified = "";
 
+// Consistent hashing object to map keys to Raft partitions
+ConsistentHashing *ch;
+
 // Hash function to map keys to Raft partitions
 int HashKey(const std::string &key) {
     std::hash<std::string> hasher;
@@ -111,6 +114,11 @@ bool ReadServiceInstancesFromFile(const std::string &file_name) {
     flock(fd, LOCK_UN);  // Release the shared lock
     close(fd);
     num_partitions = partition_instances_.size();  // Update the number of partitions
+    std::vector<std::string> keys(num_partitions);
+    for(int i = 0; i < num_partitions; i++){
+        keys[i] = std::to_string(i);
+    }
+    ch = new ConsistentHashing(num_partitions, keys);
     return !service_instances_.empty();
 }
 
@@ -300,7 +308,7 @@ int kv739_get(const std::string &key, std::string &value) {
             }
         }
     }
-    int partition_id = HashKey(key);  // Determine partition
+    int partition_id = std::stoi(ch->GetPartition(key));  // Determine partition
 
     if (stubs_.find(partition_id) == stubs_.end()) {
         std::cerr << "Error: Client not initialized. Call kv739_init() first." << std::endl;
@@ -337,7 +345,7 @@ int kv739_put(const std::string &key, const std::string &value, std::string &old
             }
         }
     }
-    int partition_id = HashKey(key);  // Determine partition
+    int partition_id = std::stoi(ch->GetPartition(key));  // Determine partition
 
     if (stubs_.find(partition_id) == stubs_.end()) {
         std::cerr << "Error: Client not initialized. Call kv739_init() first." << std::endl;

@@ -33,6 +33,7 @@ add_custom_command(
 
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/server")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/client")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/tests")
@@ -65,7 +66,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 # Create shared library lib739kv.so from lib739kv.cc and #lib739kv.h
 add_library(739kv SHARED
- client/lib739kv.cc)
+ client/lib739kv.cc
+ common/consistent_hashing.cc
+)
+
 target_link_libraries(739kv
  kvs_grpc_proto
  absl::flags_parse
@@ -85,6 +89,7 @@ target_link_libraries(keyvaluestore_client
 add_executable(distributed_keyvaluestore
   server/distributed_keyvaluestore.cc  # New file where main() resides
   server/raft_server.cc                # Raft server functionality
+  server/thread_pool.cc                # Thread pool implementation
 )
 target_link_libraries(distributed_keyvaluestore
   kvs_grpc_proto
@@ -96,7 +101,9 @@ target_link_libraries(distributed_keyvaluestore
 
 add_executable(restart_server
 server/restart_server.cc
-server/raft_server.cc)
+server/raft_server.cc
+server/thread_pool.cc
+)
 target_link_libraries(restart_server
   kvs_grpc_proto
   rocksdb_wrapper
