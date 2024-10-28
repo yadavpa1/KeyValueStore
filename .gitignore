@@ -3,5 +3,3 @@ cmake
 build
 grpc
 vcpkg
-data/
-ClusteredCrew*

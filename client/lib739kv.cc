@@ -31,13 +31,17 @@ std::map<int, std::unique_ptr<KeyValueStore::Stub>> stubs_; // Stub for each Raf
 std::map<int, std::string> leader_addresses_;  // Maps partition IDs to current leader addresses
 std::map<int, std::vector<std::string>> partition_instances_;  // Maps partition IDs to list of nodes
 
-int num_partitions;
+const int num_partitions = 4;  // Number of partitions (based on server configuration)
 const int nodes_per_partition = 5;  // Number of nodes per partition
-
-ConsistentHashing* ch;
 
 std::vector<std::string> service_instances_;  // List of service instances (host:port)
 const int max_retries = 3;
+
+// Hash function to map keys to Raft partitions
+int HashKey(const std::string &key) {
+    std::hash<std::string> hasher;
+    return hasher(key) % num_partitions;
+}
 
 bool ReadServiceInstancesFromFile(const std::string &file_name) {
     std::ifstream file(file_name);
@@ -67,12 +71,6 @@ bool ReadServiceInstancesFromFile(const std::string &file_name) {
         std::cerr << "Error: Service instance file contains fewer instances than expected." << std::endl;
         return false;
     }
-    num_partitions = partition_instances_.size();
-    std::vector<std::string> keys(num_partitions);
-    for (int i = 0; i < num_partitions; i++) {
-        keys[i] = std::to_string(i);
-    }
-    ch = new ConsistentHashing(num_partitions, keys);
     return !service_instances_.empty();
 }
 
@@ -197,7 +195,7 @@ int kv739_shutdown() {
 }
 
 int kv739_get(const std::string &key, std::string &value) {
-    int partition_id = std::stoi(ch->GetPartition(key));
+    int partition_id = HashKey(key);  // Determine partition
 
     if (stubs_.find(partition_id) == stubs_.end()) {
         std::cerr << "Error: Client not initialized. Call kv739_init() first." << std::endl;
@@ -226,7 +224,7 @@ int kv739_get(const std::string &key, std::string &value) {
 }
 
 int kv739_put(const std::string &key, const std::string &value, std::string &old_value) {
-    int partition_id = std::stoi(ch->GetPartition(key));
+    int partition_id = HashKey(key);  // Determine partition
 
     if (stubs_.find(partition_id) == stubs_.end()) {
         std::cerr << "Error: Client not initialized. Call kv739_init() first." << std::endl;

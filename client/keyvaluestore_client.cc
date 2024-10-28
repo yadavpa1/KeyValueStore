@@ -68,10 +68,6 @@ int main(int argc, char **argv)
                 {
                     std::cerr << "Failed to get value for key: " << key << std::endl;
                 }
-                else
-                {
-                    std::cout << "Retrieved value for key: " << key << " -> " << retrieved_value << std::endl;
-                }
             }
             else
             {
