@@ -14,7 +14,7 @@ using grpc::Status;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 
-const int RaftServer::min_election_timeout = 500;
+const int RaftServer::min_election_timeout = 1000;
 const int RaftServer::max_election_timeout = 2000;
 const int RaftServer::heartbeat_interval = 80;
 

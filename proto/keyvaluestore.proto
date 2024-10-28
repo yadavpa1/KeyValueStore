@@ -13,6 +13,8 @@ service KeyValueStore {
     rpc Put(PutRequest) returns (PutResponse);
     rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
     rpc Die(DieRequest) returns (DieResponse);
+    rpc Start(StartRequest) returns (StartResponse);
+    rpc Leave(LeaveRequest) returns (LeaveResponse);
 }
 
 message InitRequest {
@@ -58,6 +60,24 @@ message DieRequest {
 
 message DieResponse {
     bool success = 1;        // True if the server successfully initiated termination
+}
+
+message StartRequest {
+    string instance_name = 1;  // Instance name in "host:port" format
+    bool new_instance = 2;     // 1 if it's a new instance, 0 if it's recovering
+}
+
+message StartResponse {
+    bool success = 1;          // True if the instance started successfully
+}
+
+message LeaveRequest {
+    string instance_name = 1;  // Instance name in "host:port" format
+    bool clean = 2;            // 1 for clean leave, 0 for immediate removal
+}
+
+message LeaveResponse {
+    bool success = 1;          // True if the instance was removed successfully
 }
 
 

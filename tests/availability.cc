@@ -317,8 +317,8 @@ int main(int argc, char* argv[]) {
     // test_availability_with_failures_of_leaders(argv[1]);
 
     srand(time(0));
-    //test_availability_with_failures_of_leaders(argv[1], keys_to_test);
-    test_availability_with_failures(argv[1], keys_to_test);
+    test_availability_with_failures_of_leaders(argv[1], keys_to_test);
+    //test_availability_with_failures(argv[1], keys_to_test);
 
     return 0;
 }
