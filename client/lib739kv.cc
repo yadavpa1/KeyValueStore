@@ -23,6 +23,10 @@ using keyvaluestore::ShutdownRequest;
 using keyvaluestore::ShutdownResponse;
 using keyvaluestore::DieRequest;
 using keyvaluestore::DieResponse;
+using keyvaluestore::StartRequest;
+using keyvaluestore::StartResponse;
+using keyvaluestore::LeaveRequest;
+using keyvaluestore::LeaveResponse;
 
 // Global variables to hold the gRPC objects
 std::map<int, std::shared_ptr<grpc::Channel>> channels_; // Channel for each Raft node
@@ -313,5 +317,92 @@ int kv739_die(const std::string &server_name, int clean) {
     } else {
         std::cerr << "Error: Server failed to initiate termination." << std::endl;
         return -1;
+    } 
+}
+
+//This logic can be updated to find the best group among multiple possible ones.
+int FindPartition() {
+    for (int partition_id = 0; partition_id < num_partitions; partition_id++) {
+        if (partition_instances_[partition_id].size() < nodes_per_partition) {
+            return partition_id;
+        }
     }
+    return -1;
+}
+
+
+int kv739_start(const std::string &instance_name, int new_instance) {
+    // Find an available partition for the new instance
+    int partition_id = FindPartition();
+    if (partition_id == -1) {
+        std::cerr << "No available partitions for new instance " << instance_name << std::endl;
+        return -1;
+    }
+
+    StartRequest start_request;
+    StartResponse start_response;
+    start_request.set_instance_name(instance_name);
+    start_request.set_new_instance(new_instance == 1);
+
+    // Use RetryRequest to find an available node in the partition to handle the start request
+    Status status = RetryRequest(partition_id, start_request, &start_response, &KeyValueStore::Stub::Start);
+    if (!status.ok() || !start_response.success()) {
+        std::cerr << "Error starting instance " << instance_name << std::endl;
+        return -1;
+    }
+
+    std::cout << "New instance " << instance_name << " has successfully joined partition " << partition_id << std::endl;
+
+    // Update client-side configuration
+    service_instances_.push_back(instance_name);
+    partition_instances_[partition_id].push_back(instance_name);
+
+
+    // Write the updated service instances to file
+    // if (!WriteServiceInstancesToFile("host_list.txt")) {
+    //     std::cerr << "Failed to update host_list.txt" << std::endl;
+    //     return -1;
+    // }
+
+    return 0;
+}
+
+int kv739_leave(const std::string &instance_name, int clean) {
+    // Check if the instance exists in the service instances
+    auto it = std::find(service_instances_.begin(), service_instances_.end(), instance_name);
+    if (it == service_instances_.end()) {
+        std::cerr << "Instance " << instance_name << " not found in service instances" << std::endl;
+        return -1;
+    }
+
+    // Determine the partition ID for this instance
+    int partition_id = HashKey(instance_name);
+
+    LeaveRequest leave_request;
+    LeaveResponse leave_response;
+    leave_request.set_instance_name(instance_name);
+    leave_request.set_clean(clean == 1);
+
+    // Use RetryRequest to find an available node in the partition to handle the leave request
+    Status status = RetryRequest(partition_id, leave_request, &leave_response, &KeyValueStore::Stub::Leave);
+    if (!status.ok() || !leave_response.success()) {
+        std::cerr << "Error removing instance " << instance_name << std::endl;
+        return -1;
+    }
+
+    std::cout << "Instance " << instance_name << " has successfully left partition " << partition_id << std::endl;
+
+    // Update client-side configuration
+    service_instances_.erase(it);
+    for (auto &partition : partition_instances_) {
+        partition.second.erase(std::remove(partition.second.begin(), partition.second.end(), instance_name), partition.second.end());
+    }
+
+    // Write the updated service instances to file
+    // if (!WriteServiceInstancesToFile("host_list.txt")) {
+    //     std::cerr << "Failed to update host_list.txt" << std::endl;
+    //     return -1;
+    // }
+
+    return 0;
 }

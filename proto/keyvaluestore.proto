@@ -69,6 +69,7 @@ message StartRequest {
 
 message StartResponse {
     bool success = 1;          // True if the instance started successfully
+    string leader_server = 2;
 }
 
 message LeaveRequest {
@@ -78,6 +79,7 @@ message LeaveRequest {
 
 message LeaveResponse {
     bool success = 1;          // True if the instance was removed successfully
+    string leader_server = 2;
 }
 
 
