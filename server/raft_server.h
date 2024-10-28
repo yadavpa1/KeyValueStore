@@ -45,6 +45,12 @@ using keyvaluestore::ShutdownResponse;
 using keyvaluestore::DieRequest;
 using keyvaluestore::DieResponse;
 
+using keyvaluestore::GossipRequest;
+using keyvaluestore::GossipResponse;
+using keyvaluestore::KeyTransferRequest;
+using keyvaluestore::KeyTransferResponse;
+using keyvaluestore::KeyValuePair;
+
 enum class RaftState { 
     FOLLOWER,
     CANDIDATE,
@@ -117,6 +123,19 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
             RequestVoteResponse* response
         ) override;
 
+        // Gossip RPCs
+        // Status Gossip(
+        //     ServerContext* context,
+        //     const GossipRequest* request,
+        //     GossipResponse* response
+        // ) override;
+
+        // Status KeyTransfer(
+        //     ServerContext* context,
+        //     const KeyTransferRequest* request,
+        //     KeyTransferResponse* response
+        // ) override;
+
         // Raft operations
         void StartElection();
         void BecomeLeader();
@@ -132,6 +151,9 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
 
         void LoadRaftState();
         void PersistRaftState();
+
+        // Gossip operations
+        void InvokeGossip(std::string peer);
 
     private:
         int server_id;
