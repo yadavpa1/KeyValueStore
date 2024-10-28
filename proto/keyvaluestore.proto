@@ -15,12 +15,6 @@ service KeyValueStore {
     rpc Die(DieRequest) returns (DieResponse);
 }
 
-service HashRing {
-    rpc Gossip(GossipRequest) returns (GossipResponse);
-}
-
-// rpc KeyTransfer(KeyTransferRequest) returns (KeyTransferResponse);
-
 message InitRequest {
     string server_name = 1;
 }
@@ -99,27 +93,4 @@ message LogEntry {
     int64 term = 1;                   // Term when entry was received by the leader
     string key = 2;                   // Key associated with the log entry
     string value = 3;                 // Value associated with the log entry
-}
-
-message GossipRequest {
-    repeated string host_list = 1;    // List of current nodes in the RAFT group
-    string current_leader = 2;        // Current leader of the RAFT group
-}
-
-message GossipResponse {
-    bool success = 1;                 // Indicates if the gossip exchange was successful
-    string current_leader = 2;        // Leader in the responding group
-}
-
-message KeyTransferRequest {
-    repeated KeyValuePair key_values = 2; // List of key-value pairs to be transferred
-}
-
-message KeyTransferResponse {
-    bool success = 1;                     // Indicates if the key-value transfer successful
-}
-
-message KeyValuePair {
-    string key = 1;                      // Key being transferred
-    string value = 2;                    // Value associated with the key
 }

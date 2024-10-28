@@ -33,7 +33,6 @@ add_custom_command(
 
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/server")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/client")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/tests")
@@ -67,7 +66,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 # Create shared library lib739kv.so from lib739kv.cc and #lib739kv.h
 add_library(739kv SHARED
  client/lib739kv.cc
- common/consistent_hashing.cc
+ client/consistent_hashing.cc
 )
 target_link_libraries(739kv
  kvs_grpc_proto
