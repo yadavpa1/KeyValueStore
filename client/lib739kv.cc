@@ -5,6 +5,9 @@
 #include <vector>
 #include <thread>
 #include <algorithm>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <grpcpp/grpcpp.h>
 #include "keyvaluestore.grpc.pb.h"
@@ -35,11 +38,16 @@ std::map<int, std::unique_ptr<KeyValueStore::Stub>> stubs_; // Stub for each Raf
 std::map<int, std::string> leader_addresses_;  // Maps partition IDs to current leader addresses
 std::map<int, std::vector<std::string>> partition_instances_;  // Maps partition IDs to list of nodes
 
-const int num_partitions = 4;  // Number of partitions (based on server configuration)
+int num_partitions;  // Number of partitions (based on server configuration)
 const int nodes_per_partition = 5;  // Number of nodes per partition
 
 std::vector<std::string> service_instances_;  // List of service instances (host:port)
 const int max_retries = 3;
+
+// Maintain a last_modified timestamp for the configuration file
+// set it to null initially
+std::string config_file = "";
+std::string last_modified = "";
 
 // Hash function to map keys to Raft partitions
 int HashKey(const std::string &key) {
@@ -47,20 +55,44 @@ int HashKey(const std::string &key) {
     return hasher(key) % num_partitions;
 }
 
+// Function to trim leading and trailing whitespace in place
+void trim(std::string &str) {
+    // Remove leading whitespace
+    str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }));
+
+    // Remove trailing whitespace
+    str.erase(std::find_if(str.rbegin(), str.rend(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }).base(), str.end());
+}
+
 bool ReadServiceInstancesFromFile(const std::string &file_name) {
-    std::ifstream file(file_name);
-    if (!file.is_open()) {
+    int fd = open(file_name.c_str(), O_RDONLY);
+    if (fd == -1) {
         std::cerr << "Error: Unable to open service instance file: " << file_name << std::endl;
         return false;
     }
+    // Apply a shared lock for reading
+    if(flock(fd, LOCK_SH) == -1) {
+        std::cerr << "Error: Unable to acquire shared lock on service instance file: " << file_name << std::endl;
+        return false;
+    }
+
+    // Now safely read the file
+    std::ifstream file(file_name);
 
     std::string instance;
     int current_partition = 0;
     int instance_count = 0;
     while (std::getline(file, instance)) {
         if (!instance.empty()) {
-            service_instances_.push_back(instance);
-            partition_instances_[current_partition].push_back(instance);
+            // if the instance is set to "NULL", skip it
+            if(instance != "NULL"){
+                service_instances_.push_back(instance);
+                partition_instances_[current_partition].push_back(instance);
+            }
             instance_count++;
 
             // Move to the next partition after nodes_per_partition nodes
@@ -70,12 +102,72 @@ bool ReadServiceInstancesFromFile(const std::string &file_name) {
         }
     }
 
-    file.close();
-    if (service_instances_.size() < num_partitions * nodes_per_partition) {
-        std::cerr << "Error: Service instance file contains fewer instances than expected." << std::endl;
+    // Set the last modified timestamp to the last modified time of the file
+    struct stat file_stat;
+    if (fstat(fd, &file_stat) == 0) {
+        last_modified = std::to_string(file_stat.st_mtime);
+    }
+
+    flock(fd, LOCK_UN);  // Release the shared lock
+    close(fd);
+    num_partitions = partition_instances_.size();  // Update the number of partitions
+    return !service_instances_.empty();
+}
+
+bool UpdateServiceInstancesInFile(const std::string &file_name, const std::string old_server, const std::string new_server, int offset){
+    int start_line = offset * nodes_per_partition;
+    int fd = open(file_name.c_str(), O_RDWR);
+
+    if (fd == -1) {
+        std::cerr << "Error: Unable to open service instance file: " << file_name << std::endl;
         return false;
     }
-    return !service_instances_.empty();
+
+    // Apply an exclusive lock for writing
+    if(flock(fd, LOCK_EX) == -1) {
+        std::cerr << "Error: Unable to acquire exclusive lock on service instance file: " << file_name << std::endl;
+        return false;
+    }
+
+    // Now start reading the file from line number offset * nodes_per_partition+1
+    // and update the line with old_server to new_server
+    std::ifstream file(file_name);
+    std::string line;
+    std::vector<std::string> lines;
+    int line_number = 0;
+    while (std::getline(file, line)) {
+        if (line_number >= offset * nodes_per_partition && line_number < (offset + 1) * nodes_per_partition) {
+            trim(line);
+            std::cout << "Reading line: " << line << std::endl;
+            if(line == old_server){
+                line = new_server;
+            }
+        }
+        lines.push_back(line);
+        line_number++;
+    }
+    file.close();
+
+    std::ofstream output_file(file_name, std::ios::trunc);
+    if(!output_file.is_open()){
+        std::cerr << "Error: Unable to open service instance file: " << file_name << std::endl;
+        flock(fd, LOCK_UN);  // Release the exclusive lock
+        close(fd);
+        return false;
+    }
+    for(const auto& line : lines){
+        output_file << line << std::endl;
+    }
+
+    // Set the last modified timestamp to the last modified time of the file
+    struct stat file_stat;
+    if (fstat(fd, &file_stat) == 0) {
+        last_modified = std::to_string(file_stat.st_mtime);
+    }
+
+    flock(fd, LOCK_UN);  // Release the exclusive lock
+    close(fd);
+    return true;
 }
 
 // Helper function to handle retries within a partition
@@ -142,6 +234,7 @@ Status RetryRequest(int partition_id, const RequestType& request, ResponseType* 
 }
 
 int kv739_init(const std::string &file_name) {
+    config_file = file_name;
     if (!ReadServiceInstancesFromFile(file_name)) {
         return -1;
     }
@@ -199,6 +292,14 @@ int kv739_shutdown() {
 }
 
 int kv739_get(const std::string &key, std::string &value) {
+    struct stat file_stat;
+    if (stat(config_file.c_str(), &file_stat) == 0) {
+        if (std::to_string(file_stat.st_mtime) != last_modified) {
+            if (!ReadServiceInstancesFromFile(config_file)) {
+                return -1;
+            }
+        }
+    }
     int partition_id = HashKey(key);  // Determine partition
 
     if (stubs_.find(partition_id) == stubs_.end()) {
@@ -228,6 +329,14 @@ int kv739_get(const std::string &key, std::string &value) {
 }
 
 int kv739_put(const std::string &key, const std::string &value, std::string &old_value) {
+    struct stat file_stat;
+    if (stat(config_file.c_str(), &file_stat) == 0) {
+        if (std::to_string(file_stat.st_mtime) != last_modified) {
+            if (!ReadServiceInstancesFromFile(config_file)) {
+                return -1;
+            }
+        }
+    }
     int partition_id = HashKey(key);  // Determine partition
 
     if (stubs_.find(partition_id) == stubs_.end()) {
@@ -255,19 +364,6 @@ int kv739_put(const std::string &key, const std::string &value, std::string &old
 
     std::cerr << "Error: Put operation failed for key: '" << key << "'." << std::endl;
     return -1;
-}
-
-// Function to trim leading and trailing whitespace in place
-void trim(std::string &str) {
-    // Remove leading whitespace
-    str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](unsigned char ch) {
-        return !std::isspace(ch);
-    }));
-
-    // Remove trailing whitespace
-    str.erase(std::find_if(str.rbegin(), str.rend(), [](unsigned char ch) {
-        return !std::isspace(ch);
-    }).base(), str.end());
 }
 
 
@@ -312,6 +408,11 @@ int kv739_die(const std::string &server_name, int clean) {
 
     // Check if the server successfully initiated termination
     if (die_response.success()) {
+        // Update the config file to remove the server instance
+        if (!UpdateServiceInstancesInFile(config_file, server_addr, "NULL", server_id / nodes_per_partition)) {
+            std::cerr << "Error: Failed to update service instances in file." << std::endl;
+            return -1;
+        }
         std::cout << "Server '" << server_addr << "' successfully initiated termination." << std::endl;
         return 0;
     } else {
@@ -358,11 +459,11 @@ int kv739_start(const std::string &instance_name, int new_instance) {
     partition_instances_[partition_id].push_back(instance_name);
 
 
-    // Write the updated service instances to file
-    // if (!WriteServiceInstancesToFile("host_list.txt")) {
-    //     std::cerr << "Failed to update host_list.txt" << std::endl;
-    //     return -1;
-    // }
+    // Update the service instances in the file
+    if(!UpdateServiceInstancesInFile(config_file, "NULL", instance_name, partition_id)){
+        std::cerr << "Failed to update " << config_file << std::endl;
+        return -1;
+    }
 
     return 0;
 }
@@ -398,11 +499,11 @@ int kv739_leave(const std::string &instance_name, int clean) {
         partition.second.erase(std::remove(partition.second.begin(), partition.second.end(), instance_name), partition.second.end());
     }
 
-    // Write the updated service instances to file
-    // if (!WriteServiceInstancesToFile("host_list.txt")) {
-    //     std::cerr << "Failed to update host_list.txt" << std::endl;
-    //     return -1;
-    // }
+    // Update the service instances in the file
+    if(!UpdateServiceInstancesInFile(config_file, instance_name, "NULL", partition_id)){
+        std::cerr << "Failed to update " << config_file << std::endl;
+        return -1;
+    }
 
     return 0;
 }
