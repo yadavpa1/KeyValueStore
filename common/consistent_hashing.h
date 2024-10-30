@@ -30,6 +30,11 @@ public:
 
     void PrintHashRing();
 
+    std::vector<std::pair<unsigned long, unsigned long>> GetKeySpaceToTransfer(
+        const std::string& current_partition,
+        const std::string& new_partition
+    );
+
 private:
     int num_replicas;
     std::vector<std::string> partitions;

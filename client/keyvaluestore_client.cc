@@ -24,6 +24,7 @@ void print_welcome()
     std::cout << "  \033[1;32mshutdown\033[0m               - Shut down the server\n";
     std::cout << "  \033[1;32mdie <server_name> <clean>\033[0m - Terminate a server (1 for clean shutdown, 0 for abrupt)\n";
     std::cout << "  \033[1;32mquit\033[0m                   - Exit the client\n";
+    std::cout << "  \033[1;32mstart <instance_name> <new_instance>\033[0m - Start a new instance (1 for new instance, 0 for existing)\n";
 }
 
 void print_quit()
@@ -127,6 +128,24 @@ int main(int argc, char **argv)
             if (kv739_die(server_name, clean) != 0)
             {
                 std::cerr << "Failed to terminate the server: " << server_name << std::endl;
+            }
+        }
+        else if (cmd == "start") {
+            std::string instance_name;
+            int new_instance;
+
+            // Extract the instance_name and new_instance flag from the command
+            iss >> instance_name >> new_instance;
+
+            if (instance_name.empty() || (new_instance != 0 && new_instance != 1))
+            {
+                std::cerr << "Usage: start <instance_name> <new_instance (1 for new instance, 0 for existing)>" << std::endl;
+                continue;
+            }
+
+            if (kv739_start(instance_name, new_instance) != 0)
+            {
+                std::cerr << "Failed to start the server: " << instance_name << std::endl;
             }
         }
         else if (cmd == "quit")

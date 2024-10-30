@@ -48,6 +48,7 @@ const int max_retries = 3;
 // set it to null initially
 std::string config_file = "";
 std::string last_modified = "";
+int added_nodes = 0;
 
 // Consistent hashing object to map keys to Raft partitions
 ConsistentHashing *ch;
@@ -118,7 +119,7 @@ bool ReadServiceInstancesFromFile(const std::string &file_name) {
     for(int i = 0; i < num_partitions; i++){
         keys[i] = std::to_string(i);
     }
-    ch = new ConsistentHashing(num_partitions, keys);
+    ch = new ConsistentHashing(3, keys);
     return !service_instances_.empty();
 }
 
@@ -167,13 +168,33 @@ bool UpdateServiceInstancesInFile(const std::string &file_name, const std::strin
         output_file << line << std::endl;
     }
 
-    // Set the last modified timestamp to the last modified time of the file
-    struct stat file_stat;
-    if (fstat(fd, &file_stat) == 0) {
-        last_modified = std::to_string(file_stat.st_mtime);
+    flock(fd, LOCK_UN);  // Release the exclusive lock
+    close(fd);
+    return true;
+}
+
+bool AppendInstanceToFile(const std::string &file_name, const std::string &new_server){
+    int fd = open(file_name.c_str(), O_RDWR);
+    if(fd == -1){
+        std::cerr << "Error: Unable to open service instance file: " << file_name << std::endl;
+        return false;
+    }
+    if(flock(fd, LOCK_EX) == -1){
+        std::cerr << "Error: Unable to acquire exclusive lock on service instance file: " << file_name << std::endl;
+        return false;
+    }
+    std::ofstream output_file(file_name, std::ios::app); // Open in append mode
+    if (!output_file.is_open()) {
+        std::cerr << "Error: Unable to open service instance file: " << file_name << std::endl;
+        flock(fd, LOCK_UN);  // Release the exclusive lock
+        close(fd);
+        return false;
     }
 
-    flock(fd, LOCK_UN);  // Release the exclusive lock
+    output_file << new_server << std::endl;
+    output_file.close();
+
+    flock(fd, LOCK_UN);
     close(fd);
     return true;
 }
@@ -432,7 +453,7 @@ int kv739_die(const std::string &server_name, int clean) {
 //This logic can be updated to find the best group among multiple possible ones.
 int FindPartition() {
     for (int partition_id = 0; partition_id < num_partitions; partition_id++) {
-        if (partition_instances_[partition_id].size() < nodes_per_partition) {
+        if (partition_instances_[partition_id].size() < nodes_per_partition && partition_instances_[partition_id].size() > 2) {
             return partition_id;
         }
     }
@@ -445,7 +466,24 @@ int kv739_start(const std::string &instance_name, int new_instance) {
     int partition_id = FindPartition();
     if (partition_id == -1) {
         std::cerr << "No available partitions for new instance " << instance_name << std::endl;
-        return -1;
+        // Add to the end of the config file
+        // Once 3 nodes are added, you will initialize a new RAFT group
+        // Add a partition to the consistent hashing object
+        // And run the key transfer logic
+        AppendInstanceToFile(config_file, instance_name);
+        added_nodes++;
+        if(added_nodes == 3){
+            ch->PrintHashRing();
+            num_partitions++;
+            ch->AddPartition(std::to_string(num_partitions));
+            std::cout << "***************Added a new partition***************" << std::endl;
+            ch->PrintHashRing();
+            for(int i = 0; i<num_partitions-1;i++){
+                std::vector<std::pair<unsigned long, unsigned long>> key_space = ch->GetKeySpaceToTransfer(std::to_string(i), std::to_string(num_partitions));
+            }
+            added_nodes = 0;
+        }
+        return 0;
     }
 
     StartRequest start_request;
