@@ -20,6 +20,11 @@ std::string ConsistentHashing::GetPartition(const std::string& key) {
     return it->second;
 }
 
+unsigned long ConsistentHashing::GetKeyHash(const std::string& key){
+    unsigned long hash = std::hash<std::string>{}(key);
+    return hash;
+}
+
 void ConsistentHashing::AddPartition(const std::string& partition) {
     partitions.push_back(partition);
     for (int i = 0; i < num_replicas; i++) {

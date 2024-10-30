@@ -20,6 +20,10 @@ public:
         const std::string& key
     );
 
+    unsigned long GetKeyHash(
+        const std::string& key
+    );
+
     void AddPartition(
         const std::string& partition
     );
