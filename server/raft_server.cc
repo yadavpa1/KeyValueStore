@@ -37,8 +37,9 @@ LogEntry deserializeLogEntry(const std::string& data) {
     return entry;
 }
 
-RaftServer::RaftServer(int server_id, const std::vector<std::string>& host_list, const std::string &db_path, const std::string &raft_log_db_path, size_t cache_size)
+RaftServer::RaftServer(int server_id, const std::string &server_name, const std::vector<std::string>& host_list, const std::string &db_path, const std::string &raft_log_db_path, size_t cache_size)
     : server_id(server_id),
+      server_name(server_name),
       host_list(host_list),
       state(RaftState::FOLLOWER),
       current_term(0),
@@ -103,7 +104,7 @@ void RaftServer::HandlePersistenceTasks() {
 }
 
 void RaftServer::LoadRaftState() {
-    std::string term_str, voted_for_str, log_size_str, commit_index_str;
+    std::string term_str, voted_for_str, log_size_str, commit_index_str, old_config_str;
 
     // Load current term
     if (raft_log_db_.Get("current_term", term_str)) {
@@ -132,9 +133,6 @@ void RaftServer::LoadRaftState() {
 
     // sleep for 1 second to allow the persistence thread to load the state
     std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    // std::cout << "Loaded Raft state: term=" << current_term << ", voted_for=" << voted_for 
-    //           << ", log_size=" << raft_log.size() << std::endl;
 }
 
 void RaftServer::PersistRaftState() {
@@ -253,6 +251,56 @@ Status RaftServer::AppendEntries(
         PersistRaftState();
     }
 
+    // Step 3: Handle configuration change if detected in the entries
+    // Case 1: When it is a start request -> each follower should identify the new instance using the host_list and the new config & create a gRPC channel with it.
+    // They should also update the old_config/host_list.
+    // New instance -> should create a gRPC channel with leader and everyone in the new config except itself. It should also set its host_list here.
+
+    // Case 2: When it is a leave request ->  each follower should identify the leaving instance using the host_list and the new config & remove the gRPC stub with it.
+    // They should also update the old_config/host_list.
+    if (!request->new_config().empty()) {
+        std::vector<std::string> new_config = request->new_config();
+        bool is_new_instance = (host_list.size() == 1 && host_list[0] == server_name);
+
+        if (new_config.size() > host_list.size()) {
+            // Case 1: Handle Start Request - Adding a new node
+            if (is_new_instance) {
+                host_list = new_config;
+                peer_stubs.resize(new_config.size(), nullptr);
+
+                for (size_t i = 0; i < new_config.size(); ++i) {
+                    if (new_config[i] != server_name) {
+                        peer_stubs[i] = Raft::NewStub(grpc::CreateChannel(new_config[i], grpc::InsecureChannelCredentials()));
+                        std::cout << "New instance created gRPC channel with instance: " << new_config[i] << std::endl;
+                    } else {
+                        // Set itself as nullptr to avoid self-communication
+                        peer_stubs[i] = nullptr;
+                    }
+                }
+            } else {
+                // Existing instances:
+                for (const auto& instance : new_config) {
+                    if (std::find(host_list.begin(), host_list.end(), instance) == host_list.end()) {
+                        // New instance found; create gRPC channel
+                        peer_stubs.push_back(Raft::NewStub(grpc::CreateChannel(instance, grpc::InsecureChannelCredentials())));
+                        std::cout << "New gRPC channel created for instance: " << instance << std::endl;
+                    }
+                }
+            }
+            
+        } else if (new_config.size() < host_list.size()) {
+            // Case 2: Handle Leave Request - Removing a node
+            for (size_t i = 0; i < host_list.size(); ++i) {
+                if (std::find(new_config.begin(), new_config.end(), host_list[i]) == new_config.end()) {
+                    // Instance to remove found
+                    peer_stubs[i].reset();  // Clear the stub for the removed instance
+                    std::cout << "Removed gRPC channel for instance: " << host_list[i] << std::endl;
+                }
+            }
+        }
+        host_list = new_config;
+    }
+
     SetElectionAlarm(election_timeout);
 
     // Step 3: Check if the previous log index is out of bounds or the log is empty
@@ -287,10 +335,13 @@ Status RaftServer::AppendEntries(
         // Apply the committed log entries to the state machine
         while (last_applied < commit_index) {
             last_applied++;
-            std::string old_value;
-            // Apply the log entry to the state machine
-            // std::cout << "Applying log entry: " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
-            db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
+            if (raft_log[last_applied].key() != "config_change") {
+                std::string old_value;
+                // Apply the log entry to the state machine
+                // std::cout << "Applying log entry: " << raft_log[last_applied].key() << " -> " << raft_log[last_applied].value() << std::endl;
+                db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
+
+            }
         }
 
     } else {
@@ -729,4 +780,239 @@ Status RaftServer::Die(ServerContext* context, const DieRequest* request, DieRes
     }).detach();  // Detach the thread to allow shutdown in the background
 
     return Status::OK;
+}
+
+Status RaftServer::Start(
+    ServerContext* context,
+    const StartRequest* request,
+    StartResponse* response
+) {
+    if (state != RaftState::LEADER) {
+        response->set_success(false);
+        response->set_leader_server(host_list[current_leader]);
+        return Status::OK;
+    }
+
+    // Check if the instance name in the request is empty
+    if (request->instance_name().empty()) {
+        response->set_success(false);
+        return Status::OK;
+    }
+
+    // Add the new node to the new configuration
+    std::vector<std::string> new_config = host_list;
+    new_config.push_back(request->instance_name);
+
+    // Create a configuration change entry in the log
+    LogEntry config_entry;
+    config_entry.set_term(current_term);
+    config_entry.set_key("config_change");
+    config_entry.set_value(SerializeHostList(new_config));
+    config_entry.set_config_change(true);  // Mark as a configuration change
+
+    // Append the entry to the Raft log and replicate it to followers
+    raft_log.push_back(config_entry);
+    // Create a gRPC channel of the leader with the new instance
+    peer_stubs.push_back(Raft::NewStub(grpc::CreateChannel(request->instance_name(), grpc::InsecureChannelCredentials())));
+    ReplicateLogEntries();
+
+    // 3. Wait until a majority of followers replicate the entry
+    // Track how many followers have replicated the entry
+    int old_config_majority_count = host_list.size() / 2 + 1;
+    int new_config_majority_count = new_config.size() / 2 + 1;
+    int old_config_replicated_count = 1; // Leader has already replicated
+    int new_config_replicated_count = 1;
+    const int poll_interval_ms = 50;
+
+    while (state == RaftState::LEADER) {
+        old_config_replicated_count = 1;
+        new_config_replicated_count = 1;
+
+        for (int i = 0; i < host_list.size(); i++) {
+            if (match_index[i] >= raft_log.size() - 1) {
+                old_config_replicated_count++;
+            }
+        }
+
+        for (int i = 0; i < new_config.size(); i++) {
+            if (match_index[i] >= raft_log.size() - 1) {
+                new_config_replicated_count++;
+            }
+        }
+
+        // If a majority of followers have replicated, break the loop
+        if (old_config_replicated_count >= old_config_majority_count &&
+            new_config_replicated_count >= new_config_majority_count) {
+            break;
+        }
+
+        // Sleep for a short duration before checking again
+        std::this_thread::sleep_for(std::chrono::milliseconds(poll_interval_ms));
+    }
+
+    if (state != RaftState::LEADER) {
+        response->set_success(false);
+        response->set_leader_server(host_list[current_leader]);
+        return Status::OK;
+    }
+
+    // If a majority of followers have replicated, commit the entry
+    {
+        std::lock_guard<std::mutex> lock(state_mutex);
+        commit_index = raft_log.size() - 1;
+    }
+
+    PersistRaftState();
+
+    // Apply the committed log entry to the state machine (key-value store)
+    while (last_applied < commit_index) {
+        last_applied++;
+        if (raft_log[last_applied].key() == "config_change") {
+            // Update the configuration
+            host_list = DeserializeHostList(raft_log[last_applied].value());
+        } else {
+            // Apply the log entry to the state machine
+            std::string old_value;
+            db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
+        }
+    }
+    last_applied = commit_index;
+
+    // Respond with success and current leader information
+    response->set_success(true);
+    response->set_leader_server(host_list[current_leader]);
+    return Status::OK;
+}
+
+
+Status RaftServer::Leave(
+    ServerContext* context,
+    const LeaveRequest* request,
+    LeaveResponse* response
+) {
+    if (state != RaftState::LEADER) {
+        response->set_success(false);
+        response->set_leader_server(host_list[current_leader]);
+        return Status::OK;
+    }
+
+    // Check if the instance name in the request is empty
+    if (request->instance_name().empty()) {
+        response->set_success(false);
+        return Status::OK;
+    }
+
+    // Remove the node from the new configuration
+    std::vector<std::string> new_config = host_list;
+    new_config.erase(std::remove(new_config.begin(), new_config.end(), request->instance_name()), new_config.end());
+
+    // Create a configuration change entry in the log
+    LogEntry config_entry;
+    config_entry.set_term(current_term);
+    config_entry.set_key("config_change");
+    config_entry.set_value(SerializeHostList(new_config));
+    config_entry.set_config_change(true);  // Mark as a configuration change
+
+    // Append the entry to the Raft log and replicate it to followers
+    raft_log.push_back(config_entry);
+    // TODO: erase the gRPC channel of the leaving instance
+    peer_stubs.erase(peer_stubs.begin() + current_leader);
+    ReplicateLogEntries();
+
+    // 3. Wait until a majority of followers replicate the entry
+    // Track how many followers have replicated the entry
+    int old_config_majority_count = host_list.size() / 2 + 1;
+    int new_config_majority_count = new_config.size() / 2 + 1;
+    int old_config_replicated_count = 1; // Leader has already replicated
+    int new_config_replicated_count = 1;
+    const int poll_interval_ms = 50;
+
+    while (state == RaftState::LEADER) {
+        old_config_replicated_count = 1;
+        new_config_replicated_count = 1;
+
+        for (int i = 0; i < host_list.size(); i++) {
+            if (match_index[i] >= raft_log.size() - 1) {
+                old_config_replicated_count++;
+            }
+        }
+
+        for (int i = 0; i < new_config.size(); i++) {
+            if (match_index[i] >= raft_log.size() - 1) {
+                new_config_replicated_count++;
+            }
+        }
+
+        // If a majority of followers have replicated, break the loop
+        if (old_config_replicated_count >= old_config_majority_count &&
+            new_config_replicated_count >= new_config_majority_count) {
+            break;
+        }
+
+        // Sleep for a short duration before checking again
+        std::this_thread::sleep_for(std::chrono::milliseconds(poll_interval_ms));
+    }
+
+    if (state != RaftState::LEADER) {
+        response->set_success(false);
+        response->set_leader_server(host_list[current_leader]);
+        return Status::OK;
+    }
+
+    // If a majority of followers have replicated, commit the entry
+    {
+        std::lock_guard<std::mutex> lock(state_mutex);
+        commit_index = raft_log.size() - 1;
+    }
+
+    PersistRaftState();
+
+    // Apply the committed log entry to the state machine (key-value store)
+    while (last_applied < commit_index) {
+        last_applied++;
+        if (raft_log[last_applied].key() == "config_change") {
+            // Update the configuration
+            host_list = DeserializeHostList(raft_log[last_applied].value());
+        } else {
+            // Apply the log entry to the state machine
+            std::string old_value;
+            db_.Put(raft_log[last_applied].key(), raft_log[last_applied].value(), old_value);
+        }
+    }
+    last_applied = commit_index;
+
+    // Respond with success and current leader information
+    response->set_success(true);
+    response->set_leader_server(host_list[current_leader]);
+    return Status::OK;
+}
+
+std::string RaftServer::SerializeHostList(const std::vector<std::string>& host_list) {
+    std::string serialized_host_list;
+    for (const auto& instance_name : host_list) {
+        serialized_host_list += instance_name + ",";  // Add each instance name followed by a comma
+    }
+    if (!serialized_host_list.empty()) {
+        serialized_host_list.pop_back();  // Remove the trailing comma
+    }
+    return serialized_host_list;
+}
+
+std::vector<std::string> RaftServer::DeserializeHostList(const std::string& serialized_host_list) {
+    std::vector<std::string> host_list;
+    size_t start = 0;
+    size_t end = serialized_host_list.find(',');
+
+    while (end != std::string::npos) {
+        host_list.push_back(serialized_host_list.substr(start, end - start));
+        start = end + 1;
+        end = serialized_host_list.find(',', start);
+    }
+
+    // Add the last host in the list (or the only one if no commas were found)
+    if (start < serialized_host_list.size()) {
+        host_list.push_back(serialized_host_list.substr(start));
+    }
+
+    return host_list;
 }

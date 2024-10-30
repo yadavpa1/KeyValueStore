@@ -96,7 +96,7 @@ int main() {
             std::string raft_log_db_path = "log_" + db_path;
             size_t cache_size = 20 * 1024 * 1024; // 20MB cache for RocksDB
             
-            RaftServer raft_server(local_server_id, raft_group, db_path, raft_log_db_path, cache_size);
+            RaftServer raft_server(local_server_id, raft_group[local_server_id], raft_group, db_path, raft_log_db_path, cache_size);
 
             // Reload state and restart the server
             raft_server.Run();

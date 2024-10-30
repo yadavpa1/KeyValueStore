@@ -55,7 +55,8 @@ enum class RaftState {
 class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluestore::KeyValueStore::Service {
     public:
         RaftServer(
-            int server_id, 
+            int server_id,
+            const std::string &server_name,
             const std::vector<std::string>& host_list, 
             const std::string &db_path,
             const std::string &raft_log_db_path,
@@ -136,6 +137,7 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
 
     private:
         int server_id;
+        std::string server_name;
         std::mutex state_mutex;
         RaftState state;
 

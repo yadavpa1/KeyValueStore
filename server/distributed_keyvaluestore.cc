@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
                 std::string db_path = "raft_db_group_" + std::to_string(group_index) + "_server_" + std::to_string(local_server_id);
                 std::string raft_log_db_path = "log_" + db_path;
                 size_t cache_size = 20 * 1024 * 1024; // 20MB cache
-                RaftServer raft_server(local_server_id, raft_group, db_path, raft_log_db_path, cache_size);
+                RaftServer raft_server(local_server_id, raft_group[local_server_id], raft_group, db_path, raft_log_db_path, cache_size);
                 raft_server.Run();
 
                 // Exit child process when done
