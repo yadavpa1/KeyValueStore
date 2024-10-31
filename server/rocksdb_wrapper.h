@@ -19,8 +19,6 @@ public:
 
     bool Get(const std::string &key, std::string &value) const;
 
-    bool GetAllKeys(std::vector<std::string> &keys) const;
-
     int Put(const std::string &key, const std::string &value, std::string &old_value);
 
     rocksdb::Status Write(const rocksdb::WriteOptions &options, rocksdb::WriteBatch *batch);

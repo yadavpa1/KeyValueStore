@@ -15,7 +15,6 @@ service KeyValueStore {
     rpc Die(DieRequest) returns (DieResponse);
     rpc Start(StartRequest) returns (StartResponse);
     rpc Leave(LeaveRequest) returns (LeaveResponse);
-    rpc PartitionChange(PartitionChangeRequest) returns (PartitionChangeResponse);
 }
 
 message InitRequest {
@@ -83,6 +82,7 @@ message LeaveResponse {
     string leader_server = 2;
 }
 
+
 message RequestVoteRequest {
     int64 term = 1;                   // The candidate's current term
     int64 candidate_id = 2;           // The candidate's ID
@@ -93,16 +93,6 @@ message RequestVoteRequest {
 message RequestVoteResponse {
     int64 term = 1;                   // The current term of the server that responded
     bool vote_granted = 2;            // True if the candidate received the vote
-}
-
-message PartitionChangeRequest {
-    repeated KeyRange key_ranges = 1; // Key ranges to move
-}
-
-message PartitionChangeResponse {
-    bool success = 1;                         // Whether call succeeded for the group
-    repeated MigrateKeyValues key_values = 2; // Key value pairs to be migrated
-    string leader_server = 3;                 // Leader server of the RAFT group we contacted
 }
 
 // Raft RPC messages for log replication and leader heartbeats
@@ -127,14 +117,4 @@ message LogEntry {
     string key = 2;                   // Key associated with the log entry
     string value = 3;                 // Value associated with the log entry
     bool config_change = 4;           // Indicates if this entry is a configuration change
-}
-
-message KeyRange {
-    uint64 key_start = 1;
-    uint64 key_end = 2;
-}
-
-message MigrateKeyValues {
-    string key = 1;
-    string value = 2;
 }

@@ -989,55 +989,13 @@ Status RaftServer::Leave(
     return Status::OK;
 }
 
-Status RaftServer::PartitionChange(
-    ServerContext* context,
-    const PartitionChangeRequest* request,
-    PartitionChangeResponse* response
-) {
-    if (state != RaftState::LEADER) {
-        response->set_success(false);
-        response->set_leader_server(host_list[current_leader]);
-        return Status::OK;
-    }
-
-    std::vector<std::string> keys;
-    db_.GetAllKeys(keys);
-    std::vector<std::pair<unsigned long, unsigned long>> key_ranges;
-    for (const auto& key_range : request->key_ranges()) {
-        key_ranges.emplace_back(key_range.key_start(), key_range.key_end());
-    }
-    
-    for (const auto &key: keys) {
-        for (const auto& key_range : key_ranges) {
-            // Compute the hash of the key
-            std::hash<std::string> hash_fn;
-            unsigned long hash = hash_fn(key);
-            if(hash >= key_range.first && hash <= key_range.second){
-                // Get the value for the key
-                std::string value;
-                db_.Get(key, value);
-
-                auto* key_value_pair = response->add_key_values();
-                key_value_pair->set_key(key);
-                key_value_pair->set_value(value);
-            }
-        }
-    }
-
-    // Respond with success and current leader information
-    response->set_success(true);
-    response->set_leader_server(host_list[current_leader]);
-
-    return Status::OK;
-}
-
 std::string RaftServer::SerializeHostList(std::vector<std::string>& host_list) {
     std::string serialized_host_list;
     for (const auto& instance_name : host_list) {
         serialized_host_list += instance_name + ",";  // Add each instance name followed by a comma
     }
     if (!serialized_host_list.empty()) {
-        serialized_host_list.pop_back();              // Remove the trailing comma
+        serialized_host_list.pop_back();  // Remove the trailing comma
     }
     return serialized_host_list;
 }

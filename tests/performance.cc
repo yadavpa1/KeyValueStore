@@ -1111,13 +1111,13 @@ int main(int argc, char* argv[]){
             key_set.push_back("k"+std::to_string(i));
         }
 
-        run_throughput_norm_write(server_address, server_name, num_processes);
+        // run_throughput_norm_write(server_address, server_name, num_processes);
         // run_latency_norm_write(server_address, server_name, num_processes);
         // run_latency_norm_read(server_address, server_name, num_processes);
         // run_throughput_norm_read(server_address, server_name, num_processes);
         // run_throughput_hk_write(server_address, server_name, num_processes);
         // run_latency_hk_write(server_address, server_name, num_processes);
-        // run_throughput_hk_read(server_address, server_name, num_processes);
+        run_throughput_hk_read(server_address, server_name, num_processes);
         // run_latency_hk_read(server_address, server_name, num_processes);
 
         std::cout << "\n=== Test Summary ===\n";
