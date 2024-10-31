@@ -103,7 +103,7 @@ message AppendEntriesRequest {
     int64 prev_log_term = 4;          // The term of the prev_log_index entry
     repeated LogEntry entries = 5;    // Log entries to store (empty for heartbeat)
     int64 leader_commit = 6;          // The leader's commit index
-    repeated string new_config = 8;   // New configuration nodes
+    repeated string new_config = 7;   // New configuration nodes
 }
 
 message AppendEntriesResponse {

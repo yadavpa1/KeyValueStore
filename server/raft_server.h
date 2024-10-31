@@ -45,6 +45,10 @@ using keyvaluestore::ShutdownRequest;
 using keyvaluestore::ShutdownResponse;
 using keyvaluestore::DieRequest;
 using keyvaluestore::DieResponse;
+using keyvaluestore::StartRequest;
+using keyvaluestore::StartResponse;
+using keyvaluestore::LeaveRequest;
+using keyvaluestore::LeaveResponse;
 
 enum class RaftState { 
     FOLLOWER,
@@ -57,17 +61,13 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
         RaftServer(
             int server_id,
             const std::string &server_name,
-            const std::vector<std::string>& host_list, 
+            std::vector<std::string>& host_list, 
             const std::string &db_path,
             const std::string &raft_log_db_path,
             size_t cache_size    
         );
 
         virtual ~RaftServer();
-
-        void StartPersistenceThread();
-        void EnqueuePersistenceTask(const std::function<void()> &task);
-        void PersistRaftStateInBackground(const AppendEntriesRequest* request);
         
         // Run raft server
         void Run();
@@ -119,6 +119,18 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
             RequestVoteResponse* response
         ) override;
 
+        Status Start(
+            ServerContext* context,
+            const StartRequest* request,
+            StartResponse* response
+        ) override;
+
+        Status Leave(
+            ServerContext* context,
+            const LeaveRequest* request,
+            LeaveResponse* response
+        ) override;
+
         // Raft operations
         void StartElection();
         void BecomeLeader();
@@ -132,8 +144,15 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
         void SetElectionAlarm(int timeout_ms);
         void ResetElectionTimeout();
 
+        void StartPersistenceThread();
+        void EnqueuePersistenceTask(const std::function<void()> &task);
+        void PersistRaftStateInBackground(const AppendEntriesRequest* request);
         void LoadRaftState();
         void PersistRaftState();
+
+        // Configuration serialization/deserialization
+        static std::string SerializeHostList(std::vector<std::string>& host_list);
+        static std::vector<std::string> DeserializeHostList(const std::string& serialized_host_list);
 
     private:
         int server_id;
@@ -170,7 +189,7 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
         // Network related members
         std::vector<std::unique_ptr<Raft::Stub>> peer_stubs;
         std::unique_ptr<Server> server;
-        const std::vector<std::string> host_list;
+        std::vector<std::string> host_list;
 
         RocksDBWrapper db_;          // For key-value store operations
         RocksDBWrapper raft_log_db_; // For Raft log and state persistence

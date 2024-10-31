@@ -37,7 +37,7 @@ LogEntry deserializeLogEntry(const std::string& data) {
     return entry;
 }
 
-RaftServer::RaftServer(int server_id, const std::string &server_name, const std::vector<std::string>& host_list, const std::string &db_path, const std::string &raft_log_db_path, size_t cache_size)
+RaftServer::RaftServer(int server_id, const std::string &server_name, std::vector<std::string>& host_list, const std::string &db_path, const std::string &raft_log_db_path, size_t cache_size)
     : server_id(server_id),
       server_name(server_name),
       host_list(host_list),
@@ -259,14 +259,16 @@ Status RaftServer::AppendEntries(
     // Case 2: When it is a leave request ->  each follower should identify the leaving instance using the host_list and the new config & remove the gRPC stub with it.
     // They should also update the old_config/host_list.
     if (!request->new_config().empty()) {
-        std::vector<std::string> new_config = request->new_config();
-        bool is_new_instance = (host_list.size() == 1 && host_list[0] == server_name);
+        std::vector<std::string> new_config;
+        for (const auto& entry : request->new_config()) {
+            new_config.push_back(entry);
+        }
 
+        bool is_new_instance = (host_list.size() == 1 && host_list[0] == server_name);
         if (new_config.size() > host_list.size()) {
             // Case 1: Handle Start Request - Adding a new node
             if (is_new_instance) {
-                host_list = new_config;
-                peer_stubs.resize(new_config.size(), nullptr);
+                peer_stubs.resize(new_config.size());
 
                 for (size_t i = 0; i < new_config.size(); ++i) {
                     if (new_config[i] != server_name) {
@@ -801,7 +803,7 @@ Status RaftServer::Start(
 
     // Add the new node to the new configuration
     std::vector<std::string> new_config = host_list;
-    new_config.push_back(request->instance_name);
+    new_config.push_back(request->instance_name());
 
     // Create a configuration change entry in the log
     LogEntry config_entry;
@@ -987,7 +989,7 @@ Status RaftServer::Leave(
     return Status::OK;
 }
 
-std::string RaftServer::SerializeHostList(const std::vector<std::string>& host_list) {
+std::string RaftServer::SerializeHostList(std::vector<std::string>& host_list) {
     std::string serialized_host_list;
     for (const auto& instance_name : host_list) {
         serialized_host_list += instance_name + ",";  // Add each instance name followed by a comma
