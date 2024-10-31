@@ -30,6 +30,8 @@ using keyvaluestore::StartRequest;
 using keyvaluestore::StartResponse;
 using keyvaluestore::LeaveRequest;
 using keyvaluestore::LeaveResponse;
+using keyvaluestore::PartitionChangeRequest;
+using keyvaluestore::PartitionChangeResponse;
 
 // Global variables to hold the gRPC objects
 std::map<int, std::shared_ptr<grpc::Channel>> channels_; // Channel for each Raft node
@@ -466,22 +468,54 @@ int kv739_start(const std::string &instance_name, int new_instance) {
     int partition_id = FindPartition();
     if (partition_id == -1) {
         std::cerr << "No available partitions for new instance " << instance_name << std::endl;
-        // Add to the end of the config file
-        // Once 3 nodes are added, you will initialize a new RAFT group
-        // Add a partition to the consistent hashing object
-        // And run the key transfer logic
+        
+        // Add the instance to the end of the config file
         AppendInstanceToFile(config_file, instance_name);
         added_nodes++;
-        if(added_nodes == 3){
+
+        if (added_nodes == 3) {
             ch->PrintHashRing();
-            num_partitions++;
             ch->AddPartition(std::to_string(num_partitions));
+            num_partitions++;
             std::cout << "***************Added a new partition***************" << std::endl;
             ch->PrintHashRing();
-            for(int i = 0; i<num_partitions-1;i++){
+
+            // Iterate over all existing partitions (excluding the new one)
+            for (int i = 0; i < num_partitions - 1; i++) {
+                // Fetch the key ranges to transfer for this partition
                 std::vector<std::pair<unsigned long, unsigned long>> key_space = ch->GetKeySpaceToTransfer(std::to_string(i), std::to_string(num_partitions));
+                
+                // Prepare the PartitionChangeRequest message
+                PartitionChangeRequest partition_change_request;
+
+                // Add key ranges to the request
+                for (const auto& range : key_space) {
+                    keyvaluestore::KeyRange* key_range = partition_change_request.add_key_ranges();
+                    key_range->set_key_start(range.first);
+                    key_range->set_key_end(range.second);
+                }
+
+                // Send the PartitionChangeRequest to the partition's leader
+                PartitionChangeResponse partition_change_response;
+                Status status = RetryRequest(i, partition_change_request, &partition_change_response, &KeyValueStore::Stub::PartitionChange);
+
+                // Check the status of the response
+                if (status.ok() && partition_change_response.success()) {
+                    // print the key values that are being transferred if not empty. Else print You're good
+                    if(partition_change_response.key_values().size() > 0){
+                        std::cout << "Move following key values from partition " << i << " to partition " << num_partitions-1 << std::endl;
+                        for(const auto& key_value : partition_change_response.key_values()){
+                            std::cout << "Key: " << key_value.key() << " Value: " << key_value.value() << std::endl;
+                        }
+                    } else {
+                        std::cout << "You're good" << std::endl;
+                    }
+                } else {
+                    std::cerr << "Failed to send PartitionChangeRequest to leader of partition " << i << std::endl;
+                }
             }
-            added_nodes = 0;
+
+            added_nodes = 0;  // Reset the count after adding the new partition
         }
         return 0;
     }
@@ -504,15 +538,15 @@ int kv739_start(const std::string &instance_name, int new_instance) {
     service_instances_.push_back(instance_name);
     partition_instances_[partition_id].push_back(instance_name);
 
-
     // Update the service instances in the file
-    if(!UpdateServiceInstancesInFile(config_file, "NULL", instance_name, partition_id)){
+    if (!UpdateServiceInstancesInFile(config_file, "NULL", instance_name, partition_id)) {
         std::cerr << "Failed to update " << config_file << std::endl;
         return -1;
     }
 
     return 0;
 }
+
 
 int kv739_leave(const std::string &instance_name, int clean) {
     // Check if the instance exists in the service instances
