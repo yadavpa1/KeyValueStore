@@ -957,6 +957,28 @@ void run_latency_key_value_sizes(){
     return;
 }
 
+void insert_random_key_value_pairs(int num_pairs){
+    if(kv739_init(CONFIG_FILE)!=0){
+        std::cerr << "Failed to initialize kv store" << std::endl;
+        return;
+    }
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> rnd_dis(0, 1e5);
+    for(int i = 0;i<num_pairs;++i){
+        std::string key = std::to_string(rnd_dis(gen));
+        std::string value = std::to_string(rnd_dis(gen));
+        std::string old_value;
+        if(kv739_put(key, value, old_value)==-1){
+            std::cerr << "Failed to put key-value pair: " << key << " -> " << value << std::endl;
+            return;
+        }
+    }
+    // shutdown kv store
+    kv739_shutdown();
+    return;
+}
+
 /*
 TESTS END HERE
 */
@@ -991,7 +1013,7 @@ int main(int argc, char* argv[]){
             key_set.push_back("k"+std::to_string(i));
         }
 
-        run_throughput_norm_write(num_processes);
+        // run_throughput_norm_write(num_processes);
         // run_latency_norm_write(num_processes);
         // run_throughput_norm_read(num_processes);
         // run_latency_norm_read(num_processes);
@@ -1001,6 +1023,7 @@ int main(int argc, char* argv[]){
         // run_latency_hk_read(num_processes);
         // run_throughput_key_value_sizes();
         // run_latency_key_value_sizes();
+        insert_random_key_value_pairs(1000);
 
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;

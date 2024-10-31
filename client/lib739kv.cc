@@ -483,7 +483,7 @@ int kv739_start(const std::string &instance_name, int new_instance) {
             // Iterate over all existing partitions (excluding the new one)
             for (int i = 0; i < num_partitions - 1; i++) {
                 // Fetch the key ranges to transfer for this partition
-                std::vector<std::pair<unsigned long, unsigned long>> key_space = ch->GetKeySpaceToTransfer(std::to_string(i), std::to_string(num_partitions));
+                std::vector<std::pair<unsigned long, unsigned long>> key_space = ch->GetKeySpaceToTransfer(std::to_string(i), std::to_string(num_partitions-1));
                 
                 // Prepare the PartitionChangeRequest message
                 PartitionChangeRequest partition_change_request;
