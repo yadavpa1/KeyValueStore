@@ -268,6 +268,7 @@ Status RaftServer::AppendEntries(
         if (new_config.size() > host_list.size()) {
             // Case 1: Handle Start Request - Adding a new node
             if (is_new_instance) {
+                host_list = new_config;
                 peer_stubs.resize(new_config.size());
 
                 for (size_t i = 0; i < new_config.size(); ++i) {
@@ -280,14 +281,15 @@ Status RaftServer::AppendEntries(
                     }
                 }
             } else {
-                // Existing instances:
+                // Existing instances
                 for (const auto& instance : new_config) {
                     if (std::find(host_list.begin(), host_list.end(), instance) == host_list.end()) {
-                        // New instance found; create gRPC channel
+                        // New instance found; create gRPC channel with it
                         peer_stubs.push_back(Raft::NewStub(grpc::CreateChannel(instance, grpc::InsecureChannelCredentials())));
                         std::cout << "New gRPC channel created for instance: " << instance << std::endl;
                     }
                 }
+                host_list = new_config;
             }
             
         } else if (new_config.size() < host_list.size()) {
@@ -299,8 +301,8 @@ Status RaftServer::AppendEntries(
                     std::cout << "Removed gRPC channel for instance: " << host_list[i] << std::endl;
                 }
             }
+            host_list = new_config;
         }
-        host_list = new_config;
     }
 
     SetElectionAlarm(election_timeout);
@@ -917,8 +919,14 @@ Status RaftServer::Leave(
 
     // Append the entry to the Raft log and replicate it to followers
     raft_log.push_back(config_entry);
-    // TODO: erase the gRPC channel of the leaving instance
-    peer_stubs.erase(peer_stubs.begin() + current_leader);
+
+    // Erase the gRPC channel of the leaving instance
+    auto it = std::find(host_list.begin(), host_list.end(), request->instance_name());
+    if (it != host_list.end()) {
+        size_t index = std::distance(host_list.begin(), it);
+        peer_stubs[index].reset();  // Clear the gRPC channel for the leaving instance
+    }
+
     ReplicateLogEntries();
 
     // 3. Wait until a majority of followers replicate the entry
