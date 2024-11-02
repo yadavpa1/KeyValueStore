@@ -297,7 +297,7 @@ Status RaftServer::AppendEntries(
             for (size_t i = 0; i < host_list.size(); ++i) {
                 if (std::find(new_config.begin(), new_config.end(), host_list[i]) == new_config.end()) {
                     // Instance to remove found
-                    if (i != request->leader_id) {
+                    if (i != request->leader_id()) {
                         peer_stubs[i].reset();  // Clear the stub for the removed instance
                         std::cout << "Removed gRPC channel for instance: " << host_list[i] << std::endl;
                         // TODO: Remove gRPC channel for the removed leader later
