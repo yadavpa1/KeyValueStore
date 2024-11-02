@@ -298,14 +298,18 @@ Status RaftServer::AppendEntries(
                 if (std::find(new_config.begin(), new_config.end(), host_list[i]) == new_config.end()) {
                     // Instance to remove found
                     if (i != request->leader_id()) {
-                        peer_stubs[i].reset();  // Clear the stub for the removed instance
+                        // Clear the gRPC stub for the removed instance
+                        peer_stubs[i].reset();  // Close the gRPC channel
                         std::cout << "Removed gRPC channel for instance: " << host_list[i] << std::endl;
-                        // TODO: Remove gRPC channel for the removed leader later
+
+                        host_list.erase(host_list.begin() + i);
+                        peer_stubs.erase(peer_stubs.begin() + i);
                     }
                 }
             }
-            host_list = new_config;
+
         }
+
     }
 
     SetElectionAlarm(election_timeout);
@@ -923,12 +927,16 @@ Status RaftServer::Leave(
     // Append the entry to the Raft log and replicate it to followers
     raft_log.push_back(config_entry);
 
-    // Erase the gRPC channel of the leaving instance
-    auto it = std::find(host_list.begin(), host_list.end(), request->instance_name());
-    if (it != host_list.end()) {
-        size_t index = std::distance(host_list.begin(), it);
-        peer_stubs[index].reset();  // Clear the gRPC channel for the leaving instance
+    // Erase the gRPC channel of the leaving instance, unless it's the leader
+    if (request->instance_name() != server_name) {
+        auto it = std::find(host_list.begin(), host_list.end(), request->instance_name());
+        if (it != host_list.end()) {
+            size_t index = std::distance(host_list.begin(), it);
+            peer_stubs[index].reset();  // Clear the gRPC channel for the leaving instance
+        }
     }
+
+    bool leader_removed = (request->instance_name() == host_list[current_leader]);
 
     ReplicateLogEntries();
 
@@ -937,12 +945,12 @@ Status RaftServer::Leave(
     int old_config_majority_count = host_list.size() / 2 + 1;
     int new_config_majority_count = new_config.size() / 2 + 1;
     int old_config_replicated_count = 1; // Leader has already replicated
-    int new_config_replicated_count = 1;
+    int new_config_replicated_count = leader_removed ? 0 : 1; // Exclude leader's vote if it’s removed
     const int poll_interval_ms = 50;
 
     while (state == RaftState::LEADER) {
         old_config_replicated_count = 1;
-        new_config_replicated_count = 1;
+        new_config_replicated_count = leader_removed ? 0 : 1;
 
         for (int i = 0; i < host_list.size(); i++) {
             if (match_index[i] >= raft_log.size() - 1) {
@@ -979,6 +987,28 @@ Status RaftServer::Leave(
     }
 
     PersistRaftState();
+
+    // Check if the leader needs to step down
+    if (leader_removed) {
+        // Prepare response for client before shutdown
+        response->set_success(true);
+        response->set_leader_server("");
+
+        // Start a separate thread to handle shutdown after responding to client
+        std::thread([this]() {
+            BecomeFollower(-1);  // Step down from leader role
+
+            // Clear all gRPC channels, as this node is no longer the leader
+            for (auto& stub : peer_stubs) {
+                stub.reset();
+            }
+
+            std::cout << "Leader removed from configuration, shutting down process." << std::endl;
+            std::exit(0);  // Terminate the process
+        }).detach();  // Detach the thread to allow it to run independently
+
+        return Status::OK;
+    }
 
     // Apply the committed log entry to the state machine (key-value store)
     while (last_applied < commit_index) {
