@@ -13,7 +13,7 @@ ConsistentHashing::ConsistentHashing(int num_replicas, const std::vector<std::st
 
 std::string ConsistentHashing::GetPartition(const std::string& key) {
     unsigned long hash = std::hash<std::string>{}(key);
-    auto it = hash_ring.lower_bound(hash);
+    auto it = hash_ring.upper_bound(hash);
     if (it == hash_ring.end()) {
         return hash_ring.begin()->second;
     }
@@ -58,7 +58,11 @@ std::vector<std::pair<unsigned long, unsigned long>> ConsistentHashing::GetKeySp
     for (size_t i = 0; i < sorted_hashes.size(); i++) {
         if (hash_ring[sorted_hashes[i]] == current_partition) {
             size_t prev_index = (i - 1 + sorted_hashes.size()) % sorted_hashes.size();
-            size_t prev_prev_index = (i - 2 + sorted_hashes.size()) % sorted_hashes.size();
+            // Get prev_prev_index as long it is not the same as new_partition
+            size_t prev_prev_index = prev_index;
+            do {
+                prev_prev_index = (prev_prev_index - 1 + sorted_hashes.size()) % sorted_hashes.size();
+            } while (hash_ring[sorted_hashes[prev_prev_index]] == new_partition);
             
             if (hash_ring[sorted_hashes[prev_index]] == new_partition) {
                 key_space.push_back({

@@ -8,6 +8,7 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <mutex>
 
 #include <grpcpp/grpcpp.h>
 #include "keyvaluestore.grpc.pb.h"
@@ -32,6 +33,9 @@ using keyvaluestore::LeaveRequest;
 using keyvaluestore::LeaveResponse;
 using keyvaluestore::PartitionChangeRequest;
 using keyvaluestore::PartitionChangeResponse;
+
+// Mutex for synchronizing output
+std::mutex cout_mutex;
 
 // Global variables to hold the gRPC objects
 std::map<int, std::shared_ptr<grpc::Channel>> channels_; // Channel for each Raft node
@@ -207,6 +211,7 @@ bool ReadServiceInstancesFromFile(const std::string &file_name) {
     num_partitions = partition_instances_.size();
 
     if(partition_instances_[num_partitions - 1].size() < min_nodes){
+        free_hanging_nodes.clear();
         for(const auto& node : partition_instances_[num_partitions - 1]){
             free_hanging_nodes.push_back(node);
         }
@@ -281,29 +286,24 @@ bool UpdateServiceInstancesInFile(const std::string &file_name, const std::strin
     return true;
 }
 
-bool AppendInstanceToFile(const std::string &file_name, const std::string &new_server){
-    int fd = open(file_name.c_str(), O_RDWR);
+bool AppendInstanceToFile(int fd, const std::string &new_server) {
+    // Ensure the file is open
     if(fd == -1){
-        std::cerr << "Error: Unable to open service instance file: " << file_name << std::endl;
+        std::cerr << "Error: Invalid file descriptor for service instance file" << std::endl;
         return false;
     }
-    if(flock(fd, LOCK_EX) == -1){
-        std::cerr << "Error: Unable to acquire exclusive lock on service instance file: " << file_name << std::endl;
-        return false;
-    }
-    std::ofstream output_file(file_name, std::ios::app); // Open in append mode
+    // Use the open file descriptor to create an `std::ofstream` in append mode
+    std::ofstream output_file;
+    output_file.rdbuf()->pubsetbuf(nullptr, 0);  // Disable buffering
+    output_file.open("/proc/self/fd/" + std::to_string(fd), std::ios::app);
+
     if (!output_file.is_open()) {
-        std::cerr << "Error: Unable to open service instance file: " << file_name << std::endl;
-        flock(fd, LOCK_UN);  // Release the exclusive lock
-        close(fd);
+        std::cerr << "Error: Unable to open service instance file"<< std::endl;
         return false;
     }
 
     output_file << new_server << std::endl;
     output_file.close();
-
-    flock(fd, LOCK_UN);
-    close(fd);
     return true;
 }
 
@@ -485,58 +485,139 @@ int FindPartition() {
     return -1;
 }
 
+// Function to transfer keys to the new partition
+bool TransferKeysToNewPartition(const PartitionChangeResponse& partition_change_response, int new_partition_id) {
+    // Get the leader of the new partition
+    std::string new_partition_leader = leader_addresses_[new_partition_id];
+    auto new_leader_stub = KeyValueStore::NewStub(grpc::CreateChannel(new_partition_leader, grpc::InsecureChannelCredentials()));
+
+    // Iterate over each key-value pair in the response
+    for (const auto& key_value : partition_change_response.key_values()) {
+        ClientContext context;
+        PutRequest put_request;
+        PutResponse put_response;
+
+        // Set key and value in the Put request
+        put_request.set_key(key_value.key());
+        put_request.set_value(key_value.value());
+
+        // Send the Put request to the new partition's leader
+        Status status = new_leader_stub->Put(&context, put_request, &put_response);
+        
+        // Check if the Put operation was successful
+        if (!status.ok() || !put_response.key_found()) {
+            std::cerr << "Error transferring key: " << key_value.key() << " to new partition " << new_partition_id << std::endl;
+            return false;
+        }
+    }
+
+    std::cout << "All keys transferred successfully to new partition " << new_partition_id << std::endl;
+    return true;
+}
+
 int addFreeNodes(std::string instance_name){
-    // Add the instance to the end of the config file
-    AppendInstanceToFile(config_file, instance_name);
+    // Open config file and acquire an exclusive lock
+    int fd = open(config_file.c_str(), O_RDWR);
+    if (fd == -1) {
+        std::cerr << "Error: Unable to open config file: " << config_file << std::endl;
+        return -1;
+    }
+
+    if (flock(fd, LOCK_EX) == -1) {
+        std::cerr << "Error: Unable to acquire exclusive lock on config file: " << config_file << std::endl;
+        close(fd);
+        return -1;
+    }
+
+    // Append instance to the end of config file without releasing the lock
+    if (!AppendInstanceToFile(fd, instance_name)) {
+        flock(fd, LOCK_UN);
+        close(fd);
+        return -1;
+    }
     free_hanging_nodes.push_back(instance_name);
 
-    if (free_hanging_nodes.size() == 3) {
+    if (free_hanging_nodes.size() == min_nodes) {
         ch->PrintHashRing();
         ch->AddPartition(std::to_string(num_partitions));
         num_partitions++;
         std::cout << "***************Added a new partition***************" << std::endl;
         ch->PrintHashRing();
 
+        // Vector to store threads
+        std::vector<std::thread> threads;
+        // Result vector to track success or failure for each partition
+        std::vector<bool> results(num_partitions - 1, true);
+
         // Iterate over all existing partitions (excluding the new one)
         for (int i = 0; i < num_partitions - 1; i++) {
-            // Fetch the key ranges to transfer for this partition
-            std::vector<std::pair<unsigned long, unsigned long>> key_space = ch->GetKeySpaceToTransfer(std::to_string(i), std::to_string(num_partitions-1));
-            
-            // Prepare the PartitionChangeRequest message
-            PartitionChangeRequest partition_change_request;
+            // Create a thread for each partition to handle key transfer concurrently
+            threads.emplace_back([i, &results]() {
+                // Fetch the key ranges to transfer for this partition
+                std::vector<std::pair<unsigned long, unsigned long>> key_space = ch->GetKeySpaceToTransfer(std::to_string(i), std::to_string(num_partitions-1));
+                
+                // Prepare the PartitionChangeRequest message
+                PartitionChangeRequest partition_change_request;
 
-            // Add key ranges to the request
-            for (const auto& range : key_space) {
-                keyvaluestore::KeyRange* key_range = partition_change_request.add_key_ranges();
-                key_range->set_key_start(range.first);
-                key_range->set_key_end(range.second);
-            }
+                // Add key ranges to the request
+                for (const auto& range : key_space) {
+                    keyvaluestore::KeyRange* key_range = partition_change_request.add_key_ranges();
+                    key_range->set_key_start(range.first);
+                    key_range->set_key_end(range.second);
+                }
 
-            // Send the PartitionChangeRequest to the partition's leader
-            PartitionChangeResponse partition_change_response;
-            Status status = RetryRequest(i, partition_change_request, &partition_change_response, &KeyValueStore::Stub::PartitionChange);
+                // Send the PartitionChangeRequest to the partition's leader
+                PartitionChangeResponse partition_change_response;
+                Status status = RetryRequest(i, partition_change_request, &partition_change_response, &KeyValueStore::Stub::PartitionChange);
 
-            // Check the status of the response
-            if (status.ok() && partition_change_response.success()) {
-                // print the key values that are being transferred if not empty. Else print You're good
-                if(partition_change_response.key_values().size() > 0){
-                    std::cout << "Move following key values from partition " << i << " to partition " << num_partitions-1 << std::endl;
-                    for(const auto& key_value : partition_change_response.key_values()){
-                        std::cout << "Key: " << key_value.key() << " Value: " << key_value.value() << std::endl;
+                // Check the status of the response
+                if (status.ok() && partition_change_response.success()) {
+                    // print the key values that are being transferred if not empty. Else print You're good
+                    if(partition_change_response.key_values().size() > 0){
+                        std::cout << "Move following key values from partition " << i << " to partition " << num_partitions-1 << std::endl;
+                        for(const auto& key_value : partition_change_response.key_values()){
+                            std::cout << "Key: " << key_value.key() << " Value: " << key_value.value() << std::endl;
+                        }
+
+                        // Transfer the keys to the new partition
+                        if (!TransferKeysToNewPartition(partition_change_response, num_partitions - 1)) {
+                            std::cerr << "Failed to transfer keys to new partition " << num_partitions - 1 << std::endl;
+                            results[i] = false;  // Mark as failed
+                        }
+                    } else {
+                        std::cout << "You're good" << std::endl;
                     }
                 } else {
-                    std::cout << "You're good" << std::endl;
+                    std::cerr << "Failed to send PartitionChangeRequest to leader of partition " << i << std::endl;
+                    results[i] = false;  // Mark as failed
                 }
-            } else {
-                std::cerr << "Failed to send PartitionChangeRequest to leader of partition " << i << std::endl;
+            });
+        }
+
+        // Wait for all threads to complete
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        // Check results for any failures
+        for (bool result : results) {
+            if (!result) {
+                std::cerr << "Key transfer failed for a partition." << std::endl;
+                
+                // Release the lock and close file descriptor before returning on failure
+                flock(fd, LOCK_UN);
+                close(fd);
+                return -1;
             }
         }
 
+        // Release the lock and close the file
+        flock(fd, LOCK_UN);
+        close(fd);
 
         // Update the client-side configuration
-        partition_instances_[num_partitions] = free_hanging_nodes;
+        partition_instances_[num_partitions-1] = free_hanging_nodes;
         free_hanging_nodes.clear();
-        num_partitions++;
     }
     return 0;
 }
