@@ -42,6 +42,8 @@ std::map<int, std::vector<std::string>> partition_instances_;  // Maps partition
 
 int num_partitions;  // Number of partitions (based on server configuration)
 const int nodes_per_partition = 5;  // Number of nodes per partition
+const int num_replicas = 3;  // Number of replicas per partition
+const int min_nodes = 3;
 
 std::vector<std::string> service_instances_;  // List of service instances (host:port)
 const int max_retries = 3;
@@ -50,16 +52,10 @@ const int max_retries = 3;
 // set it to null initially
 std::string config_file = "";
 std::string last_modified = "";
-int added_nodes = 0;
+std::vector<std::string> free_hanging_nodes;
 
 // Consistent hashing object to map keys to Raft partitions
 ConsistentHashing *ch;
-
-// Hash function to map keys to Raft partitions
-int HashKey(const std::string &key) {
-    std::hash<std::string> hasher;
-    return hasher(key) % num_partitions;
-}
 
 // Function to trim leading and trailing whitespace in place
 void trim(std::string &str) {
@@ -72,6 +68,97 @@ void trim(std::string &str) {
     str.erase(std::find_if(str.rbegin(), str.rend(), [](unsigned char ch) {
         return !std::isspace(ch);
     }).base(), str.end());
+}
+
+// Helper function to handle retries within a partition
+template <typename RequestType, typename ResponseType, typename FuncType>
+Status RetryRequest(int partition_id, const RequestType& request, ResponseType* response, FuncType rpc_func) {
+    int retries = 0;
+    std::vector<std::string> tried_nodes;
+    std::string current_leader = leader_addresses_[partition_id];  // Start with the known leader
+
+    while (retries < max_retries) {
+        // Update tried nodes and track the current leader
+        tried_nodes.push_back(current_leader);
+
+        ClientContext context;
+        Status status = (stubs_[partition_id].get()->*rpc_func)(&context, request, response);
+
+        
+        if (status.ok() && !response->leader_server().empty()) {
+            // Print the enitre response object for debugging
+            // std::cout << "Response: Client side leader: " << response->leader_server() << std::endl;
+            // std::cout << "Response: Success: " << response->success() << std::endl;
+            // Check if we were redirected to a new leader
+            if (response->leader_server() != current_leader) {
+                // Update the leader to the new one
+                current_leader = response->leader_server();
+                std::cout << "Redirected to new leader at " << current_leader << " for partition " << partition_id << std::endl;
+                leader_addresses_[partition_id] = current_leader;
+
+                // Create new gRPC channel and stub for the new leader
+                channels_[partition_id] = grpc::CreateChannel(current_leader, grpc::InsecureChannelCredentials());
+                stubs_[partition_id] = KeyValueStore::NewStub(channels_[partition_id]);
+
+                // std::cerr << "Redirected to new leader at " << current_leader << " for partition " << partition_id << std::endl;
+                continue;  // Retry with the new leader
+            }
+            // std::cerr << "Request succeeded for partition " << partition_id << " with leader " << current_leader << std::endl;
+            return status;  // Request succeeded
+        } else {
+            // std::cerr << "Failed to connect to " << current_leader << " for partition " << partition_id << std::endl;
+        }
+
+        // Find the next available node that has not yet been tried
+        auto& nodes = partition_instances_[partition_id];
+        auto it = std::find_if(nodes.begin(), nodes.end(), [&tried_nodes](const std::string& node) {
+            return std::find(tried_nodes.begin(), tried_nodes.end(), node) == tried_nodes.end();
+        });
+
+        if (it != nodes.end()) {
+            // Update to the next available node and retry
+            current_leader = *it;
+            leader_addresses_[partition_id] = current_leader;
+            channels_[partition_id] = grpc::CreateChannel(current_leader, grpc::InsecureChannelCredentials());
+            stubs_[partition_id] = KeyValueStore::NewStub(channels_[partition_id]);
+            // std::cerr << "Retrying with new node at " << current_leader << " for partition " << partition_id << std::endl;
+        } else {
+            // No more nodes to try, fail the request
+            std::cerr << "All nodes in partition " << partition_id << " have been tried. Request failed." << std::endl;
+            break;
+        }
+
+        retries++;
+    }
+
+    return Status::CANCELLED;  // Return a failure status after exhausting retries
+}
+
+int establishStub(int partition_id){
+    leader_addresses_[partition_id] = partition_instances_[partition_id][0];  // Assume first node in partition group is the leader
+    std::string leader_address = leader_addresses_[partition_id];
+
+    // Create gRPC channel and stub for the leader of this partition
+    channels_[partition_id] = grpc::CreateChannel(leader_address, grpc::InsecureChannelCredentials());
+    stubs_[partition_id] = KeyValueStore::NewStub(channels_[partition_id]);
+
+    // Make an InitRequest
+    InitRequest init_request;
+    init_request.set_server_name(leader_address);
+
+    InitResponse init_response;
+    ClientContext context;
+
+    Status status = RetryRequest(partition_id, init_request, &init_response, &KeyValueStore::Stub::Init);
+    if (status.ok()) {
+        if (init_response.success()) {
+            std::cout << "Successfully initialized connection to leader at " << leader_addresses_[partition_id] << " for partition " << partition_id << std::endl;
+        } else {
+            std::cerr << "Failed to initialize connection to leader at " << leader_addresses_[partition_id] << " for partition " << partition_id << std::endl;
+            return -1;
+        }
+    }
+    return 0;
 }
 
 bool ReadServiceInstancesFromFile(const std::string &file_name) {
@@ -92,6 +179,7 @@ bool ReadServiceInstancesFromFile(const std::string &file_name) {
     std::string instance;
     int current_partition = 0;
     int instance_count = 0;
+
     while (std::getline(file, instance)) {
         if (!instance.empty()) {
             // if the instance is set to "NULL", skip it
@@ -116,12 +204,31 @@ bool ReadServiceInstancesFromFile(const std::string &file_name) {
 
     flock(fd, LOCK_UN);  // Release the shared lock
     close(fd);
-    num_partitions = partition_instances_.size();  // Update the number of partitions
-    std::vector<std::string> keys(num_partitions);
-    for(int i = 0; i < num_partitions; i++){
-        keys[i] = std::to_string(i);
+    num_partitions = partition_instances_.size();
+
+    if(partition_instances_[num_partitions - 1].size() < min_nodes){
+        for(const auto& node : partition_instances_[num_partitions - 1]){
+            free_hanging_nodes.push_back(node);
+        }
+        num_partitions--;
     }
-    ch = new ConsistentHashing(3, keys);
+
+    std::vector<std::string> nodes(num_partitions);
+    for(int i = 0; i < num_partitions; i++){
+        nodes[i] = std::to_string(i);
+    }
+    ch = new ConsistentHashing(num_replicas, nodes);
+    // Check if stubs and channels need to be established for any partition
+    // Don't establish stubs for free hanging nodes
+    // Don't establish stubs if they are already established
+    
+    for (int partition_id = 0; partition_id < num_partitions; ++partition_id) {
+        if (stubs_.find(partition_id) == stubs_.end()) {
+            if(establishStub(partition_id) == -1){
+                return false;
+            }
+        }
+    }
     return !service_instances_.empty();
 }
 
@@ -149,7 +256,6 @@ bool UpdateServiceInstancesInFile(const std::string &file_name, const std::strin
     while (std::getline(file, line)) {
         if (line_number >= offset * nodes_per_partition && line_number < (offset + 1) * nodes_per_partition) {
             trim(line);
-            std::cout << "Reading line: " << line << std::endl;
             if(line == old_server){
                 line = new_server;
             }
@@ -201,100 +307,10 @@ bool AppendInstanceToFile(const std::string &file_name, const std::string &new_s
     return true;
 }
 
-// Helper function to handle retries within a partition
-template <typename RequestType, typename ResponseType, typename FuncType>
-Status RetryRequest(int partition_id, const RequestType& request, ResponseType* response, FuncType rpc_func) {
-    int retries = 0;
-    std::vector<std::string> tried_nodes;
-    std::string current_leader = leader_addresses_[partition_id];  // Start with the known leader
-
-    while (retries < max_retries) {
-        // Update tried nodes and track the current leader
-        tried_nodes.push_back(current_leader);
-
-        ClientContext context;
-        Status status = (stubs_[partition_id].get()->*rpc_func)(&context, request, response);
-
-        
-        if (status.ok() && !response->leader_server().empty()) {
-            // Print the enitre response object for debugging
-            // std::cout << "Response: Client side leader: " << response->leader_server() << std::endl;
-            // std::cout << "Response: Success: " << response->success() << std::endl;
-            // Check if we were redirected to a new leader
-            if (response->leader_server() != current_leader) {
-                // Update the leader to the new one
-                current_leader = response->leader_server();
-                leader_addresses_[partition_id] = current_leader;
-
-                // Create new gRPC channel and stub for the new leader
-                channels_[partition_id] = grpc::CreateChannel(current_leader, grpc::InsecureChannelCredentials());
-                stubs_[partition_id] = KeyValueStore::NewStub(channels_[partition_id]);
-
-                // std::cerr << "Redirected to new leader at " << current_leader << " for partition " << partition_id << std::endl;
-                continue;  // Retry with the new leader
-            }
-            // std::cerr << "Request succeeded for partition " << partition_id << " with leader " << current_leader << std::endl;
-            return status;  // Request succeeded
-        } else {
-            // std::cerr << "Failed to connect to " << current_leader << " for partition " << partition_id << std::endl;
-        }
-
-        // Find the next available node that has not yet been tried
-        auto& nodes = partition_instances_[partition_id];
-        auto it = std::find_if(nodes.begin(), nodes.end(), [&tried_nodes](const std::string& node) {
-            return std::find(tried_nodes.begin(), tried_nodes.end(), node) == tried_nodes.end();
-        });
-
-        if (it != nodes.end()) {
-            // Update to the next available node and retry
-            current_leader = *it;
-            leader_addresses_[partition_id] = current_leader;
-            channels_[partition_id] = grpc::CreateChannel(current_leader, grpc::InsecureChannelCredentials());
-            stubs_[partition_id] = KeyValueStore::NewStub(channels_[partition_id]);
-            // std::cerr << "Retrying with new node at " << current_leader << " for partition " << partition_id << std::endl;
-        } else {
-            // No more nodes to try, fail the request
-            std::cerr << "All nodes in partition " << partition_id << " have been tried. Request failed." << std::endl;
-            break;
-        }
-
-        retries++;
-    }
-
-    return Status::CANCELLED;  // Return a failure status after exhausting retries
-}
-
 int kv739_init(const std::string &file_name) {
     config_file = file_name;
     if (!ReadServiceInstancesFromFile(file_name)) {
         return -1;
-    }
-
-    // Initialize connection by selecting the first node of each partition
-    for (int partition_id = 0; partition_id < num_partitions; partition_id++) {
-        leader_addresses_[partition_id] = partition_instances_[partition_id][0];  // Assume first node in partition group is the leader
-        std::string leader_address = leader_addresses_[partition_id];
-
-        // Create gRPC channel and stub for the leader of this partition
-        channels_[partition_id] = grpc::CreateChannel(leader_address, grpc::InsecureChannelCredentials());
-        stubs_[partition_id] = KeyValueStore::NewStub(channels_[partition_id]);
-
-        // Make an InitRequest
-        InitRequest init_request;
-        init_request.set_server_name(leader_address);
-
-        InitResponse init_response;
-        ClientContext context;
-
-        Status status = RetryRequest(partition_id, init_request, &init_response, &KeyValueStore::Stub::Init);
-        if (status.ok()) {
-            if (init_response.success()) {
-                std::cout << "Successfully initialized connection to leader at " << leader_addresses_[partition_id] << " for partition " << partition_id << std::endl;
-            } else {
-                std::cerr << "Failed to initialize connection to leader at " << leader_addresses_[partition_id] << " for partition " << partition_id << std::endl;
-                return -1;
-            }
-        }
     }
 
     return 0;
@@ -347,15 +363,12 @@ int kv739_get(const std::string &key, std::string &value) {
     if (status.ok()) {
         if (get_response.key_found()) {
             value = get_response.value();
-            // std::cout << "Get operation successful. Key: '" << key << "', Value: '" << value << "'." << std::endl;
             return 0;
         } else {
-            // std::cout << "Key '" << key << "' not found." << std::endl;
             return 1;  // Key not found
         } 
     }
 
-    // std::cerr << "Error: Get operation failed for key: '" << key << "'." << std::endl;
     return -1;
 }
 
@@ -399,6 +412,16 @@ int kv739_put(const std::string &key, const std::string &value, std::string &old
 
 
 int kv739_die(const std::string &server_name, int clean) {
+    // Read the config file to check if it has been modified
+    struct stat file_stat;
+    if (stat(config_file.c_str(), &file_stat) == 0) {
+        if (std::to_string(file_stat.st_mtime) != last_modified) {
+            if (!ReadServiceInstancesFromFile(config_file)) {
+                return -1;
+            }
+        }
+    }
+
     std::string server_addr = server_name;
     trim(server_addr);
     // Find the server based on the server name (which is the server address)
@@ -462,62 +485,78 @@ int FindPartition() {
     return -1;
 }
 
+int addFreeNodes(std::string instance_name){
+    // Add the instance to the end of the config file
+    AppendInstanceToFile(config_file, instance_name);
+    free_hanging_nodes.push_back(instance_name);
+
+    if (free_hanging_nodes.size() == 3) {
+        ch->PrintHashRing();
+        ch->AddPartition(std::to_string(num_partitions));
+        num_partitions++;
+        std::cout << "***************Added a new partition***************" << std::endl;
+        ch->PrintHashRing();
+
+        // Iterate over all existing partitions (excluding the new one)
+        for (int i = 0; i < num_partitions - 1; i++) {
+            // Fetch the key ranges to transfer for this partition
+            std::vector<std::pair<unsigned long, unsigned long>> key_space = ch->GetKeySpaceToTransfer(std::to_string(i), std::to_string(num_partitions-1));
+            
+            // Prepare the PartitionChangeRequest message
+            PartitionChangeRequest partition_change_request;
+
+            // Add key ranges to the request
+            for (const auto& range : key_space) {
+                keyvaluestore::KeyRange* key_range = partition_change_request.add_key_ranges();
+                key_range->set_key_start(range.first);
+                key_range->set_key_end(range.second);
+            }
+
+            // Send the PartitionChangeRequest to the partition's leader
+            PartitionChangeResponse partition_change_response;
+            Status status = RetryRequest(i, partition_change_request, &partition_change_response, &KeyValueStore::Stub::PartitionChange);
+
+            // Check the status of the response
+            if (status.ok() && partition_change_response.success()) {
+                // print the key values that are being transferred if not empty. Else print You're good
+                if(partition_change_response.key_values().size() > 0){
+                    std::cout << "Move following key values from partition " << i << " to partition " << num_partitions-1 << std::endl;
+                    for(const auto& key_value : partition_change_response.key_values()){
+                        std::cout << "Key: " << key_value.key() << " Value: " << key_value.value() << std::endl;
+                    }
+                } else {
+                    std::cout << "You're good" << std::endl;
+                }
+            } else {
+                std::cerr << "Failed to send PartitionChangeRequest to leader of partition " << i << std::endl;
+            }
+        }
+
+
+        // Update the client-side configuration
+        partition_instances_[num_partitions] = free_hanging_nodes;
+        free_hanging_nodes.clear();
+        num_partitions++;
+    }
+    return 0;
+}
 
 int kv739_start(const std::string &instance_name, int new_instance) {
+    // Read the config file to check if it has been modified
+    struct stat file_stat;
+    if (stat(config_file.c_str(), &file_stat) == 0) {
+        if (std::to_string(file_stat.st_mtime) != last_modified) {
+            if (!ReadServiceInstancesFromFile(config_file)) {
+                return -1;
+            }
+        }
+    }
+    
     // Find an available partition for the new instance
     int partition_id = FindPartition();
     if (partition_id == -1) {
-        std::cerr << "No available partitions for new instance " << instance_name << std::endl;
-        
-        // Add the instance to the end of the config file
-        AppendInstanceToFile(config_file, instance_name);
-        added_nodes++;
-
-        if (added_nodes == 3) {
-            ch->PrintHashRing();
-            ch->AddPartition(std::to_string(num_partitions));
-            num_partitions++;
-            std::cout << "***************Added a new partition***************" << std::endl;
-            ch->PrintHashRing();
-
-            // Iterate over all existing partitions (excluding the new one)
-            for (int i = 0; i < num_partitions - 1; i++) {
-                // Fetch the key ranges to transfer for this partition
-                std::vector<std::pair<unsigned long, unsigned long>> key_space = ch->GetKeySpaceToTransfer(std::to_string(i), std::to_string(num_partitions-1));
-                
-                // Prepare the PartitionChangeRequest message
-                PartitionChangeRequest partition_change_request;
-
-                // Add key ranges to the request
-                for (const auto& range : key_space) {
-                    keyvaluestore::KeyRange* key_range = partition_change_request.add_key_ranges();
-                    key_range->set_key_start(range.first);
-                    key_range->set_key_end(range.second);
-                }
-
-                // Send the PartitionChangeRequest to the partition's leader
-                PartitionChangeResponse partition_change_response;
-                Status status = RetryRequest(i, partition_change_request, &partition_change_response, &KeyValueStore::Stub::PartitionChange);
-
-                // Check the status of the response
-                if (status.ok() && partition_change_response.success()) {
-                    // print the key values that are being transferred if not empty. Else print You're good
-                    if(partition_change_response.key_values().size() > 0){
-                        std::cout << "Move following key values from partition " << i << " to partition " << num_partitions-1 << std::endl;
-                        for(const auto& key_value : partition_change_response.key_values()){
-                            std::cout << "Key: " << key_value.key() << " Value: " << key_value.value() << std::endl;
-                        }
-                    } else {
-                        std::cout << "You're good" << std::endl;
-                    }
-                } else {
-                    std::cerr << "Failed to send PartitionChangeRequest to leader of partition " << i << std::endl;
-                }
-            }
-
-            added_nodes = 0;  // Reset the count after adding the new partition
-        }
-        return 0;
+        // call addFreeNodes
+        return addFreeNodes(instance_name);
     }
 
     StartRequest start_request;
@@ -550,14 +589,24 @@ int kv739_start(const std::string &instance_name, int new_instance) {
 
 int kv739_leave(const std::string &instance_name, int clean) {
     // Check if the instance exists in the service instances
+
+    struct stat file_stat;
+    if (stat(config_file.c_str(), &file_stat) == 0) {
+        if (std::to_string(file_stat.st_mtime) != last_modified) {
+            if (!ReadServiceInstancesFromFile(config_file)) {
+                return -1;
+            }
+        }
+    }
+
     auto it = std::find(service_instances_.begin(), service_instances_.end(), instance_name);
     if (it == service_instances_.end()) {
         std::cerr << "Instance " << instance_name << " not found in service instances" << std::endl;
         return -1;
     }
 
-    // Determine the partition ID for this instance
-    int partition_id = HashKey(instance_name);
+    int server_id = std::find(service_instances_.begin(), service_instances_.end(), instance_name) - service_instances_.begin();
+    int partition_id = server_id / nodes_per_partition;
 
     LeaveRequest leave_request;
     LeaveResponse leave_response;
@@ -565,12 +614,9 @@ int kv739_leave(const std::string &instance_name, int clean) {
     leave_request.set_clean(clean == 1);
 
     // Use RetryRequest to find an available node in the partition to handle the leave request
+    // YOU COME AT THE KING, YOU BEST NOT MISS
     Status status = RetryRequest(partition_id, leave_request, &leave_response, &KeyValueStore::Stub::Leave);
-    if (!status.ok() || !leave_response.success()) {
-        std::cerr << "Error removing instance " << instance_name << std::endl;
-        return -1;
-    }
-
+    
     std::cout << "Instance " << instance_name << " has successfully left partition " << partition_id << std::endl;
 
     // Update client-side configuration
