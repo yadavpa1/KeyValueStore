@@ -48,6 +48,33 @@ bool RocksDBWrapper::Get(const std::string &key, std::string &value) const
     return status.ok(); // Returns true if the key was found
 }
 
+bool RocksDBWrapper::GetAllKeys(std::vector<std::string> &keys) const
+{
+    if (!db_)
+    {
+        std::cerr << "Error: DB not initialized." << std::endl;
+        return false;
+    }
+
+    // Create an iterator to traverse all keys.
+    rocksdb::ReadOptions read_options;
+    std::unique_ptr<rocksdb::Iterator> it(db_->NewIterator(read_options));
+
+    // Traverse the entire key space.
+    for (it->SeekToFirst(); it->Valid(); it->Next())
+    {
+        keys.push_back(it->key().ToString());
+    }
+
+    if (!it->status().ok())
+    {
+        std::cerr << "Error loading keys: " << it->status().ToString() << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
 int RocksDBWrapper::Put(const std::string &key, const std::string &value, std::string &old_value)
 {
     if (!db_)
