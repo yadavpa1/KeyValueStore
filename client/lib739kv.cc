@@ -32,6 +32,8 @@ using keyvaluestore::LeaveRequest;
 using keyvaluestore::LeaveResponse;
 using keyvaluestore::PartitionChangeRequest;
 using keyvaluestore::PartitionChangeResponse;
+using keyvaluestore::NewRaftGroupRequest;
+using keyvaluestore::NewRaftGroupResponse;
 
 // Global variables to hold the gRPC objects
 std::map<int, std::shared_ptr<grpc::Channel>> channels_; // Channel for each Raft node
@@ -511,6 +513,33 @@ bool TransferKeysToNewPartition(const PartitionChangeResponse& partition_change_
     return true;
 }
 
+bool NotifyNewRaftGroup(int partition_id, const std::vector<std::string>& server_instances) {
+    NewRaftGroupRequest request;
+    request.set_group_id(partition_id);
+    for (const auto& instance : server_instances) {
+        request.add_server_instances(instance);
+    }
+
+    NewRaftGroupResponse response;
+
+    // Notify each server in the new partition by establishing a new channel and retrying if needed
+    for (const auto& instance : server_instances) {
+        // Create a unique channel and stub for each server instance
+        auto channel = grpc::CreateChannel(instance, grpc::InsecureChannelCredentials());
+        auto stub = KeyValueStore::NewStub(channel);
+
+        // Retry sending NotifyNewRaftGroup request
+        Status status = RetryRequest(partition_id, request, &response, &KeyValueStore::Stub::NotifyNewRaftGroup);
+        if (!status.ok() || !response.success()) {
+            std::cerr << "Failed to notify server " << instance << " about new Raft group " << partition_id 
+                      << " with error: " << status.error_message() << std::endl;
+            return false;
+        }
+        std::cout << "Successfully notified " << instance << " about the new Raft group " << partition_id << std::endl;
+    }
+    return true;
+}
+
 int addFreeNodes(std::string instance_name){
     // Open config file and acquire an exclusive lock
     int fd = open(config_file.c_str(), O_RDWR);
@@ -540,10 +569,21 @@ int addFreeNodes(std::string instance_name){
         std::cout << "***************Added a new partition***************" << std::endl;
         ch->PrintHashRing();
 
-        // Vector to store threads
-        std::vector<std::thread> threads;
-        // Result vector to track success or failure for each partition
-        std::vector<bool> results(num_partitions - 1, true);
+        // Assign the new free-hanging nodes to the new partition
+        int new_partition_id = num_partitions - 1;
+        partition_instances_[new_partition_id] = free_hanging_nodes;
+
+        // Notify each server about the new Raft group
+        if (!NotifyNewRaftGroup(new_partition_id, free_hanging_nodes)) {
+            std::cerr << "Failed to notify servers about new Raft group " << new_partition_id << std::endl;
+            flock(fd, LOCK_UN);
+            close(fd);
+            return -1;
+        }
+
+        // Initiate key transfer for the new partition
+        std::vector<std::thread> threads;  // Vector to store threads
+        std::vector<bool> results(num_partitions - 1, true);  // Result vector to track success or failure for each partition
 
         // Iterate over all existing partitions (excluding the new one)
         for (int i = 0; i < num_partitions - 1; i++) {
@@ -607,14 +647,13 @@ int addFreeNodes(std::string instance_name){
             }
         }
 
-        // Release the lock and close the file
-        flock(fd, LOCK_UN);
-        close(fd);
-
-        // Update the client-side configuration
-        partition_instances_[num_partitions-1] = free_hanging_nodes;
+        // Clear free hanging nodes after successful creation of the new partition
         free_hanging_nodes.clear();
     }
+
+    // Release the lock and close the file
+    flock(fd, LOCK_UN);
+    close(fd);
     return 0;
 }
 
@@ -632,7 +671,7 @@ int kv739_start(const std::string &instance_name, int new_instance) {
     // Find an available partition for the new instance
     int partition_id = FindPartition();
     if (partition_id == -1) {
-        // call addFreeNodes
+        // call addFreeNodes 
         return addFreeNodes(instance_name);
     }
 

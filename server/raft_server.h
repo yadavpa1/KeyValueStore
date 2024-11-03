@@ -52,6 +52,8 @@ using keyvaluestore::LeaveResponse;
 using keyvaluestore::PartitionChangeRequest;
 using keyvaluestore::PartitionChangeResponse;
 using keyvaluestore::KeyRange;
+using keyvaluestore::NewRaftGroupRequest;
+using keyvaluestore::NewRaftGroupResponse;
 
 enum class RaftState { 
     FOLLOWER,
@@ -74,6 +76,8 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
         
         // Run raft server
         void Run();
+
+        void StartServer();
 
         // wait for server to shutdown
         void Wait();
@@ -113,6 +117,12 @@ class RaftServer final : public keyvaluestore::Raft::Service, public keyvaluesto
             ServerContext* context, 
             const PartitionChangeRequest* request, 
             PartitionChangeResponse* response
+        ) override;
+
+        Status NotifyNewRaftGroup(
+            ServerContext* context,
+            const NewRaftGroupRequest* request,
+            NewRaftGroupResponse* response
         ) override;
 
         // Raft RPCs

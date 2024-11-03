@@ -204,7 +204,7 @@ void RaftServer::Run() {
     server = builder.BuildAndStart();
     // std::cout << "Raft server listening on " << host_list[server_id] << std::endl;
 
-     // Initialize gRPC stubs for peer nodes
+    // Initialize gRPC stubs for peer nodes
     for (int i = 0; i < host_list.size(); i++) {
         if (i != server_id) {
             peer_stubs.push_back(Raft::NewStub(grpc::CreateChannel(host_list[i], grpc::InsecureChannelCredentials())));
@@ -221,6 +221,54 @@ void RaftServer::Run() {
     SetElectionAlarm(election_timeout);
     server->Wait();
 }
+
+
+void RaftServer::StartServer() {
+    signal(SIGALRM, &SignalHandler);
+    alarm_handler_server = this;
+
+    ServerBuilder builder;
+    builder.AddListeningPort(host_list[server_id], grpc::InsecureServerCredentials());
+
+    // Register Raft and KeyValueStore services
+    builder.RegisterService(static_cast<keyvaluestore::Raft::Service*>(this));
+    builder.RegisterService(static_cast<keyvaluestore::KeyValueStore::Service*>(this));
+
+    server = builder.BuildAndStart();
+    // std::cout << "Raft server listening on " << host_list[server_id] << std::endl;
+    server->Wait();
+}
+
+Status RaftServer::NotifyNewRaftGroup(
+    ServerContext* context,
+    const NewRaftGroupRequest* request,
+    NewRaftGroupResponse* response
+) {
+    int64_t group_id = request->group_id();
+    host_list.assign(request->server_instances().begin(), request->server_instances().end());
+    peer_stubs.clear();
+
+    // Initialize gRPC stubs for each peer, excluding self
+    for (int i = 0; i < host_list.size(); i++) {
+        if (i != server_id) {
+            peer_stubs.push_back(Raft::NewStub(grpc::CreateChannel(host_list[i], grpc::InsecureChannelCredentials())));
+        } else {
+            peer_stubs.push_back(nullptr);
+        }
+    }
+
+    // Reset the election timeout and, if this server is the initial leader, start the election process
+    ResetElectionTimeout();
+    if (server_id == 0) {
+        std::thread(&RaftServer::StartElection, this).detach();
+    }
+    SetElectionAlarm(election_timeout);
+
+    response->set_success(true);
+    response->set_leader_server("");
+    return Status::OK;
+}
+
 
 void RaftServer::Wait() {
     server->Wait();
