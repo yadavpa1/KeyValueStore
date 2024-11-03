@@ -112,6 +112,21 @@ target_link_libraries(restart_server
   absl::log_globals
 )
 
+# Add executable to run raft_node_launcher.cc
+add_executable(raft_node_launcher
+  server/raft_node_launcher.cc
+  server/raft_server.cc
+  server/thread_pool.cc
+)
+
+target_link_libraries(raft_node_launcher
+  kvs_grpc_proto
+  rocksdb_wrapper
+  absl::flags_parse
+  absl::log_initialize
+  absl::log_globals
+)
+
 # Targets Tests [correctenss, performance, reliability]
 # List of test executables
 set(TEST_EXECUTABLES
@@ -121,6 +136,7 @@ set(TEST_EXECUTABLES
   reliability_v2
   performance_v2
   availability
+  membership
 )
 
 # Loop to add test executables

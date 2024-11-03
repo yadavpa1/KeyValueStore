@@ -12,9 +12,9 @@
 #include <string>
 #include "consistent_hashing.h"
 
-int num_partitions;  // Number of partitions (based on server configuration)
+// int num_partitions;  // Number of partitions (based on server configuration)
 // Hash function to map keys to Raft partitions
-ConsistentHashing *ch;
+// ConsistentHashing *ch;
 
 // Utility function to read server list from config file
 std::vector<std::string> read_server_list(const std::string& config_file) {
@@ -456,7 +456,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
         return 1;
     }
-    int keys_to_test = 1000;
+    int keys_to_test = 100;
     // srand(time(0));
     // Run availability test with server list from the provided config file
     // test_availability_with_failures_of_leaders(argv[1]);

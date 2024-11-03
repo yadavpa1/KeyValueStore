@@ -3,9 +3,31 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <thread>
+#include <algorithm>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "consistent_hashing.h"
 
-extern ConsistentHashing *ch;
+
+std::map<int, std::string> leader_addresses_;  // Maps partition IDs to current leader addresses
+std::map<int, std::vector<std::string>> partition_instances_;  // Maps partition IDs to list of nodes
+
+int num_partitions;  // Number of partitions (based on server configuration)
+
+std::vector<std::string> service_instances_;  // List of service instances (host:port)
+
+std::vector<std::string> free_hanging_nodes;
+
+// Consistent hashing object to map keys to Raft partitions
+ConsistentHashing *ch;
+
+int FindPartition();
+
 int kv739_init(const std::string &config_file);
 
 int kv739_shutdown();

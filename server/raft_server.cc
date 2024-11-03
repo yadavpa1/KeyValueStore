@@ -514,6 +514,9 @@ void RaftServer::StartElection() {
     if (votes_gained > host_list.size() / 2) {
         BecomeLeader();
     }
+    else {
+        BecomeFollower(-1);
+    }
 }
 
 void RaftServer::BecomeLeader() {

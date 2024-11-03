@@ -39,25 +39,16 @@ using keyvaluestore::NewRaftGroupResponse;
 std::map<int, std::shared_ptr<grpc::Channel>> channels_; // Channel for each Raft node
 std::map<int, std::unique_ptr<KeyValueStore::Stub>> stubs_; // Stub for each Raft node
 
-std::map<int, std::string> leader_addresses_;  // Maps partition IDs to current leader addresses
-std::map<int, std::vector<std::string>> partition_instances_;  // Maps partition IDs to list of nodes
-
-int num_partitions;  // Number of partitions (based on server configuration)
 const int nodes_per_partition = 5;  // Number of nodes per partition
 const int num_replicas = 3;  // Number of replicas per partition
 const int min_nodes = 3;
 
-std::vector<std::string> service_instances_;  // List of service instances (host:port)
 const int max_retries = 3;
 
 // Maintain a last_modified timestamp for the configuration file
 // set it to null initially
 std::string config_file = "";
 std::string last_modified = "";
-std::vector<std::string> free_hanging_nodes;
-
-// Consistent hashing object to map keys to Raft partitions
-ConsistentHashing *ch;
 
 // Function to trim leading and trailing whitespace in place
 void trim(std::string &str) {
@@ -181,6 +172,9 @@ bool ReadServiceInstancesFromFile(const std::string &file_name) {
     std::string instance;
     int current_partition = 0;
     int instance_count = 0;
+    
+    partition_instances_.clear(); // Clear the partition instances to avoid duplicates
+    service_instances_.clear();  // Clear the service instances to avoid duplicates
 
     while (std::getline(file, instance)) {
         if (!instance.empty()) {
