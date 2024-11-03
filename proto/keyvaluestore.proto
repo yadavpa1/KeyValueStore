@@ -96,8 +96,8 @@ message PartitionChangeResponse {
 
 // Message to notify about the new Raft group
 message NewRaftGroupRequest {
-    int64 group_id = 1;                     // Unique identifier for the new Raft group
-    repeated string server_instances = 2;   // List of servers in the new Raft group
+    string server_name = 2;
+    repeated string server_instances = 3;   // List of servers in the new Raft group
 }
 
 message NewRaftGroupResponse {

@@ -244,7 +244,15 @@ Status RaftServer::NotifyNewRaftGroup(
     const NewRaftGroupRequest* request,
     NewRaftGroupResponse* response
 ) {
-    int64_t group_id = request->group_id();
+    server_name = request->server_name();
+    
+    auto it = std::find(request->server_instances().begin(), request->server_instances().end(), server_name);
+    if (it == request->server_instances().end()) {
+        response->set_success(false);
+        return Status(grpc::StatusCode::INVALID_ARGUMENT, "Server name not found in new raft group instances");
+    }
+    server_id = std::distance(request->server_instances().begin(), it);
+
     host_list.assign(request->server_instances().begin(), request->server_instances().end());
     peer_stubs.clear();
 

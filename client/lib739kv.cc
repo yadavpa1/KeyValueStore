@@ -515,7 +515,6 @@ bool TransferKeysToNewPartition(const PartitionChangeResponse& partition_change_
 
 bool NotifyNewRaftGroup(int partition_id, const std::vector<std::string>& server_instances) {
     NewRaftGroupRequest request;
-    request.set_group_id(partition_id);
     for (const auto& instance : server_instances) {
         request.add_server_instances(instance);
     }
@@ -524,6 +523,8 @@ bool NotifyNewRaftGroup(int partition_id, const std::vector<std::string>& server
 
     // Notify each server in the new partition by establishing a new channel and retrying if needed
     for (const auto& instance : server_instances) {
+        request.set_server_name(instance);
+
         // Create a unique channel and stub for each server instance
         auto channel = grpc::CreateChannel(instance, grpc::InsecureChannelCredentials());
         auto stub = KeyValueStore::NewStub(channel);
