@@ -2,7 +2,7 @@
 <!-- Insert image from assets -->
 ![design](assets/Design.png)
 <br>
-This project is a gRPC-based server application that also uses SQLite for database operations. Below are the steps to install the necessary dependencies and build the project.
+This project is a Distributed Key-Value Store application that uses multi Raft groups to store key value in different partition. It RocksDB as the underlying Database and gPRC for server-client communication. Below are the steps to install the necessary dependencies and build the project.
 
 ## Prerequisites
 
@@ -15,9 +15,9 @@ Ensure you have the following installed on your system before building the proje
         |- MyProjectFolder
         ```
 
-- **SQLite3**: Install SQLite3 and its development libraries using the following command:
+- **RocksDB**: Install RocksDB and its development libraries using the following command:
         ```sh
-        sudo apt install sqlite3 libsqlite3-dev
+        sudo apt install rocksDB librocksdb-dev
         ```
 
 ## Build Instructions
@@ -54,7 +54,7 @@ The project relies on several external libraries, which are included and linked 
 1. **gRPC**: The C++ gRPC library is used for client-server communication.
 2. **Protobuf**: Protocol Buffers (protobuf) is used for serializing structured data.
 3. **Abseil**: Abseil is a collection of C++ libraries.
-4. **SQLite3**: SQLite is used for database operations.
+4. **RocksDB**: RocksDB is used for database operations.
 
 ### CMake Configuration
 1. The `CMakeLists.txt` file contains references to all the external libraries required by the project.
