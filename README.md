@@ -1,5 +1,6 @@
 # Distributed Key-Value Store
-
+<!-- Insert image from assets -->
+![design](assets/Distributed_Systems%20Project.drawio.png)
 This project is a gRPC-based server application that also uses SQLite for database operations. Below are the steps to install the necessary dependencies and build the project.
 
 ## Prerequisites
