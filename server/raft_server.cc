@@ -447,6 +447,7 @@ Status RaftServer::RequestVote(
         BecomeFollower(-1);
 
         // Persist the updated term and follower state
+        ResetElectionTimeout();
         PersistRaftState();
     }
 
